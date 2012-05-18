@@ -1,0 +1,38 @@
+This is an implementation of a library that supports sending and receiving of
+JALoP Records over a network using the JALoP/BEEP protocol.
+
+Building and Installing
+This project uses the maven (maven.apache.org) build tool version 3.0.4, and 
+is tested using the Oracle Java SE Development Kit 6u27. Other versions of
+the JDK/JVM and maven should work, but have not been tested.
+
+Installation Instructions:
+
+1. Download and install maven
+	(Follow instructions at http://maven.apache.org/download.html)
+
+2. Package JALoP JNL project
+	- Run mvn package
+
+Other Options (these steps do not need to be executed in order to use the JALoP
+libraries)
+To run the unit tests and generate code coverage reports, run
+$ mvn test
+The generated code coverage reports will appear in the directory coverage-report
+
+To clean the target directory, run
+$ mvn clean
+
+To generate Javadoc documentation, run
+$ mvn site
+The generated documents will appear in the directory target/site
+
+
+All of the source code for the implementation is under the 'src' directory.
+
+This project is built and tested in the following environments:
+  RedHat Enterprise Linux (RHEL) 5 on x86_64
+  RHEL 6 on x86_64
+  RHEL 6 on i386
+  Solaris 10 TX 09/10 on i386
+
