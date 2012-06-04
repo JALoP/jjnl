@@ -1,0 +1,19 @@
+{
+  "beepAction": "listen",
+  "address": "192.168.90.1",
+  "port": 1234,
+  "pendingDigestMax": 128,
+  "pendingDigestTimeout": 120,
+  "input" : "./foo/input",
+  "output" : "./foo/output",
+  "peers": [
+    { "hosts": ["192.168.90.5"],
+      "publishAllow": ["audit", "journal"],
+      "subscribeAllow": ["log"], 
+    },
+    { "hosts": ["192.168.90.5", "192.168.90.6"],
+      "publishAllow": ["log"],
+      "subscribeAllow": ["audit"],
+    }
+    ]
+}

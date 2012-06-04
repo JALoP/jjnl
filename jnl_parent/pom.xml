@@ -66,6 +66,7 @@
   </reporting>
   <modules>
     <module>../jnl_lib</module>
+    <module>../jnl_test</module>
   </modules>
 </project>
 commit 5d3514eb5082c0ba8379e7f5b59376308eb5be96

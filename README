@@ -6,6 +6,21 @@ This project uses the maven (maven.apache.org) build tool version 3.0.4, and
 is tested using the Oracle Java SE Development Kit 6u27. Other versions of
 the JDK/JVM and maven should work, but have not been tested.
 
+The JJNL uses a multi-module layout, and the entire project can be built by
+running maven commands in the jnl_parent directory. The various modules are:
+
+ - jnl_parent - This is the top-level project. Running maven commands within
+      this directory affects all modules in the project. The jnl_parent module
+      contains common configuration and dependency information.
+
+ - jnl_lib - This module contains the code for the Java JALoP Network Library.
+
+ - jnl_test - This module contains a utility program that acts as a JALoP Network
+      Store. It uses the JNL to either listen for incoming connections, or
+      initiate a connection to a remote. It's behaviour is governed by a
+      configuration file.  The path to the configuration file is passed as a
+      command line argument.
+
 Installation Instructions:
 
 1. Download and install maven
@@ -29,6 +44,7 @@ Installation Instructions:
 
 Other Options (these steps do not need to be executed in order to use the JALoP
 libraries)
+
 To run the unit tests and generate code coverage reports, run
 $ mvn test
 The generated code coverage reports will appear in the directory coverage-report
@@ -40,8 +56,6 @@ To generate Javadoc documentation, run
 $ mvn site
 The generated documents will appear in the directory target/site
 
-
-All of the source code for the implementation is under the 'src' directory.
 
 This project is built and tested in the following environments:
   RedHat Enterprise Linux (RHEL) 5 on x86_64

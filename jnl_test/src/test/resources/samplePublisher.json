@@ -1,0 +1,12 @@
+{
+  "beepAction": "connect",
+  "address": "192.168.90.1",
+  "port": 1234,
+  "publisher": {
+  	"sessionTimeout": "00:20:00",
+  	"dataClass": [ "audit", "log" ],
+  	"input": "./input",
+  	"pendingDigestMax": 128,
+  	"pendingDigestTimeout": 120,
+  }
+}
