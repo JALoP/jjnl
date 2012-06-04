@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.tresys.jalop.jnl</groupId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../jnl_parent</relativePath>
+    <artifactId>parent</artifactId>
+  </parent>
+  <artifactId>jnl_lib</artifactId>
+  <name>Java JALoP Network Library</name>
+  <dependencies>
+    <dependency>
+      <groupId>org.beepcore-java</groupId>
+      <artifactId>beepcore</artifactId>
+      <version>${beepcore.version}</version>
+      <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/beepcore.jar</systemPath>
+      <scope>system</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.beepcore-java</groupId>
+      <artifactId>beeptls-jsse</artifactId>
+      <version>${beepcore.version}</version>
+      <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/beeptls-jsse.jar</systemPath>
+      <scope>system</scope>
+    </dependency>
+    <dependency>
+      <groupId>EDU.oswego.cs.dl.util</groupId>
+      <artifactId>concurrent</artifactId>
+      <version>${oswego.concurrent.version}</version>
+      <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/concurrent.jar</systemPath>
+      <scope>system</scope>
+    </dependency>
+  </dependencies>
+</project>

@@ -212,7 +212,7 @@ public interface Context {
 	 */
 	void subscribe(InetAddress addr, int port, RecordType... types)
 			throws IllegalArgumentException;
-
+	
 	/**
 	 * Forcibly shutdown all connections with remote JALoP Network Store.
 	 */
