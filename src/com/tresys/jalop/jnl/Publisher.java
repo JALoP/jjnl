@@ -26,6 +26,8 @@ package com.tresys.jalop.jnl;
 
 import java.util.Map;
 
+import javax.xml.soap.MimeHeaders;
+
 /**
  * Users of this library should provide an <tt>Object</tt> that implements this
  * interface if they wish to act as a JALoP Publisher. Their object must be

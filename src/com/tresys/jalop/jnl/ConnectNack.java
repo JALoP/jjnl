@@ -27,6 +27,8 @@ package com.tresys.jalop.jnl;
 import java.net.InetAddress;
 import java.util.Set;
 
+import javax.xml.soap.MimeHeaders;
+
 /**
  * This represents a 'connect-nack' message from the remote JALoP Network Store.
  * 
