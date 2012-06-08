@@ -13,6 +13,7 @@
     <oswego.concurrent.groupId>com.tresys.3rdparty.oswego.concurrent</oswego.concurrent.groupId>
     <beepcore.groupId>com.tresys.3rdparty.beepcore-java</beepcore.groupId>
     <oswego.concurrent.version>1.3.4</oswego.concurrent.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <issueManagement>
     <system>FogBugz</system>
