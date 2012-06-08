@@ -294,6 +294,45 @@ public class Utils {
 	}
 
 	/**
+	 * Process an initialize-ack message.
+	 * 
+	 * @return an {@link InitAckMessage}
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @throws BEEPException
+	 *             If there is an underlying beep exception.
+	 * @throws MissingMimeHeaderException
+	 *             If a required MIME header is missing.
+	 * @throws UnexpectedMimeValueException
+	 *             If a MIME header has an unexpected value.
+	 */
+	public static InitAckMessage processInitAck(final InputDataStreamAdapter is)
+			throws BEEPException, MissingMimeHeaderException,
+			UnexpectedMimeValueException {
+		final MimeHeaders[] headers = processMessageCommon(is, MSG_INIT_ACK,
+				HDRS_MESSAGE, HDRS_ENCODING, HDRS_DIGEST);
+
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+
+		String encoding;
+		if (knownHeaders.getHeader(HDRS_ENCODING) != null) {
+			encoding = knownHeaders.getHeader(HDRS_ENCODING)[0];
+		} else {
+			throw new MissingMimeHeaderException(HDRS_ENCODING);
+		}
+
+		String digest;
+		if (knownHeaders.getHeader(HDRS_DIGEST) != null) {
+			digest = knownHeaders.getHeader(HDRS_DIGEST)[0];
+		} else {
+			throw new MissingMimeHeaderException(HDRS_DIGEST);
+		}
+		return new InitAckMessage(encoding, digest, unknownHeaders);
+	}
+
+	/**
 	 * Process an initialize message.
 	 * 
 	 * @param is
