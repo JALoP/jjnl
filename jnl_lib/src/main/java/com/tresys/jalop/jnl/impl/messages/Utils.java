@@ -35,6 +35,7 @@ import javax.xml.soap.MimeHeaders;
 
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
+import org.beepcore.beep.core.OutputDataStream;
 
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -135,6 +136,79 @@ public class Utils {
 
 		final MimeHeaders[] headers = splitHeaders(is, expectedHeaders);
 		return headers;
+	}
+
+	/**
+	 * Create an {@link OutputDataStream} for an initialize message. The
+	 * returned object is already marked as complete since an initialize message
+	 * carries no payload.
+	 * 
+	 * @param role
+	 *            The {@link Role} ('JAL-Mode') to send.
+	 * @param dataClass
+	 *            The type of records to transfer over this channel.
+	 * @param digestAlgorithms
+	 *            The list of digest algorithms to propose. This may be
+	 *            <code>null</code> or empty, in which case no algorithms are
+	 *            proposed. If it is not empty, then each element must be
+	 *            <code>non-null</code> and not be the empty string.
+	 * @param agent
+	 *            The string to send for the "JAL-Agent" header, this may be
+	 *            <code>null</code>
+	 * @param xmlEncodings
+	 *            The list of digest algorithms to propose. This may be
+	 *            <code>null</code> or empty, in which case no algorithms are
+	 *            proposed. If it is not empty, then each element must be
+	 *            <code>non-null</code> and not be the empty string.
+	 * @return The {@link OutputDataStream}
+	 */
+	public static OutputDataStream createInitMessage(final Role role,
+			final RecordType dataClass, final List<String> xmlEncodings,
+			final List<String> digestAlgorithms, final String agent) {
+
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+		final String encodingsString = makeStringList(xmlEncodings, "encodings");
+		final String digestsString = makeStringList(digestAlgorithms, "digests");
+
+		headers.setHeader(HDRS_MESSAGE, MSG_INIT);
+		if (encodingsString != null) {
+			headers.setHeader(HDRS_ACCEPT_ENCODING, encodingsString);
+		}
+		if (digestsString != null) {
+			headers.setHeader(HDRS_ACCEPT_DIGEST, digestsString);
+		}
+		switch (role) {
+		case Publisher:
+			headers.setHeader(HDRS_MODE, PUBLISH);
+			break;
+		case Subscriber:
+			headers.setHeader(HDRS_MODE, SUBSCRIBE);
+			break;
+		default:
+			throw new IllegalArgumentException("Illegal value for 'role'");
+		}
+		switch (dataClass) {
+		case Journal:
+			headers.setHeader(HDRS_DATA_CLASS, JOURNAL);
+			break;
+		case Audit:
+			headers.setHeader(HDRS_DATA_CLASS, AUDIT);
+			break;
+		case Log:
+			headers.setHeader(HDRS_DATA_CLASS, LOG);
+			break;
+		default:
+			throw new IllegalArgumentException("Illegal value for 'dataClass'");
+		}
+		if (agent != null) {
+			headers.setHeader(HDRS_AGENT, agent);
+		}
+
+		final OutputDataStream ods = new OutputDataStream(headers);
+		ods.setComplete();
+		return ods;
 	}
 
 	/**
