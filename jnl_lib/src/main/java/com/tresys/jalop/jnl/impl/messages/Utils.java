@@ -23,8 +23,18 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
+import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import javax.xml.soap.MimeHeader;
+import javax.xml.soap.MimeHeaders;
+
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.InputDataStreamAdapter;
 
 /**
  * Utility class for creating and parsing JALoP/BEEP messages.
@@ -138,4 +148,40 @@ public class Utils {
 		return sb.toString();
 	}
 
+	/**
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @param expectedHeaders
+	 *            List of expected headers
+	 * @return an array of 2 {@link MimeHeaders}, the first {@link MimeHeader}
+	 *         is the expected headers, the second is any remaining headers.
+	 * @throws BEEPException
+	 *             If there is an underlying BEEP exception.
+	 */
+	static MimeHeaders[] splitHeaders(final InputDataStreamAdapter is,
+			final String... expectedHeaders) throws BEEPException {
+		final Set<String> ehs = new TreeSet<String>(
+				String.CASE_INSENSITIVE_ORDER);
+		ehs.addAll(Arrays.asList(expectedHeaders));
+		ehs.add(org.beepcore.beep.core.MimeHeaders.CONTENT_TYPE);
+		ehs.add(org.beepcore.beep.core.MimeHeaders.CONTENT_TRANSFER_ENCODING);
+
+		final MimeHeaders[] toReturn = new MimeHeaders[2];
+		final MimeHeaders knownHeaders = new MimeHeaders();
+		final MimeHeaders otherHeaders = new MimeHeaders();
+		toReturn[0] = knownHeaders;
+		toReturn[1] = otherHeaders;
+
+		for (@SuppressWarnings("unchecked")
+		final Enumeration<String> e = is.getHeaderNames(); e.hasMoreElements();) {
+			final String header = e.nextElement();
+			if (ehs.contains(header)) {
+				knownHeaders.addHeader(header, is.getHeaderValue(header));
+			} else {
+				otherHeaders.addHeader(header, is.getHeaderValue(header));
+			}
+		}
+		return toReturn;
+	}
 }
