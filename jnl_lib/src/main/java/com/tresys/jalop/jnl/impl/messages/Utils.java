@@ -137,6 +137,37 @@ public class Utils {
 		final MimeHeaders[] headers = splitHeaders(is, expectedHeaders);
 		return headers;
 	}
+ 
+	/**
+	 * Create an {@link OutputDataStream} for an initialize-ack message. The
+	 * returned object is already marked as complete since an initialize-ack
+	 * message carries no payload.
+	 * 
+	 * @param digest
+	 *            The selected digest algorithm. This must be a non-empty string
+	 *            that contains at least one non-whitespace character.
+	 * @param encoding
+	 *            The selected XML encoding. This must be a non-empty string
+	 *            that contains at least one non-whitespace character.
+	 * @return The {@link OutputDataStream}
+	 */
+	public static OutputDataStream createInitAckMessage(String digest,
+			String encoding) {
+
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+		digest = checkForEmptyString(digest, "digest");
+		encoding = checkForEmptyString(encoding, "encoding");
+
+		headers.setHeader(HDRS_MESSAGE, MSG_INIT_ACK);
+		headers.setHeader(HDRS_DIGEST, digest);
+		headers.setHeader(HDRS_ENCODING, encoding);
+
+		final OutputDataStream ods = new OutputDataStream(headers);
+		ods.setComplete();
+		return ods;
+	}
 
 	/**
 	 * Create an {@link OutputDataStream} for an initialize message. The
