@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.tresys.jalop</groupId>
   <artifactId>jjnl</artifactId>
@@ -9,6 +10,8 @@
   <properties>
     <third.party.root>${user.home}/jalop-3rdparty</third.party.root>
     <beepcore.version>0.9.09</beepcore.version>
+    <oswego.concurrent.groupId>com.tresys.3rdparty.oswego.concurrent</oswego.concurrent.groupId>
+    <beepcore.groupId>com.tresys.3rdparty.beepcore-java</beepcore.groupId>
     <oswego.concurrent.version>1.3.4</oswego.concurrent.version>
   </properties>
   <issueManagement>
@@ -61,21 +64,21 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.beepcore-java</groupId>
+      <groupId>${beepcore.groupId}</groupId>
       <artifactId>beepcore</artifactId>
       <version>${beepcore.version}</version>
       <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/beepcore.jar</systemPath>
       <scope>system</scope>
     </dependency>
     <dependency>
-      <groupId>org.beepcore-java</groupId>
+      <groupId>${beepcore.groupId}</groupId>
       <artifactId>beeptls-jsse</artifactId>
       <version>${beepcore.version}</version>
       <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/beeptls-jsse.jar</systemPath>
       <scope>system</scope>
     </dependency>
     <dependency>
-      <groupId>EDU.oswego.cs.dl.util</groupId>
+      <groupId>${oswego.concurrent.groupId}</groupId>
       <artifactId>concurrent</artifactId>
       <version>${oswego.concurrent.version}</version>
       <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/concurrent.jar</systemPath>
