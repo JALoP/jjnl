@@ -26,6 +26,7 @@ package com.tresys.jalop.jnl.impl.messages;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -415,6 +416,54 @@ public class Utils {
 			}
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Extract the details of an initialize-nack message.
+	 * 
+	 * @return an {@link InitNackMessage}
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @throws BEEPException
+	 *             If there is an underlying beep exception.
+	 * @throws MissingMimeHeaderException
+	 *             If a required MIME header is missing.
+	 * @throws UnexpectedMimeValueException
+	 *             If a MIME header has an unexpected value.
+	 */
+	static public InitNackMessage processInitNack(
+			final InputDataStreamAdapter is) throws BEEPException,
+			MissingMimeHeaderException, UnexpectedMimeValueException {
+		final MimeHeaders[] headers = processMessageCommon(is, MSG_INIT_NACK, HDRS_MESSAGE,
+				HDRS_UNSUPPORTED_VERSION, HDRS_UNSUPPORTED_ENCODING,
+				HDRS_UNSUPPORTED_MODE, HDRS_UNAUTHORIZED_MODE,
+				HDRS_UNSUPPORTED_DIGEST);
+
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+
+		final List<ConnectError> errors = new LinkedList<ConnectError>();
+		if (knownHeaders.getHeader(HDRS_UNSUPPORTED_VERSION) != null) {
+			errors.add(ConnectError.UnsupportedVersion);
+		}
+		if (knownHeaders.getHeader(HDRS_UNSUPPORTED_MODE) != null) {
+			errors.add(ConnectError.UnsupportedMode);
+		}
+		if (knownHeaders.getHeader(HDRS_UNAUTHORIZED_MODE) != null) {
+			errors.add(ConnectError.UnauthorizedMode);
+		}
+
+		if (knownHeaders.getHeader(HDRS_UNSUPPORTED_ENCODING) != null) {
+			errors.add(ConnectError.UnsupportedEncoding);
+		}
+		if (knownHeaders.getHeader(HDRS_UNSUPPORTED_DIGEST) != null) {
+			errors.add(ConnectError.UnsupportedDigest);
+		}
+		if (errors.isEmpty()) {
+			throw new MissingMimeHeaderException("Error Headers");
+		}
+		return new InitNackMessage(errors, unknownHeaders);
 	}
 
 	/**
