@@ -37,6 +37,7 @@ import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.OutputDataStream;
 
+import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
@@ -137,7 +138,7 @@ public class Utils {
 		final MimeHeaders[] headers = splitHeaders(is, expectedHeaders);
 		return headers;
 	}
- 
+
 	/**
 	 * Create an {@link OutputDataStream} for an initialize-ack message. The
 	 * returned object is already marked as complete since an initialize-ack
@@ -237,6 +238,55 @@ public class Utils {
 			headers.setHeader(HDRS_AGENT, agent);
 		}
 
+		final OutputDataStream ods = new OutputDataStream(headers);
+		ods.setComplete();
+		return ods;
+	}
+
+	/**
+	 * Create an {@link OutputDataStream} for an initialize-nack message. The
+	 * returned object is already marked as complete since an initialize-nack
+	 * message carries no payload.
+	 * 
+	 * @param errors
+	 *            The list of {@link ConnectError}s to send in this message.
+	 * @return The {@link OutputDataStream}
+	 */
+
+	public static OutputDataStream createInitNackMessage(
+			final List<ConnectError> errors) {
+		if ((errors == null) || errors.isEmpty()) {
+			throw new IllegalArgumentException(
+					"Must specify at least one error for an '" + MSG_INIT_NACK
+							+ "' message.");
+		}
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+		headers.setHeader(HDRS_MESSAGE, MSG_INIT_NACK);
+
+		for (final ConnectError connectError : errors) {
+			switch (connectError) {
+			case UnauthorizedMode:
+				headers.setHeader(HDRS_UNAUTHORIZED_MODE, "");
+				break;
+			case UnsupportedMode:
+				headers.setHeader(HDRS_UNSUPPORTED_MODE, "");
+				break;
+			case UnsupportedDigest:
+				headers.setHeader(HDRS_UNSUPPORTED_DIGEST, "");
+				break;
+			case UnsupportedEncoding:
+				headers.setHeader(HDRS_UNSUPPORTED_ENCODING, "");
+				break;
+			case UnsupportedVersion:
+				headers.setHeader(HDRS_UNSUPPORTED_VERSION, "");
+				break;
+			default:
+				throw new IllegalArgumentException(
+						"Cannot specify 'accept' as an error");
+			}
+		}
 		final OutputDataStream ods = new OutputDataStream(headers);
 		ods.setComplete();
 		return ods;
