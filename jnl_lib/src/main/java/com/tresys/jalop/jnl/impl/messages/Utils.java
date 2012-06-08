@@ -36,6 +36,8 @@ import javax.xml.soap.MimeHeaders;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 
+import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 
@@ -56,6 +58,8 @@ public class Utils {
 	public static final String INVALID_EQUALS = INVALID + "=";
 	public static final String JOURNAL = "journal";
 	public static final String LOG = "log";
+	public static final String PUBLISH = "publish";
+	public static final String SUBSCRIBE = "subscribe";
 	public static final String UNKNOWN = "unknown";
 	public static final String UNKNOWN_EQUALS = UNKNOWN + "=";
 
@@ -131,6 +135,74 @@ public class Utils {
 
 		final MimeHeaders[] headers = splitHeaders(is, expectedHeaders);
 		return headers;
+	}
+
+	/**
+	 * Process an initialize message.
+	 * 
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @return an {@link InitMessage}
+	 * @throws BEEPException
+	 *             If there is an error from the underlying BEEP connection.
+	 * @throws UnexpectedMimeValueException
+	 *             If the message contains illegal values for known MIME headers
+	 * @throws MissingMimeHeaderException
+	 *             If {@link Message} is missing a required MIME header.
+	 */
+	public static InitMessage processInitMessage(final InputDataStreamAdapter is)
+			throws BEEPException, UnexpectedMimeValueException,
+			MissingMimeHeaderException {
+		final MimeHeaders[] headers = processMessageCommon(is, MSG_INIT,
+				HDRS_ACCEPT_ENCODING, HDRS_MODE, HDRS_DATA_CLASS,
+				HDRS_ACCEPT_DIGEST, HDRS_AGENT);
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+
+		final String[] encodings = knownHeaders.getHeader(HDRS_ACCEPT_ENCODING);
+
+		final String[] digests = knownHeaders.getHeader(HDRS_ACCEPT_DIGEST);
+
+		final String[] mode = knownHeaders.getHeader(HDRS_MODE);
+		if (mode == null) {
+			throw new MissingMimeHeaderException(HDRS_MODE);
+		}
+		Role role;
+		if (mode[0].equalsIgnoreCase(PUBLISH)) {
+			role = Role.Publisher;
+		} else if (mode[0].equalsIgnoreCase(SUBSCRIBE)) {
+			role = Role.Subscriber;
+		} else {
+			throw new UnexpectedMimeValueException(HDRS_MODE, PUBLISH + ", or "
+					+ SUBSCRIBE, mode[0]);
+		}
+
+		final String[] dataClass = knownHeaders.getHeader(HDRS_DATA_CLASS);
+		if (dataClass == null) {
+			throw new MissingMimeHeaderException(HDRS_DATA_CLASS);
+		}
+		RecordType recordType;
+		if (dataClass[0].equalsIgnoreCase(JOURNAL)) {
+			recordType = RecordType.Journal;
+		} else if (dataClass[0].equalsIgnoreCase(AUDIT)) {
+			recordType = RecordType.Audit;
+		} else if (dataClass[0].equalsIgnoreCase(LOG)) {
+			recordType = RecordType.Log;
+		} else {
+			throw new UnexpectedMimeValueException(HDRS_DATA_CLASS, JOURNAL
+					+ ", " + AUDIT + ", or " + LOG, dataClass[0]);
+		}
+
+		final String[] agent = knownHeaders.getHeader(HDRS_AGENT);
+		String agentString = null;
+		if (agent != null) {
+			agentString = agent[0];
+		}
+
+		return new InitMessage(recordType, role, encodings, digests,
+				agentString, unknownHeaders);
+
 	}
 
 	/**
