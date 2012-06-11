@@ -599,6 +599,64 @@ public class Utils {
 	}
 
 	/**
+	 * Process a 'journal-resume' message.
+	 * 
+	 * @return an {@link JournalResumeMessage}
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @throws BEEPException
+	 *             If there is an underlying beep exception.
+	 * @throws MissingMimeHeaderException
+	 *             If a required MIME header is missing.
+	 * @throws UnexpectedMimeValueException
+	 *             If a MIME header has an unexpected value.
+	 */
+	static public JournalResumeMessage processJournalResume(
+			final InputDataStreamAdapter is) throws BEEPException,
+			MissingMimeHeaderException, UnexpectedMimeValueException {
+
+		final MimeHeaders[] headers = processMessageCommon(is,
+				MSG_JOURNAL_RESUME, HDRS_MESSAGE, HDRS_SERIAL_ID,
+				HDRS_JOURNAL_OFFSET);
+
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+
+		String serialId;
+		if (knownHeaders.getHeader(HDRS_SERIAL_ID) == null) {
+			throw new MissingMimeHeaderException(HDRS_SERIAL_ID);
+		}
+		serialId = knownHeaders.getHeader(HDRS_SERIAL_ID)[0].trim();
+		if (serialId.length() == 0) {
+			throw new UnexpectedMimeValueException(HDRS_SERIAL_ID,
+					"non-empty-string", serialId);
+		}
+
+		String offsetStr;
+		if (knownHeaders.getHeader(HDRS_JOURNAL_OFFSET) == null) {
+			throw new MissingMimeHeaderException(HDRS_JOURNAL_OFFSET);
+		}
+		offsetStr = knownHeaders.getHeader(HDRS_JOURNAL_OFFSET)[0].trim();
+		if (offsetStr.length() == 0) {
+			throw new UnexpectedMimeValueException(HDRS_JOURNAL_OFFSET,
+					"non-empty-string", serialId);
+		}
+		long offset = -1;
+		try {
+			offset = Long.parseLong(offsetStr);
+		} catch (final NumberFormatException e) {
+			// Do nothing here, the following 'if' statement will generate an
+			// exception if needed.
+		}
+		if (offset < 0) {
+			throw new UnexpectedMimeValueException(HDRS_JOURNAL_OFFSET,
+					"positive integer", offsetStr);
+		}
+		return new JournalResumeMessage(serialId, offset, unknownHeaders);
+	}
+
+	/**
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
 	 *            message.
