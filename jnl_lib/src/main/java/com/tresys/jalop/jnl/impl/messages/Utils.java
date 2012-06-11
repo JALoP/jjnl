@@ -100,6 +100,7 @@ public class Utils {
 	public static final String MSG_JOURNAL_RESUME = "journal-resume";
 	public static final String MSG_LOG = "log-record";
 	public static final String MSG_SYNC = "sync";
+	public static final String MSG_SUBSCRIBE = "subscribe";
 
 	/**
 	 * Utility function to perform common tasks related to parsing incoming
@@ -293,6 +294,29 @@ public class Utils {
 		return ods;
 	}
 
+	/**
+	 * Create an {@link OutputDataStream} for a 'subscribe' message. Note that
+	 * the {@link OutputDataStream} returned by this function has already had
+	 * {@link OutputDataStream#setComplete()} called on it since a 'subscribe'
+	 * message contains no payload.
+	 * 
+	 * @param serialId
+	 *            The serialId to send in the 'subscribe' message. This must be
+	 *            non-null and contain at least one non-whitespace character.
+	 * @return The {@link OutputDataStream}.
+	 */
+	static public OutputDataStream createSubscribeMessage(String serialId) {
+		serialId = checkForEmptyString(serialId, HDRS_SERIAL_ID);
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+		headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE);
+		headers.setHeader(HDRS_SERIAL_ID, serialId);
+		final OutputDataStream ods = new OutputDataStream(headers);
+		ods.setComplete();
+		return ods;
+	}
+	
 	/**
 	 * Process an initialize-ack message.
 	 * 
