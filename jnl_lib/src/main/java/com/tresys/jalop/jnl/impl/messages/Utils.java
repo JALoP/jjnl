@@ -517,6 +517,40 @@ public class Utils {
 	}
 
 	/**
+	 * Create an {@link OutputDataStream} for a 'journal-resume' message. Note
+	 * that the {@link OutputDataStream} returned by this function has already
+	 * had {@link OutputDataStream#setComplete()} called on it since a
+	 * 'journal-resume' message contains no payload.
+	 * 
+	 * @param serialId
+	 *            The serialId to send in the 'journal-resume' message. This
+	 *            must be non-null and contain at least one non-whitespace
+	 *            character.
+	 * @param offset
+	 *            The number offset to begin transferring data from for the
+	 *            journal record.
+	 * @return The {@link OutputDataStream}.
+	 */
+	static public OutputDataStream createJournalResumeMessage(String serialId,
+			final long offset) {
+		checkForEmptyString(serialId, HDRS_SERIAL_ID);
+
+		if (offset < 0) {
+			throw new IllegalArgumentException("offsset for '"
+					+ MSG_JOURNAL_RESUME + "' must be positive");
+		}
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+		headers.setHeader(HDRS_MESSAGE, MSG_JOURNAL_RESUME);
+		headers.setHeader(HDRS_SERIAL_ID, serialId);
+		headers.setHeader(HDRS_JOURNAL_OFFSET, Long.toString(offset));
+		final OutputDataStream ods = new OutputDataStream(headers);
+		ods.setComplete();
+		return ods;
+	}
+
+	/**
 	 * Extract the details of an initialize-nack message.
 	 * 
 	 * @return an {@link InitNackMessage}
