@@ -482,6 +482,41 @@ public class Utils {
 	}
 
 	/**
+	 * Process a subscribe message.
+	 * 
+	 * @return an {@link InitAckMessage}
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @throws BEEPException
+	 *             If there is an underlying beep exception.
+	 * @throws MissingMimeHeaderException
+	 *             If a required MIME header is missing.
+	 * @throws UnexpectedMimeValueException
+	 *             If a MIME header has an unexpected value.
+	 */
+	static public SubscribeMessage processSubscribe(
+			final InputDataStreamAdapter is) throws BEEPException,
+			MissingMimeHeaderException, UnexpectedMimeValueException {
+		final MimeHeaders[] headers = processMessageCommon(is, MSG_SUBSCRIBE,
+				HDRS_MESSAGE, HDRS_SERIAL_ID);
+
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+
+		String serialId;
+		if (knownHeaders.getHeader(HDRS_SERIAL_ID) == null) {
+			throw new MissingMimeHeaderException(HDRS_SERIAL_ID);
+		}
+		serialId = knownHeaders.getHeader(HDRS_SERIAL_ID)[0].trim();
+		if (serialId.length() == 0) {
+			throw new UnexpectedMimeValueException(HDRS_SERIAL_ID,
+					"non-empty-string", serialId);
+		}
+		return new SubscribeMessage(serialId, unknownHeaders);
+	}
+
+	/**
 	 * Extract the details of an initialize-nack message.
 	 * 
 	 * @return an {@link InitNackMessage}
