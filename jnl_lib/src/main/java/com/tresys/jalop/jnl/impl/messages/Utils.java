@@ -36,6 +36,9 @@ import javax.xml.soap.MimeHeaders;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 
+import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
+import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+
 /**
  * Utility class for creating and parsing JALoP/BEEP messages.
  */
@@ -90,6 +93,45 @@ public class Utils {
 	public static final String MSG_JOURNAL_RESUME = "journal-resume";
 	public static final String MSG_LOG = "log-record";
 	public static final String MSG_SYNC = "sync";
+
+	/**
+	 * Utility function to perform common tasks related to parsing incoming
+	 * messages.
+	 * 
+	 * @param is
+	 *            The {@link InputDataStreamAdapter} for this message.
+	 * @param expectedMessage
+	 *            The expected message type (initialize, subscribe, etc)
+	 * @param expectedHeaders
+	 *            An array of expected (not necessarily required) MIME headers.
+	 * @return an array of 2 {@link MimeHeaders}, the first {@link MimeHeader}
+	 *         is the expected headers, the second is any remaining headers.
+	 * @throws MissingMimeHeaderException
+	 *             If the MIME headers to not contain a JAL-Message header.
+	 * @throws UnexpectedMimeValueException
+	 *             If the value of the JAL-Message header is not
+	 *             <code>expectedMessage</code>.
+	 * @throws BEEPException
+	 *             If an underlying {@link BEEPException} occurs.
+	 * @see {@link Utils#splitHeaders(InputDataStreamAdapter, String...)}
+	 */
+	static MimeHeaders[] processMessageCommon(final InputDataStreamAdapter is,
+			final String expectedMessage, final String... expectedHeaders)
+			throws MissingMimeHeaderException, UnexpectedMimeValueException,
+			BEEPException {
+		final String messageType = is.getHeaderValue(HDRS_MESSAGE);
+		if (messageType == null) {
+			throw new MissingMimeHeaderException(HDRS_MESSAGE);
+		}
+
+		if (!messageType.equalsIgnoreCase(expectedMessage)) {
+			throw new UnexpectedMimeValueException(HDRS_MESSAGE,
+					expectedMessage, messageType);
+		}
+
+		final MimeHeaders[] headers = splitHeaders(is, expectedHeaders);
+		return headers;
+	}
 
 	/**
 	 * Helper utility to check that a passed in string is non-null and contains
