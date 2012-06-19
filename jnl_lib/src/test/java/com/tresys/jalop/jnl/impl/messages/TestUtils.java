@@ -44,6 +44,7 @@ import org.beepcore.beep.util.BufferSegment;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
@@ -78,6 +79,28 @@ public class TestUtils {
 				.getDeclaredMethod("setComplete");
 		completeMethod.setAccessible(true);
 		completeMethod.invoke(data);
+	}
+
+	@Test
+	public void testCreateInitAckMessageWorks() throws SecurityException,
+			NoSuchFieldException, IllegalArgumentException,
+			IllegalAccessException {
+		OutputDataStream ods = Utils.createInitAckMessage(Utils.DGST_SHA256,
+				Utils.BINARY);
+		assertTrue(ods.isComplete());
+
+		Field headers = ods.getClass().getDeclaredField("mimeHeaders");
+		headers.setAccessible(true);
+
+		org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers
+				.get(ods);
+
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
+				Utils.MSG_INIT_ACK);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_DIGEST),
+				Utils.DGST_SHA256);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ENCODING),
+				Utils.BINARY);
 	}
 
 	@Test
@@ -599,6 +622,163 @@ public class TestUtils {
 		Utils.createInitMessage(Role.Publisher, RecordType.Unset,
 				Arrays.asList(Utils.BINARY), Arrays.asList(Utils.DGST_SHA256),
 				"agent");
+	}
+
+	@Test
+	public void testCreateInitNackMessageWorks() throws SecurityException,
+			NoSuchFieldException, IllegalArgumentException,
+			IllegalAccessException {
+
+		List<ConnectError> connectErrors = new ArrayList<ConnectError>();
+		connectErrors.add(ConnectError.UnauthorizedMode);
+		connectErrors.add(ConnectError.UnsupportedDigest);
+		connectErrors.add(ConnectError.UnsupportedEncoding);
+		connectErrors.add(ConnectError.UnsupportedMode);
+		connectErrors.add(ConnectError.UnsupportedVersion);
+		OutputDataStream ods = Utils.createInitNackMessage(connectErrors);
+		assertTrue(ods.isComplete());
+
+		Field headers = ods.getClass().getDeclaredField("mimeHeaders");
+		headers.setAccessible(true);
+
+		org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers
+				.get(ods);
+
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_UNAUTHORIZED_MODE),
+				"");
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_UNSUPPORTED_DIGEST),
+				"");
+		assertEquals(
+				mimeHeaders.getHeaderValue(Utils.HDRS_UNSUPPORTED_ENCODING), "");
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_UNSUPPORTED_MODE),
+				"");
+		assertEquals(
+				mimeHeaders.getHeaderValue(Utils.HDRS_UNSUPPORTED_VERSION), "");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateInitNackMessageThrowsExceptionWithNullErrors()
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException {
+
+		Utils.createInitNackMessage(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateInitNackMessageThrowsExceptionWithBlankErrors()
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException {
+
+		Utils.createInitNackMessage(new ArrayList<ConnectError>());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateInitNackMessageThrowsExceptionWithAccept()
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException {
+
+		List<ConnectError> connectErrors = new ArrayList<ConnectError>();
+		connectErrors.add(ConnectError.Accept);
+		Utils.createInitNackMessage(connectErrors);
+	}
+
+	@Test
+	public void testProcessInitAckWorks() throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT_ACK);
+		headers.setHeader(Utils.HDRS_ENCODING, Utils.BINARY);
+		headers.setHeader(Utils.HDRS_DIGEST, Utils.DGST_SHA256);
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		InitAckMessage msg = Utils.processInitAck(ids);
+
+		assertEquals(msg.getDigest(), Utils.DGST_SHA256);
+		assertEquals(msg.getEncoding(), Utils.BINARY);
+	}
+
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessInitAckThrowsExceptionWithNoDigest()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT_ACK);
+		headers.setHeader(Utils.HDRS_ENCODING, Utils.BINARY);
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processInitAck(ids);
+	}
+
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessInitAckThrowsExceptionWithNoEncoding()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT_ACK);
+		headers.setHeader(Utils.HDRS_DIGEST, Utils.DGST_SHA256);
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processInitAck(ids);
+	}
+
+	@Test
+	public void testProcessInitNackWorks() throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT_NACK);
+		headers.setHeader(Utils.HDRS_UNSUPPORTED_VERSION, "this");
+		headers.setHeader(Utils.HDRS_UNSUPPORTED_MODE, "this");
+		headers.setHeader(Utils.HDRS_UNAUTHORIZED_MODE, "this");
+		headers.setHeader(Utils.HDRS_UNSUPPORTED_ENCODING, "this");
+		headers.setHeader(Utils.HDRS_UNSUPPORTED_DIGEST, "this");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		InitNackMessage msg = Utils.processInitNack(ids);
+
+		assertTrue(msg.getErrorList().contains(ConnectError.UnsupportedVersion));
+		assertTrue(msg.getErrorList().contains(ConnectError.UnsupportedMode));
+		assertTrue(msg.getErrorList().contains(ConnectError.UnauthorizedMode));
+		assertTrue(msg.getErrorList()
+				.contains(ConnectError.UnsupportedEncoding));
+		assertTrue(msg.getErrorList().contains(ConnectError.UnsupportedDigest));
+	}
+
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessInitNackThrowsExceptionWithNoErrors()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT_NACK);
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		InitNackMessage msg = Utils.processInitNack(ids);
+
+		assertTrue(msg.getErrorList().isEmpty());
 	}
 
 }
