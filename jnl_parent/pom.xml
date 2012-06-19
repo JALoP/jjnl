@@ -69,20 +69,3 @@
     <module>../jnl_test</module>
   </modules>
 </project>
-commit 5d3514eb5082c0ba8379e7f5b59376308eb5be96
-Author: Phil Black-Knight <pblack@tresys.com>
-Date:   Fri Jun 8 14:51:12 2012 -0400
-
-    bug-16451: Updating the pom to set the file encoding to UTF-8 to stop the warnings about platform dependent builds.
-
-diff --git a/pom.xml b/pom.xml
-index 967d1f1..2034695 100755
---- a/pom.xml
-+++ b/pom.xml
-@@ -13,6 +13,7 @@
-     <oswego.concurrent.groupId>com.tresys.3rdparty.oswego.concurrent</oswego.concurrent.groupId>
-     <beepcore.groupId>com.tresys.3rdparty.beepcore-java</beepcore.groupId>
-     <oswego.concurrent.version>1.3.4</oswego.concurrent.version>
-   </properties>
-   <issueManagement>
-     <system>FogBugz</system>
