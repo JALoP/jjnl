@@ -781,4 +781,74 @@ public class TestUtils {
 		assertTrue(msg.getErrorList().isEmpty());
 	}
 
+	@Test
+	public void testCreateSubscribeMessageWorks() throws SecurityException,
+			NoSuchFieldException, IllegalArgumentException,
+			IllegalAccessException {
+
+		OutputDataStream ods = Utils.createSubscribeMessage("0");
+		assertTrue(ods.isComplete());
+
+		Field headers = ods.getClass().getDeclaredField("mimeHeaders");
+		headers.setAccessible(true);
+
+		org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers
+				.get(ods);
+
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
+				Utils.MSG_SUBSCRIBE);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_SERIAL_ID), "0");
+	}
+
+	@Test
+	public void testProcessSubscribeWorks() throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "0");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		SubscribeMessage msg = Utils.processSubscribe(ids);
+
+		assertEquals(msg.getSerialId(), "0");
+	}
+
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessSubscribeThrowsExceptionWithNoSerial()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processSubscribe(ids);
+	}
+
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testProcessSubscribeThrowsExceptionWithBlankSerial()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processSubscribe(ids);
+	}
+
 }
