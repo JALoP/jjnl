@@ -850,5 +850,175 @@ public class TestUtils {
 		InputDataStreamAdapter ids = data.getInputStream();
 		Utils.processSubscribe(ids);
 	}
+	
+	@Test
+	public void testCreateJournalResumeMessageWorks() throws SecurityException,
+			NoSuchFieldException, IllegalArgumentException,
+			IllegalAccessException {
 
+		OutputDataStream ods = Utils.createJournalResumeMessage("0", 10);
+		assertTrue(ods.isComplete());
+
+		Field headers = ods.getClass().getDeclaredField("mimeHeaders");
+		headers.setAccessible(true);
+
+		org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers
+				.get(ods);
+
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
+				Utils.MSG_JOURNAL_RESUME);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_SERIAL_ID), "0");
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_JOURNAL_OFFSET),
+				"10");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateJournalResumeMessageThrowsExceptionNullSerial()
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException {
+
+		Utils.createJournalResumeMessage(null, 10);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateJournalResumeMessageThrowsExceptionBlankSerial()
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException {
+
+		Utils.createJournalResumeMessage("", 10);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateJournalResumeMessageThrowsExceptionNegativeOffset()
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException {
+
+		Utils.createJournalResumeMessage("1", -1);
+	}
+
+	@Test
+	public void testProcessJournalResumeWorks() throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "10");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		JournalResumeMessage jrm = Utils.processJournalResume(ids);
+
+		assertEquals(jrm.getSerialId(), "1");
+		assertEquals(jrm.getOffset(), 10);
+	}
+
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessJournalResumeThrowsExceptionWithNoSerial()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
+		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "10");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processJournalResume(ids);
+	}
+
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testProcessJournalResumeThrowsExceptionWithBlankSerial()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "");
+		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "10");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processJournalResume(ids);
+	}
+
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessJournalResumeThrowsExceptionWithNoOffset()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processJournalResume(ids);
+	}
+
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testProcessJournalResumeThrowsExceptionWithBlankOffset()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processJournalResume(ids);
+	}
+
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testProcessJournalResumeThrowsExceptionWithBadOffset()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "bad");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processJournalResume(ids);
+	}
+
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testProcessJournalResumeThrowsExceptionWithNegativeOffset()
+			throws Exception {
+
+		org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
+		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "-1");
+
+		createDataStream(headers);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+		Utils.processJournalResume(ids);
+	}
 }
