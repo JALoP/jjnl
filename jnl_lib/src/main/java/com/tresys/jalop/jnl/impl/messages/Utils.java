@@ -23,6 +23,9 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Utility class for creating and parsing JALoP/BEEP messages.
  */
@@ -104,6 +107,35 @@ public class Utils {
 					+ "' must contain non-whitespace characaters");
 		}
 		return toCheck;
+	}
+
+	/**
+	 * Helper utility to build a comma separated list of strings.
+	 * 
+	 * @param stringList
+	 *            The list of strings to join.
+	 * @param listName
+	 *            A name for the list, this is used if the list contains
+	 *            <code>null</code> or empty strings.
+	 * @return A {@link String} that is the comma separated list of the values
+	 *         in <code>stringList</code>
+	 */
+	public static String makeStringList(final List<String> stringList,
+			final String listName) {
+		if ((stringList == null) || stringList.isEmpty()) {
+			return null;
+		}
+		final Iterator<String> iter = stringList.iterator();
+		final StringBuilder sb = new StringBuilder();
+		while (iter.hasNext()) {
+			String s = iter.next();
+			s = checkForEmptyString(s, listName);
+			sb.append(s);
+			if (iter.hasNext()) {
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
 	}
 
 }
