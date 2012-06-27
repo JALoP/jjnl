@@ -44,6 +44,7 @@ import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.util.BufferSegment;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
+import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
@@ -808,6 +809,109 @@ public class Utils {
 		}
 		ret.setComplete();
 
+		return ret;
+	}
+
+	/**
+	 * Process a Digest Response.
+	 * 
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @return an {@link DigestResponse}
+	 * @throws BEEPException
+	 *             If there is an error from the underlying BEEP connection.
+	 * @throws UnexpectedMimeValueException
+	 *             If the message contains illegal values for known MIME headers
+	 * @throws MissingMimeHeaderException
+	 *             If {@link Message} is missing a required MIME header.
+	 */
+	static public DigestResponse processDigestResponse(
+			final InputDataStreamAdapter is) throws MissingMimeHeaderException,
+			UnexpectedMimeValueException, BEEPException {
+
+		final MimeHeaders[] headers = processMessageCommon(is,
+				MSG_DIGEST_RESP, HDRS_MESSAGE, HDRS_COUNT);
+
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+
+		int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0].trim());
+
+		return new DigestResponse(getDigestStatuses(is, count), unknownHeaders);
+
+	}
+
+	private static Map<String, DigestStatus> getDigestStatuses(
+			InputDataStreamAdapter is, int count) throws BEEPException {
+		Map<String, DigestStatus> ret = new HashMap<String, DigestStatus>();
+		ret.clear();
+		int numLeft = is.available();
+		byte[] messageArray = new byte[numLeft];
+		try {
+			is.read(messageArray);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		String msgStr = new String(messageArray);
+
+		String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
+		if (pairs.length != count * 2) {
+			throw new IllegalArgumentException("The data provided does not match the count or is poorly formed");
+		}
+		for (int x = 0; x < (count * 2); x += 2) {
+			pairs[x + 1] = checkForEmptyString(pairs[x + 1], SERIAL_ID);
+			pairs[x] = checkForEmptyString(pairs[x], STATUS);
+			if (pairs[x].equalsIgnoreCase(CONFIRMED)) {
+				ret.put(pairs[x + 1], DigestStatus.Confirmed);
+			} else if (pairs[x].equalsIgnoreCase(INVALID)) {
+				ret.put(pairs[x + 1], DigestStatus.Invalid);
+			} else if (pairs[x].equalsIgnoreCase(UNKNOWN)) {
+				ret.put(pairs[x + 1], DigestStatus.Unknown);
+			} else {
+				throw new IllegalArgumentException("'" + pairs[x + 1]
+						+ "' must be confirmed, invalid, or unknown");
+			}
+		}
+
+		return ret;
+	}
+
+	/**
+	 * Generate a digest response from a Map<String (serialID), DigestStatus (digest status)>.
+	 * 
+	 * @param statusMap
+	 *            The Map<String, DigestStatus> that holds the serialID to digest status mappings
+	 * @return an {@link OutputDataStream}
+	 */
+	static public OutputDataStream createDigestResponse(Map<String, DigestStatus> statusMap) {
+		StringBuffer message = new StringBuffer();
+		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(CT_JALOP);
+		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST_RESP);
+		mh.setHeader(HDRS_COUNT, String.valueOf(statusMap.size()));
+
+		Iterator<String> sIDs = statusMap.keySet().iterator();
+		while (sIDs.hasNext()) {
+			String id = sIDs.next();
+
+			if (sIDs.hasNext())
+				message.append(checkForEmptyString(
+						id, SERIAL_ID)
+						+ "="
+						+ checkForEmptyString(statusMap.get(id).toString(),
+								STATUS) + "\r\n");
+			else
+				message.append(checkForEmptyString(
+						id, SERIAL_ID)
+						+ "="
+						+ checkForEmptyString(statusMap.get(id).toString(),
+								STATUS));
+		}
+
+		final OutputDataStream ret = new OutputDataStream(mh, new BufferSegment(
+				message.toString().getBytes()));
+		ret.setComplete();
 		return ret;
 	}
 
