@@ -43,18 +43,18 @@ public interface SubscriberSession extends Session {
 	 * Configure the maximum amount of time to wait between sending a "digest"
 	 * message. A value <= 0 will cause the {@link SubscriberSession} to send
 	 * "digest" messages immediately.
-	 * 
+	 *
 	 * @param pendingDigestTimeoutSeconds
 	 *            The time to wait, in seconds before sending a "digest"
 	 *            message.
 	 */
-	void setDigestTimeout(long pendingDigestTimeoutSeconds);
+	void setDigestTimeout(int pendingDigestTimeoutSeconds);
 
 	/**
 	 * Configure the maximum number of digests to queue before sending a
 	 * "digest" message. Any value <= 0 will cause the {@link SubscriberSession}
 	 * to send "digest" messages immediately.
-	 * 
+	 *
 	 * @param pendingDigestMax
 	 *            The maximum number of digests to queue.
 	 */
