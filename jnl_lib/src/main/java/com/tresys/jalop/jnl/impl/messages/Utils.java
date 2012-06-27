@@ -37,6 +37,7 @@ import javax.xml.soap.MimeHeaders;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.OutputDataStream;
+import org.beepcore.beep.util.BufferSegment;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.RecordType;
@@ -48,6 +49,7 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
  * Utility class for creating and parsing JALoP/BEEP messages.
  */
 public class Utils {
+
 	public static final String AUDIT = "audit";
 	public static final String BINARY = "binary";
 	public static final String BREAK = "BREAK";
@@ -105,7 +107,7 @@ public class Utils {
 	/**
 	 * Utility function to perform common tasks related to parsing incoming
 	 * messages.
-	 * 
+	 *
 	 * @param is
 	 *            The {@link InputDataStreamAdapter} for this message.
 	 * @param expectedMessage
@@ -145,7 +147,7 @@ public class Utils {
 	 * Create an {@link OutputDataStream} for an initialize-ack message. The
 	 * returned object is already marked as complete since an initialize-ack
 	 * message carries no payload.
-	 * 
+	 *
 	 * @param digest
 	 *            The selected digest algorithm. This must be a non-empty string
 	 *            that contains at least one non-whitespace character.
@@ -167,7 +169,7 @@ public class Utils {
 		headers.setHeader(HDRS_DIGEST, digest);
 		headers.setHeader(HDRS_ENCODING, encoding);
 
-		final OutputDataStream ods = new OutputDataStream(headers);
+		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
 	}
@@ -176,7 +178,7 @@ public class Utils {
 	 * Create an {@link OutputDataStream} for an initialize message. The
 	 * returned object is already marked as complete since an initialize message
 	 * carries no payload.
-	 * 
+	 *
 	 * @param role
 	 *            The {@link Role} ('JAL-Mode') to send.
 	 * @param dataClass
@@ -240,7 +242,8 @@ public class Utils {
 			headers.setHeader(HDRS_AGENT, agent);
 		}
 
-		final OutputDataStream ods = new OutputDataStream(headers);
+		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
+
 		ods.setComplete();
 		return ods;
 	}
@@ -249,7 +252,7 @@ public class Utils {
 	 * Create an {@link OutputDataStream} for an initialize-nack message. The
 	 * returned object is already marked as complete since an initialize-nack
 	 * message carries no payload.
-	 * 
+	 *
 	 * @param errors
 	 *            The list of {@link ConnectError}s to send in this message.
 	 * @return The {@link OutputDataStream}
@@ -289,7 +292,7 @@ public class Utils {
 						"Cannot specify 'accept' as an error");
 			}
 		}
-		final OutputDataStream ods = new OutputDataStream(headers);
+		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
 	}
@@ -299,7 +302,7 @@ public class Utils {
 	 * the {@link OutputDataStream} returned by this function has already had
 	 * {@link OutputDataStream#setComplete()} called on it since a 'subscribe'
 	 * message contains no payload.
-	 * 
+	 *
 	 * @param serialId
 	 *            The serialId to send in the 'subscribe' message. This must be
 	 *            non-null and contain at least one non-whitespace character.
@@ -312,14 +315,14 @@ public class Utils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 		headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE);
 		headers.setHeader(HDRS_SERIAL_ID, serialId);
-		final OutputDataStream ods = new OutputDataStream(headers);
+		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
 	}
-	
+
 	/**
 	 * Process an initialize-ack message.
-	 * 
+	 *
 	 * @return an {@link InitAckMessage}
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
@@ -358,7 +361,7 @@ public class Utils {
 
 	/**
 	 * Process an initialize message.
-	 * 
+	 *
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
 	 *            message.
@@ -428,7 +431,7 @@ public class Utils {
 	 * Helper utility to check that a passed in string is non-null and contains
 	 * non-whitespace characters. This method returns the original string with
 	 * leading/trailing whitespace removed.
-	 * 
+	 *
 	 * @param toCheck
 	 *            The string to check.
 	 * @param parameterName
@@ -454,7 +457,7 @@ public class Utils {
 
 	/**
 	 * Helper utility to build a comma separated list of strings.
-	 * 
+	 *
 	 * @param stringList
 	 *            The list of strings to join.
 	 * @param listName
@@ -483,7 +486,7 @@ public class Utils {
 
 	/**
 	 * Process a subscribe message.
-	 * 
+	 *
 	 * @return an {@link InitAckMessage}
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
@@ -521,7 +524,7 @@ public class Utils {
 	 * that the {@link OutputDataStream} returned by this function has already
 	 * had {@link OutputDataStream#setComplete()} called on it since a
 	 * 'journal-resume' message contains no payload.
-	 * 
+	 *
 	 * @param serialId
 	 *            The serialId to send in the 'journal-resume' message. This
 	 *            must be non-null and contain at least one non-whitespace
@@ -545,14 +548,14 @@ public class Utils {
 		headers.setHeader(HDRS_MESSAGE, MSG_JOURNAL_RESUME);
 		headers.setHeader(HDRS_SERIAL_ID, serialId);
 		headers.setHeader(HDRS_JOURNAL_OFFSET, Long.toString(offset));
-		final OutputDataStream ods = new OutputDataStream(headers);
+		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
 	}
 
 	/**
 	 * Extract the details of an initialize-nack message.
-	 * 
+	 *
 	 * @return an {@link InitNackMessage}
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
@@ -600,7 +603,7 @@ public class Utils {
 
 	/**
 	 * Process a 'journal-resume' message.
-	 * 
+	 *
 	 * @return an {@link JournalResumeMessage}
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
