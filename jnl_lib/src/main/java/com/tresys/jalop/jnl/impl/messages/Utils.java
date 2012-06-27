@@ -104,6 +104,9 @@ public class Utils {
 	public static final String MSG_SYNC = "sync";
 	public static final String MSG_SUBSCRIBE = "subscribe";
 
+	public static final String SERIAL_ID = "serialId";
+
+
 	/**
 	 * Utility function to perform common tasks related to parsing incoming
 	 * messages.
@@ -657,6 +660,64 @@ public class Utils {
 					"positive integer", offsetStr);
 		}
 		return new JournalResumeMessage(serialId, offset, unknownHeaders);
+	}
+
+	/**
+	 * Process a Sync Message.
+	 *
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the sync
+	 *            message.
+	 * @return a {@link SyncMessage} that holds the Serial ID that is being synced
+	 * @throws BEEPException
+	 *             If there is an error from the underlying BEEP connection.
+	 * @throws UnexpectedMimeValueException
+	 *             If the message contains illegal values for known MIME headers
+	 * @throws MissingMimeHeaderException
+	 *             If {@link Message} is missing a required MIME header.
+	 */
+	static public SyncMessage processSyncMessage(final InputDataStreamAdapter is)
+			throws MissingMimeHeaderException, UnexpectedMimeValueException,
+			BEEPException {
+
+		final MimeHeaders[] headers = processMessageCommon(is, MSG_SYNC,
+				HDRS_MESSAGE, HDRS_SERIAL_ID);
+
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+
+		String serialId;
+		if (knownHeaders.getHeader(HDRS_SERIAL_ID) == null) {
+			throw new MissingMimeHeaderException(HDRS_SERIAL_ID);
+		}
+		serialId = knownHeaders.getHeader(HDRS_SERIAL_ID)[0].trim();
+		if (serialId.length() == 0) {
+			throw new UnexpectedMimeValueException(HDRS_SERIAL_ID,
+					"non-empty-string", serialId);
+		}
+		return new SyncMessage(serialId, unknownHeaders);
+	}
+
+	/**
+	 * Create a sync message from a String (Serial ID). Note
+	 * that the {@link OutputDataStream} returned by this function has already
+	 * had {@link OutputDataStream#setComplete()} called on it since a
+	 * 'sync' message contains no payload.
+	 *
+	 * @param serialId
+	 *            The String that holds the synced serialID
+	 * @return an {@link OutputDataStream} that holds the sync message
+	 */
+	static public OutputDataStream createSyncMessage(String serialId) {
+		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(CT_JALOP);
+		mh.setHeader(HDRS_MESSAGE, MSG_SYNC);
+		mh.setHeader(HDRS_SERIAL_ID, checkForEmptyString(serialId, SERIAL_ID));
+
+		final OutputDataStream ret = new OutputDataStream(mh, new BufferSegment(new byte[0]));
+		ret.setComplete();
+
+		return ret;
 	}
 
 	/**
