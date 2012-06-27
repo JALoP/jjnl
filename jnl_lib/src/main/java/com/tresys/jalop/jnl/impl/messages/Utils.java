@@ -23,11 +23,15 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -105,7 +109,7 @@ public class Utils {
 	public static final String MSG_SUBSCRIBE = "subscribe";
 
 	public static final String SERIAL_ID = "serialId";
-
+	public static final String STATUS = "status";
 
 	/**
 	 * Utility function to perform common tasks related to parsing incoming
@@ -676,6 +680,7 @@ public class Utils {
 	 * @throws MissingMimeHeaderException
 	 *             If {@link Message} is missing a required MIME header.
 	 */
+
 	static public SyncMessage processSyncMessage(final InputDataStreamAdapter is)
 			throws MissingMimeHeaderException, UnexpectedMimeValueException,
 			BEEPException {
@@ -715,6 +720,98 @@ public class Utils {
 		mh.setHeader(HDRS_SERIAL_ID, checkForEmptyString(serialId, SERIAL_ID));
 
 		final OutputDataStream ret = new OutputDataStream(mh, new BufferSegment(new byte[0]));
+		ret.setComplete();
+
+		return ret;
+	}
+
+	/**
+	 * Process a Digest Message.
+	 * 
+	 * @param is
+	 *            The BEEP {@link InputDataStreamAdapter} that holds the
+	 *            message.
+	 * @return an {@link Map<String, String>}
+	 * @throws BEEPException
+	 *             If there is an error from the underlying BEEP connection.
+	 * @throws UnexpectedMimeValueException
+	 *             If the message contains illegal values for known MIME headers
+	 * @throws MissingMimeHeaderException
+	 *             If {@link Message} is missing a required MIME header.
+	 */
+	static public DigestMessage processDigestMessage(
+			final InputDataStreamAdapter is) throws MissingMimeHeaderException,
+			UnexpectedMimeValueException, BEEPException {
+
+		final MimeHeaders[] headers = processMessageCommon(is, MSG_DIGEST,
+				HDRS_MESSAGE, HDRS_COUNT);
+		final MimeHeaders knownHeaders = headers[0];
+		final MimeHeaders unknownHeaders = headers[1];
+		int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0]
+				.trim());
+
+		// get the digest map from the input stream
+		Map<String, String> digestMap = new HashMap<String, String>();
+		int numLeft = is.available();
+		byte[] messageArray = new byte[numLeft];
+		try {
+			is.read(messageArray);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		String msgStr = new String(messageArray);
+
+		String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
+
+		for (int x = 0; x < count * 2; x += 2) {
+			pairs[x] = checkForEmptyString(pairs[x], MSG_DIGEST);
+			pairs[x + 1] = checkForEmptyString(pairs[x + 1], SERIAL_ID);
+			digestMap.put(pairs[x + 1], pairs[x]);
+		}
+
+		return new DigestMessage(digestMap, unknownHeaders);
+	}
+
+	/**
+	 * Create a digest message from a Map<String (serialID), String (digest)>.
+	 * 
+	 * @param digestMap
+	 *            The Map<String, String> that holds the serialID to digest
+	 *            mappings
+	 * @return an {@link OutputDataStream}
+	 */
+	static public OutputDataStream createDigestMessage(
+			Map<String, String> digestMap) {
+
+		StringBuilder message = new StringBuilder();
+		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(CT_JALOP);
+		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST);
+		mh.setHeader(HDRS_COUNT, String.valueOf(digestMap.size()));
+
+		Iterator<String> sIDs = digestMap.keySet().iterator();
+		while (sIDs.hasNext()) {
+			String id = sIDs.next();
+			if (sIDs.hasNext())
+				message.append(checkForEmptyString(digestMap.get(id),
+						MSG_DIGEST)
+						+ "="
+						+ checkForEmptyString(id, SERIAL_ID)
+						+ "\r\n");
+			else
+				message.append(checkForEmptyString(digestMap.get(id),
+						MSG_DIGEST) + "=" + checkForEmptyString(id, SERIAL_ID));
+		}
+
+		OutputDataStream ret;
+		try {
+			ret = new OutputDataStream(mh, new BufferSegment(message.substring(
+					0).getBytes("utf-8")));
+		} catch (UnsupportedEncodingException e) {
+			// We should never get here
+			e.printStackTrace();
+			return null;
+		}
 		ret.setComplete();
 
 		return ret;
