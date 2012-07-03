@@ -25,6 +25,7 @@
 package com.tresys.jalop.jnl.impl.messages;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -42,6 +43,7 @@ import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.util.BufferSegment;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
@@ -56,6 +58,13 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 public class TestUtils {
 
 	protected InputDataStream data;
+	private static Field odsMimeHeaders;
+
+    @BeforeClass
+	public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
+	    TestUtils.odsMimeHeaders = OutputDataStream.class.getDeclaredField("mimeHeaders");
+	    odsMimeHeaders.setAccessible(true);
+	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -66,6 +75,11 @@ public class TestUtils {
 
 		data = constructor.newInstance();
 	}
+
+	private static String getMimeHeader(OutputDataStream ods, String headerName) throws IllegalArgumentException, IllegalAccessException {
+	    org.beepcore.beep.core.MimeHeaders headers = (org.beepcore.beep.core.MimeHeaders) odsMimeHeaders.get(ods);
+	    return headers.getHeaderValue(headerName);
+    }
 
 	public void createDataStream(org.beepcore.beep.core.MimeHeaders headers)
 			throws Exception {
@@ -1021,4 +1035,72 @@ public class TestUtils {
 		InputDataStreamAdapter ids = data.getInputStream();
 		Utils.processJournalResume(ids);
 	}
+	@Test
+	public void testCreateSyncWorks() throws IllegalAccessException {
+	    OutputDataStream syncMsg = Utils.createSyncMessage("1234");
+	    assertNotNull(syncMsg);
+	    assertEquals("1234", getMimeHeader(syncMsg, Utils.HDRS_SERIAL_ID));
+	    assertEquals(Utils.CT_JALOP, getMimeHeader(syncMsg, org.beepcore.beep.core.MimeHeaders.CONTENT_TYPE));
+        assertEquals(org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING, getMimeHeader(syncMsg, org.beepcore.beep.core.MimeHeaders.CONTENT_TRANSFER_ENCODING));
+	}
+
+	@Test (expected = IllegalArgumentException.class)
+	    public final void testCreateSyncThrowsExceptionForNullSerialId() {
+        OutputDataStream syncMsg = Utils.createSyncMessage(null);
+    }
+
+	@Test (expected = IllegalArgumentException.class)
+    public final void testCreateSyncThrowsExceptionForAllSpacesSerialId() {
+	    OutputDataStream syncMsg = Utils.createSyncMessage("        ");
+	}
+
+	@Test (expected = IllegalArgumentException.class)
+    public final void testCreateSyncThrowsExceptionForEmptySerialId() {
+        OutputDataStream syncMsg = Utils.createSyncMessage("");
+    }
+
+	@Test
+    public void testProcessSyncWorks() throws Exception  {
+	    org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+                      Utils.CT_JALOP,
+	                  org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+	    headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
+	    headers.setHeader(Utils.HDRS_SERIAL_ID, "1234");
+	    createDataStream(headers);
+	    InputDataStreamAdapter ids = data.getInputStream();
+	    SyncMessage syncMsg = Utils.processSyncMessage(ids);
+	    assertEquals("1234", syncMsg.getSerialId());
+	}
+
+	@Test (expected = MissingMimeHeaderException.class)
+	public void testProcessSyncThrowsExceptionWhenMissingSerialId() throws Exception  {
+	    org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+                Utils.CT_JALOP, org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+	        headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
+	        createDataStream(headers);
+	        InputDataStreamAdapter ids = data.getInputStream();
+	        SyncMessage syncMsg = Utils.processSyncMessage(ids);
+	}
+
+	@Test (expected = UnexpectedMimeValueException.class)
+    public void testProcessSyncThrowsExceptionWithEmptySerialId() throws Exception  {
+        org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+                Utils.CT_JALOP, org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+            headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
+            headers.setHeader(Utils.HDRS_SERIAL_ID, "");
+            createDataStream(headers);
+            InputDataStreamAdapter ids = data.getInputStream();
+            SyncMessage syncMsg = Utils.processSyncMessage(ids);
+    }
+
+	@Test (expected = UnexpectedMimeValueException.class)
+    public void testProcessSyncThrowsExceptionWithSerialIdAllSpaces() throws Exception  {
+        org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+                Utils.CT_JALOP, org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+            headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
+            headers.setHeader(Utils.HDRS_SERIAL_ID, "     ");
+            createDataStream(headers);
+            InputDataStreamAdapter ids = data.getInputStream();
+            SyncMessage syncMsg = Utils.processSyncMessage(ids);
+    }
 }
