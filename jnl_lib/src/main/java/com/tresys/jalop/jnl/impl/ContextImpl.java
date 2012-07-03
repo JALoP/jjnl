@@ -29,17 +29,28 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.crypto.dsig.DigestMethod;
+
+import org.apache.log4j.Logger;
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
+import org.beepcore.beep.core.OutputDataStream;
+import org.beepcore.beep.core.ReplyListener;
+import org.beepcore.beep.transport.tcp.TCPSessionCreator;
 
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.Context;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.exceptions.ConnectionException;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
@@ -53,6 +64,8 @@ public final class ContextImpl implements Context {
 
 	public static final String URI = "http://www.dod.mil/logging/jalop-1.0";
 
+	static Logger log = Logger.getLogger(Context.class);
+
 	private final Publisher publisher;
 	private final Subscriber subscriber;
 	private final ConnectionHandler connectionHandler;
@@ -64,6 +77,7 @@ public final class ContextImpl implements Context {
 	private final boolean tlsRequired;
 	private ConnectionState connectionState;
 	private final Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>> subscriberMap;
+	private final String agent;
 
 	/**
 	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
@@ -99,7 +113,7 @@ public final class ContextImpl implements Context {
 	 */
 	public ContextImpl(final Publisher publisher, final Subscriber subscriber,
 			final ConnectionHandler connectionHandler, final int defaultDigestTimeout,
-			final int defaultPendingDigestMax, final boolean tlsRequired,
+			final int defaultPendingDigestMax, final boolean tlsRequired, final String agent,
 			final List<String> allowedMessageDigests, final List<String> allowedXmlEncodings) {
 
 		if(publisher == null && subscriber == null) {
@@ -138,6 +152,7 @@ public final class ContextImpl implements Context {
 		this.tlsRequired = tlsRequired;
 		this.subscriberMap = new HashMap<org.beepcore.beep.core.Session,
 		                            Map<RecordType,SubscriberSessionImpl>>();
+		this.agent = agent;
 	}
 
 	@Override
@@ -156,8 +171,44 @@ public final class ContextImpl implements Context {
 
 	@Override
 	public void subscribe(final InetAddress addr, final int port, final RecordType... types)
-			throws IllegalArgumentException {
-		// TODO Auto-generated method stub
+			throws JNLException, BEEPException {
+
+		if(addr == null) {
+			throw new IllegalArgumentException("addr must be a valid InetAddress");
+		}
+
+		synchronized(this.connectionState) {
+			if(this.connectionState == ConnectionState.DISCONNECTED) {
+				this.connectionState = ConnectionState.CONNECTED;
+			} else {
+				throw new ConnectionException();
+			}
+		}
+
+		if(this.subscriber == null) {
+			throw new JNLException("A subscriber must be set on ContextImpl if calling subscribe.");
+		}
+
+		final org.beepcore.beep.core.Session session = TCPSessionCreator.initiate(addr, port);
+		final Channel channel = session.startChannel(URI);
+
+		if(channel.getState() == Channel.STATE_ACTIVE) {
+
+			final Set<RecordType> recordTypeSet = new HashSet<RecordType>(Arrays.asList(types));
+			if(recordTypeSet.contains(RecordType.Unset)) {
+				throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
+			}
+
+			for(final RecordType rt : recordTypeSet) {
+
+				final ReplyListener listener = new InitListener(Role.Subscriber, rt, this);
+
+				final OutputDataStream ods = Utils.createInitMessage(Role.Subscriber, rt, this.allowedXmlEncodings,
+						this.allowedMessageDigests, this.agent);
+
+				channel.sendMSG(ods, listener);
+			}
+		}
 	}
 
 	/**
@@ -181,7 +232,7 @@ public final class ContextImpl implements Context {
 	            map = new HashMap<RecordType, SubscriberSessionImpl>();
 	            this.subscriberMap.put(sess, map);
 	        }
-	        RecordType rtype = subSess.getRecordType();
+	        final RecordType rtype = subSess.getRecordType();
 	        if (map.containsKey(rtype)) {
 	            throw new JNLException("Attempting to add multiple sessions for the same rtype");
 	        }
@@ -247,6 +298,13 @@ public final class ContextImpl implements Context {
 	 */
 	public int getDefaultPendingDigestMax() {
 		return this.defaultPendingDigestMax;
+	}
+
+	/**
+	 * @return the agent
+	 */
+	public String getAgent() {
+		return this.agent;
 	}
 
 	/**

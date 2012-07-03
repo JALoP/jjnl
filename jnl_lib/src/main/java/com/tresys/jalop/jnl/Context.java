@@ -26,6 +26,10 @@ package com.tresys.jalop.jnl;
 
 import java.net.InetAddress;
 
+import org.beepcore.beep.core.BEEPException;
+
+import com.tresys.jalop.jnl.exceptions.JNLException;
+
 /**
  * The {@link Context} is the primary Object that applications interact with. It
  * is responsible for initiating connections to, or listening for connections
@@ -103,11 +107,14 @@ public interface Context {
 	 * @throws IllegalArgumentException
 	 *             if the address <tt>addr</tt> is not supported. Currently,
 	 *             only IPv4 addresses are supported.
+	 * @throws BEEPException
+	 * @throws JNLException
 	 * @see Context#registerSubscriber(Subscriber)
 	 * @see Subscriber
 	 */
 	void subscribe(InetAddress addr, int port, RecordType... types)
-			throws IllegalArgumentException;
+			throws BEEPException, JNLException;
+
 	/**
 	 * Forcibly shutdown all connections with remote JALoP Network Store.
 	 */
