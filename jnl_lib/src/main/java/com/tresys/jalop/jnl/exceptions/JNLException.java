@@ -23,19 +23,26 @@
  */
 package com.tresys.jalop.jnl.exceptions;
 
-/**
- * Exception class for trying to perform an action after a connection has been established.
- */
-public class ConnectionException extends JNLException {
+import java.io.Serializable;
 
-	private static final long serialVersionUID = 1L;
+/**
+ * Base class for all JNL exceptions.
+ */
+public class JNLException extends Exception {
 
 	/**
-	 * Create a ConnectionException to be thrown when trying to perform an action
-	 * after a connection to a remote JALoP Network Store has already been established.
+	 * Create an Exception that is specific to the JALoP Network Library.
+	 *
+	 * @param string	The message that describes the exception.
 	 */
-	public ConnectionException() {
-		super("A connection has already been established.");
+	public JNLException(final String string) {
+		super(string);
 	}
+
+	/**
+	 * the serial version, because {@link Exception} implements
+	 * {@link Serializable}
+	 */
+	private static final long serialVersionUID = 1L;
 
 }

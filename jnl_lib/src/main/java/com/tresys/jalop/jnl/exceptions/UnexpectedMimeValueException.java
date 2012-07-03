@@ -26,7 +26,7 @@ package com.tresys.jalop.jnl.exceptions;
 /**
  * This is an exception that is when a MIME header contains an unexpected value.
  */
-public class UnexpectedMimeValueException extends Exception {
+public class UnexpectedMimeValueException extends JNLException {
 	private static final long serialVersionUID = 1L;
 	private final String expected;
 	private final String actual;
@@ -34,15 +34,15 @@ public class UnexpectedMimeValueException extends Exception {
 
 	/**
 	 * Create an exception for when a MIME header contains an unexpected value.
-	 * 
+	 *
 	 * @param headerName
 	 *            The name of the MIME header.
-	 * 
+	 *
 	 * @param expected
 	 *            The expected message type.
 	 * @param actual
 	 *            The actual message type.
-	 * 
+	 *
 	 */
 	public UnexpectedMimeValueException(final String headerName,
 			final String expected, final String actual) {
@@ -55,7 +55,7 @@ public class UnexpectedMimeValueException extends Exception {
 
 	/**
 	 * Get a string that describes the expected values.
-	 * 
+	 *
 	 * @return The expected values.
 	 */
 	public String getExpectedMessage() {
@@ -64,7 +64,7 @@ public class UnexpectedMimeValueException extends Exception {
 
 	/**
 	 * Get the actual value for of the MIME header.
-	 * 
+	 *
 	 * @return The actual message type.
 	 */
 	public String getFoundMessage() {
@@ -73,7 +73,7 @@ public class UnexpectedMimeValueException extends Exception {
 
 	/**
 	 * Get the name of the MIME header.
-	 * 
+	 *
 	 * @return The relevant MIME header.
 	 */
 	public String getHeaderName() {

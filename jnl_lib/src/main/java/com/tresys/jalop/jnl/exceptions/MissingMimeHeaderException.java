@@ -27,14 +27,14 @@ package com.tresys.jalop.jnl.exceptions;
  * This exception is thrown when received BEEP message does not contain an
  * expected MIME header.
  */
-public class MissingMimeHeaderException extends Exception {
+public class MissingMimeHeaderException extends JNLException {
 	private static final long serialVersionUID = 1L;
 	private final String missingHeader;
 
 	/**
 	 * Create a new exception for when a BEEP message is missing an expected
 	 * MIME header.
-	 * 
+	 *
 	 * @param missingHeader
 	 *            The name of the expected header
 	 */
@@ -46,7 +46,7 @@ public class MissingMimeHeaderException extends Exception {
 
 	/**
 	 * Get the the name of the expected header.
-	 * 
+	 *
 	 * @return The name of the expected header.
 	 */
 	String getMissingHeader() {
