@@ -25,6 +25,7 @@
 package com.tresys.jalop.jnl.impl.messages;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -34,9 +35,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.soap.MimeHeaders;
+
+import mockit.Mock;
+import mockit.Mockit;
 
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
@@ -51,6 +57,7 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+import com.tresys.jalop.jnl.impl.messages.Utils;
 
 /**
  * Tests for common utility class.
@@ -94,7 +101,22 @@ public class TestUtils {
 		completeMethod.setAccessible(true);
 		completeMethod.invoke(data);
 	}
+	
+	public void createDataStream(org.beepcore.beep.core.MimeHeaders headers, String digests)
+		throws Exception {
 
+		Method addMethod = InputDataStream.class.getDeclaredMethod("add",
+				BufferSegment.class);
+		addMethod.setAccessible(true);
+		addMethod.invoke(data, headers.getBufferSegment());
+		addMethod.invoke(data, new BufferSegment(digests.getBytes("us-ascii")));
+
+		Method completeMethod = InputDataStream.class
+				.getDeclaredMethod("setComplete");
+		completeMethod.setAccessible(true);
+		completeMethod.invoke(data);
+	}
+	
 	@Test
 	public void testCreateInitAckMessageWorks() throws SecurityException,
 			NoSuchFieldException, IllegalArgumentException,
@@ -1103,4 +1125,104 @@ public class TestUtils {
             InputDataStreamAdapter ids = data.getInputStream();
             SyncMessage syncMsg = Utils.processSyncMessage(ids);
     }
-}
+
+	public static class MockOutputDataStream {
+		@Mock
+		public void $init(org.beepcore.beep.core.MimeHeaders mh, BufferSegment bs) throws Exception {
+			assertEquals(Utils.CT_JALOP, mh.getContentType());
+			assertEquals(Utils.MSG_DIGEST, mh.getHeaderValue(Utils.HDRS_MESSAGE));
+			assertEquals("2", mh.getHeaderValue(Utils.HDRS_COUNT));
+			String digests = "abcdef123456789=2\r\n123456789abcdef=1";
+			assertEquals(digests, new String(bs.getData()));
+		}
+	}
+
+	@Test
+	public void testCreateDigestMessageWorks() throws Exception {
+		Map<String, String> digests = new HashMap<String, String>();
+		digests.put("1", "123456789abcdef");
+		digests.put("2", "abcdef123456789");
+
+		Mockit.setUpMock(OutputDataStream.class, new MockOutputDataStream());
+
+		OutputDataStream ods = Utils.createDigestMessage(digests);
+		assertNotNull(ods);
+		assertTrue(ods.isComplete());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateDigestMessageThrowsExceptionWhenSidIsEmpty() throws Exception {
+		Map<String, String> digests = new HashMap<String, String>();
+		digests.put("", "123456789abcdef");
+
+		Mockit.setUpMock(OutputDataStream.class, new MockOutputDataStream());
+
+		Utils.createDigestMessage(digests);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateDigestMessageThrowsExceptionWhenDigestIsEmpty() throws Exception {
+		Map<String, String> digests = new HashMap<String, String>();
+		digests.put("1", "");
+
+		Mockit.setUpMock(OutputDataStream.class, new MockOutputDataStream());
+
+		Utils.createDigestMessage(digests);
+	}
+
+	@Test
+	public void testProcessDigestMessageWorks() throws Exception {
+
+		String digests = "abcdef123456789=1\r\n123456789abcdef=2";
+		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(Utils.CT_JALOP);
+		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST);
+		mh.setHeader(Utils.HDRS_COUNT, "2");
+
+		createDataStream(mh, digests);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+
+		DigestMessage dm = Utils.processDigestMessage(ids);
+		assertNotNull(dm);
+
+		HashMap<String, String> digestsMap = (HashMap<String, String>) dm.getMap();
+		assertNotNull(digestsMap);
+		assertFalse(digestsMap.isEmpty());
+		assertTrue(digestsMap.containsKey("1"));
+		assertTrue(digestsMap.containsKey("2"));
+		assertEquals("abcdef123456789", digestsMap.get("1"));
+		assertEquals("123456789abcdef", digestsMap.get("2"));	
+	}
+
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessDigestMessageThrowsMissingMimeHeaderException() throws Exception {
+		
+		String digests = "abcdef123456789=1\r\n123456789abcdef=2";
+		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(Utils.CT_JALOP);
+		mh.setHeader(Utils.HDRS_COUNT, "2");
+
+		createDataStream(mh, digests);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+
+		Utils.processDigestMessage(ids);
+	}
+	
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testProcessDigestMessageThrowsUnexpectedMimeValueException() throws Exception {
+
+		String digests = "abcdef123456789=1\r\n123456789abcdef=2";
+		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(Utils.CT_JALOP);
+		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST_RESP);
+		mh.setHeader(Utils.HDRS_COUNT, "2");
+
+		createDataStream(mh, digests);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+
+		Utils.processDigestMessage(ids);
+	}
+}	
