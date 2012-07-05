@@ -198,14 +198,14 @@ public final class ContextImpl implements Context {
 	/**
 	 * @return the allowedMessageDigests
 	 */
-	public Iterable<String> getAllowedMessageDigests() {
+	public List<String> getAllowedMessageDigests() {
 		return this.allowedMessageDigests;
 	}
 
 	/**
 	 * @return the allowedXmlEncodings
 	 */
-	public Iterable<String> getAllowedXmlEncodings() {
+	public List<String> getAllowedXmlEncodings() {
 		return this.allowedXmlEncodings;
 	}
 
