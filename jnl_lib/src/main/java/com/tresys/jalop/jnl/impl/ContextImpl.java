@@ -28,7 +28,9 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.Context;
@@ -36,6 +38,8 @@ import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.exceptions.JNLException;
+import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 /**
  * The {@link ContextImpl} is the implementation of the {@link Context} class. It
@@ -53,7 +57,8 @@ public final class ContextImpl implements Context {
 	private final int defaultDigestTimeout;
 	private final int defaultPendingDigestMax;
 	private final boolean tlsRequired;
-	ConnectionState connectionState;
+	private ConnectionState connectionState;
+	private final Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>> subscriberMap;
 
 	/**
 	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
@@ -126,6 +131,8 @@ public final class ContextImpl implements Context {
 		this.defaultDigestTimeout = defaultDigestTimeout;
 		this.defaultPendingDigestMax = defaultPendingDigestMax;
 		this.tlsRequired = tlsRequired;
+		this.subscriberMap = new HashMap<org.beepcore.beep.core.Session,
+		                            Map<RecordType,SubscriberSessionImpl>>();
 	}
 
 	@Override
@@ -148,6 +155,34 @@ public final class ContextImpl implements Context {
 		// TODO Auto-generated method stub
 	}
 
+	/**
+	 * Add a session to the set of tracked JALoP Sessions.
+	 * @param sess The {@link org.beepcore.beep.core.Session} that owns
+	 * the <code>subSess;
+	 * @param subSess The {@link SubscriberSessionImpl} that should be tracked by
+	 * this {@link ContextImpl}.
+	 * @throws JNLException If a {@link SubscriberSessionImpl} already exists
+	 * in the given {@link org.beepcore.beep.core.Session} for the same
+	 * {@link RecordType} as <code>subSess</code>
+	 */
+	public void addSession(final org.beepcore.beep.core.Session sess, final SubscriberSessionImpl subSess) throws JNLException {
+	    if (subSess.getRecordType() == RecordType.Unset) {
+	        throw new IllegalArgumentException();
+	    }
+	    Map<RecordType, SubscriberSessionImpl> map;
+	    synchronized (this.subscriberMap) {
+	        map = this.subscriberMap.get(sess);
+	        if (map == null) {
+	            map = new HashMap<RecordType, SubscriberSessionImpl>();
+	            this.subscriberMap.put(sess, map);
+	        }
+	        RecordType rtype = subSess.getRecordType();
+	        if (map.containsKey(rtype)) {
+	            throw new JNLException("Attempting to add multiple sessions for the same rtype");
+	        }
+	        map.put(rtype, subSess);
+        }
+	}
 	@Override
 	public void close() {
 		// TODO Auto-generated method stub
