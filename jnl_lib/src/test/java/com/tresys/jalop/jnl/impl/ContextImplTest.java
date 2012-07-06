@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -40,8 +41,11 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.Publisher;
+import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.exceptions.JNLException;
+import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 public class ContextImplTest {
 
@@ -50,6 +54,7 @@ public class ContextImplTest {
     private static Field       tlsField;
     private static Field       jalSessionsField;
     private static Field       connectionStateField;
+    private static Field subscriberMapField;
 
     @BeforeClass
     public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
@@ -61,6 +66,9 @@ public class ContextImplTest {
 
         connectionStateField = ContextImpl.class.getDeclaredField("connectionState");
         connectionStateField.setAccessible(true);
+
+        subscriberMapField = ContextImpl.class.getDeclaredField("subscriberMap");
+        subscriberMapField.setAccessible(true);
     }
 
     @Before
@@ -75,8 +83,14 @@ public class ContextImplTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Session> getSessions(ContextImpl c) throws IllegalArgumentException, IllegalAccessException {
+    private static List<Session> getSessions(final ContextImpl c) throws IllegalArgumentException, IllegalAccessException {
         return (List<Session>) jalSessionsField.get(c);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>> getSubscriberMap(final ContextImpl c)
+            throws IllegalArgumentException, IllegalAccessException {
+        return (Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>>) subscriberMapField.get(c);
     }
 
     @Test
@@ -291,5 +305,58 @@ public class ContextImplTest {
             ConnectionHandler connectionHandler) {
         ContextImpl c = new ContextImpl(null, null, connectionHandler, 100, 10, false, digests, encodings);
 
+    }
+
+    @Test
+    public final void testAddSessionsWorks(final org.beepcore.beep.core.Session sess,
+            final SubscriberSessionImpl subSess, final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws JNLException, IllegalAccessException {
+
+        final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, digests, encodings);
+        c.addSession(sess, subSess);
+        final Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>> map = getSubscriberMap(c);
+        assertTrue(map.containsKey(sess));
+
+        final Map<RecordType, SubscriberSessionImpl> subSessionMap = map.get(sess);
+        assertTrue(subSessionMap.containsKey(subSess.getRecordType()));
+        assertEquals(subSess, subSessionMap.get(subSess.getRecordType()));
+    }
+
+    @Test
+    public final void testAddSessionsAddsToExistingMap(final org.beepcore.beep.core.Session sess,
+            final Subscriber subscriber, final ConnectionHandler connectionHandler)
+            throws JNLException, IllegalAccessException {
+        final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, digests, encodings);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1);
+        c.addSession(sess, subSess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Journal, subscriber, "foo", "bar", 1, 1);
+        c.addSession(sess, nextSubSess);
+
+        final Map<RecordType, SubscriberSessionImpl> subSessionMap = getSubscriberMap(c).get(sess);
+        assertTrue(subSessionMap.containsKey(subSess.getRecordType()));
+        assertEquals(subSess, subSessionMap.get(subSess.getRecordType()));
+        assertTrue(subSessionMap.containsKey(nextSubSess.getRecordType()));
+        assertEquals(nextSubSess, subSessionMap.get(nextSubSess.getRecordType()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public final void testAddSessionThrowsExceptionWithUnsetRecordType(final org.beepcore.beep.core.Session sess, final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws JNLException {
+
+        final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, digests, encodings);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Unset, null, null, null, 0, 0);
+        c.addSession(sess, subSess);
+    }
+
+    @Test(expected = JNLException.class)
+    public final void testAddSessionsFailsWithDuplicateRecordType(final org.beepcore.beep.core.Session sess,
+            final Subscriber subscriber, final ConnectionHandler connectionHandler)
+            throws JNLException, IllegalAccessException {
+
+        final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, digests, encodings);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1);
+        c.addSession(sess, subSess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1);
+        c.addSession(sess, nextSubSess);
     }
 }
