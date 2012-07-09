@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.crypto.dsig.DigestMethod;
+
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.Context;
 import com.tresys.jalop.jnl.Publisher;
@@ -115,7 +117,7 @@ public final class ContextImpl implements Context {
 		if(allowedMessageDigests != null && !allowedMessageDigests.isEmpty()) {
 			this.allowedMessageDigests = allowedMessageDigests;
 		} else {
-			this.allowedMessageDigests = Arrays.asList("sha256");
+			this.allowedMessageDigests = Arrays.asList(DigestMethod.SHA256);
 		}
 
 		if(allowedXmlEncodings != null && !allowedXmlEncodings.isEmpty()) {

@@ -34,6 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.crypto.dsig.DigestMethod;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -194,7 +196,7 @@ public class ContextImplTest {
         List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
         assertNotNull(dgsts);
         assertEquals(1, dgsts.size());
-        assertEquals("sha256", dgsts.get(0));
+        assertEquals(DigestMethod.SHA256, dgsts.get(0));
         assertEquals(ContextImpl.ConnectionState.DISCONNECTED, connectionStateField.get(c));
         assertNotNull(getSessions(c));
         assertTrue(getSessions(c).isEmpty());
@@ -219,7 +221,7 @@ public class ContextImplTest {
         assertNotNull(c.getAllowedMessageDigests());
         List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
         assertEquals(1, dgsts.size());
-        assertEquals("sha256", dgsts.get(0));
+        assertEquals(DigestMethod.SHA256, dgsts.get(0));
 
         assertEquals(ContextImpl.ConnectionState.DISCONNECTED, connectionStateField.get(c));
         assertNotNull(getSessions(c));
