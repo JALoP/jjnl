@@ -39,7 +39,7 @@ Installation Instructions:
    modify the pom.xml file in this directory, and replace the value of third.party.root
    with an absolute path to where you extracted the beepcore files.
 
-3. Package JALoP JNL project
+4. Package JALoP JNL project
 	- Run mvn package
 
 Other Options (these steps do not need to be executed in order to use the JALoP
