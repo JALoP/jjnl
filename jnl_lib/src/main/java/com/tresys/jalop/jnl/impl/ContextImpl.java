@@ -41,6 +41,7 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.JNLException;
+import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 /**
@@ -123,7 +124,7 @@ public final class ContextImpl implements Context {
 		if(allowedXmlEncodings != null && !allowedXmlEncodings.isEmpty()) {
 			this.allowedXmlEncodings = allowedXmlEncodings;
 		} else {
-			this.allowedXmlEncodings = Arrays.asList("none");
+			this.allowedXmlEncodings = Arrays.asList(Utils.ENC_XML);
 		}
 
 		this.subscriber = subscriber;
