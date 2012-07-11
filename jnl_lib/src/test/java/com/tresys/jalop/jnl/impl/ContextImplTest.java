@@ -244,7 +244,7 @@ public class ContextImplTest {
         List<String> encs = Lists.newArrayList(c.getAllowedXmlEncodings());
         assertNotNull(encs);
         assertEquals(1, encs.size());
-        assertEquals("none", encs.get(0));
+        assertEquals("xml", encs.get(0));
         assertArrayEquals(digests.toArray(new String[0]),
                           Lists.newArrayList(c.getAllowedMessageDigests()).toArray(new String[0]));
         assertEquals(ContextImpl.ConnectionState.DISCONNECTED, connectionStateField.get(c));
@@ -268,7 +268,7 @@ public class ContextImplTest {
         assertNotNull(c.getAllowedXmlEncodings());
         List<String> encs = Lists.newArrayList(c.getAllowedXmlEncodings());
         assertEquals(1, encs.size());
-        assertEquals("none", encs.get(0));
+        assertEquals("xml", encs.get(0));
 
         assertArrayEquals(digests.toArray(new String[0]),
                           Lists.newArrayList(c.getAllowedMessageDigests()).toArray(new String[0]));
