@@ -57,7 +57,6 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
-import com.tresys.jalop.jnl.impl.messages.Utils;
 
 /**
  * Tests for common utility class.
@@ -101,7 +100,7 @@ public class TestUtils {
 		completeMethod.setAccessible(true);
 		completeMethod.invoke(data);
 	}
-	
+
 	public void createDataStream(org.beepcore.beep.core.MimeHeaders headers, String digests)
 		throws Exception {
 
@@ -116,7 +115,7 @@ public class TestUtils {
 		completeMethod.setAccessible(true);
 		completeMethod.invoke(data);
 	}
-	
+
 	@Test
 	public void testCreateInitAckMessageWorks() throws SecurityException,
 			NoSuchFieldException, IllegalArgumentException,
@@ -886,7 +885,7 @@ public class TestUtils {
 		InputDataStreamAdapter ids = data.getInputStream();
 		Utils.processSubscribe(ids);
 	}
-	
+
 	@Test
 	public void testCreateJournalResumeMessageWorks() throws SecurityException,
 			NoSuchFieldException, IllegalArgumentException,
@@ -1132,7 +1131,7 @@ public class TestUtils {
 			assertEquals(Utils.CT_JALOP, mh.getContentType());
 			assertEquals(Utils.MSG_DIGEST, mh.getHeaderValue(Utils.HDRS_MESSAGE));
 			assertEquals("2", mh.getHeaderValue(Utils.HDRS_COUNT));
-			String digests = "abcdef123456789=2\r\n123456789abcdef=1";
+			String digests = "abcdef123456789=2\r\n123456789abcdef=1\r\n";
 			assertEquals(digests, new String(bs.getData()));
 		}
 	}
@@ -1192,12 +1191,12 @@ public class TestUtils {
 		assertTrue(digestsMap.containsKey("1"));
 		assertTrue(digestsMap.containsKey("2"));
 		assertEquals("abcdef123456789", digestsMap.get("1"));
-		assertEquals("123456789abcdef", digestsMap.get("2"));	
+		assertEquals("123456789abcdef", digestsMap.get("2"));
 	}
 
 	@Test(expected = MissingMimeHeaderException.class)
 	public void testProcessDigestMessageThrowsMissingMimeHeaderException() throws Exception {
-		
+
 		String digests = "abcdef123456789=1\r\n123456789abcdef=2";
 		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(Utils.CT_JALOP);
@@ -1209,7 +1208,7 @@ public class TestUtils {
 
 		Utils.processDigestMessage(ids);
 	}
-	
+
 	@Test(expected = UnexpectedMimeValueException.class)
 	public void testProcessDigestMessageThrowsUnexpectedMimeValueException() throws Exception {
 
@@ -1225,4 +1224,4 @@ public class TestUtils {
 
 		Utils.processDigestMessage(ids);
 	}
-}	
+}

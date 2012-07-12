@@ -727,7 +727,7 @@ public class Utils {
 
 	/**
 	 * Process a Digest Message.
-	 * 
+	 *
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
 	 *            message.
@@ -774,7 +774,7 @@ public class Utils {
 
 	/**
 	 * Create a digest message from a Map<String (serialID), String (digest)>.
-	 * 
+	 *
 	 * @param digestMap
 	 *            The Map<String, String> that holds the serialID to digest
 	 *            mappings
@@ -792,21 +792,15 @@ public class Utils {
 		Iterator<String> sIDs = digestMap.keySet().iterator();
 		while (sIDs.hasNext()) {
 			String id = sIDs.next();
-			if (sIDs.hasNext())
-				message.append(checkForEmptyString(digestMap.get(id),
-						MSG_DIGEST)
-						+ "="
-						+ checkForEmptyString(id, SERIAL_ID)
-						+ "\r\n");
-			else
-				message.append(checkForEmptyString(digestMap.get(id),
-						MSG_DIGEST) + "=" + checkForEmptyString(id, SERIAL_ID));
+			message.append(checkForEmptyString(digestMap.get(id), MSG_DIGEST));
+			message.append("=");
+			message.append(checkForEmptyString(id, SERIAL_ID));
+			message.append("\r\n");
 		}
 
 		OutputDataStream ret;
 		try {
-			ret = new OutputDataStream(mh, new BufferSegment(message.substring(
-					0).getBytes("utf-8")));
+			ret = new OutputDataStream(mh, new BufferSegment(message.toString().getBytes("utf-8")));
 		} catch (UnsupportedEncodingException e) {
 			// We should never get here
 			e.printStackTrace();
