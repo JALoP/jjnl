@@ -1,5 +1,4 @@
 {
-  "beepAction": "connect",
   "address": "192.168.90.1",
   "port": 1234,
   "subscriber": {
