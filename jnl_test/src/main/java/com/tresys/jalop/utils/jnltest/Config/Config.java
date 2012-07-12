@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -45,8 +44,8 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 
 /**
- * The Config class is used to to parse a configuration file, and configure the
- * JNLTest program.
+ * The {@link Config} class is used to to parse a configuration file, and
+ * configure the JNLTest program.
  */
 public class Config {
 	private static final String ADDRESS = "address";
@@ -57,7 +56,7 @@ public class Config {
 	private static final String HOSTS = "hosts";
 	private static final String INPUT = "input";
 	private static final String JOURNAL = "journal";
-	private static final String LISTEN = "listen";
+	private static final String LISTENER = "listener";
 	private static final String LOG = "log";
 	private static final String OUTPUT = "output";
 	private static final String PEERS = "peers";
@@ -72,7 +71,7 @@ public class Config {
 
 	/**
 	 * Method to create a {@link Config} from a {@link JSONObject}
-	 * 
+	 *
 	 * @param cfgFile
 	 *            An identifier for the configuration file (i.e. the path).
 	 * @param parsedConfig
@@ -83,23 +82,36 @@ public class Config {
 	public static Config createFromJson(final String cfgFile,
 			final JSONObject parsedConfig) throws ConfigurationException {
 		final Config config = new Config(cfgFile);
-		final String beepAction = config
-				.itemAsString(BEEP_ACTION, parsedConfig);
 		config.handleCommon(parsedConfig);
-		if (LISTEN.equals(beepAction)) {
-			config.handleListener(parsedConfig);
-		} else if (CONNECT.equals(beepAction)) {
-			config.handleConnector(parsedConfig);
-		} else {
-			throw new ConfigurationException(config.source, BEEP_ACTION
-					+ " was not '" + LISTEN + " or '" + CONNECT + "'");
-		}
+
+		Object subscriber = parsedConfig.get(SUBSCRIBER);
+		Object publisher = parsedConfig.get(PUBLISHER);
+	    Object listener = parsedConfig.get(LISTENER);
+	    String exceptionMsg = new StringBuilder().append("Must specify one of '")
+	        .append(SUBSCRIBER).append("', '")
+	        .append(PUBLISHER).append("', ")
+	        .append(LISTENER).append('\'').toString();
+	    if (subscriber != null) {
+	        if (publisher != null || listener != null) {
+	            throw new ConfigurationException(cfgFile, exceptionMsg);
+	        }
+	        config.handleSubscriber(asJsonObject(cfgFile, SUBSCRIBER, subscriber));
+	    } else if (publisher != null) {
+	        if (listener != null) {
+                throw new ConfigurationException(cfgFile, exceptionMsg);
+	        }
+            config.handlePublisher(asJsonObject(cfgFile, PUBLISHER, publisher));
+	    } else if (listener != null) {
+            config.handleListener(asJsonObject(cfgFile, LISTENER, listener));
+	    } else {
+            throw new ConfigurationException(cfgFile, exceptionMsg);
+	    }
+
 		return config;
 	}
 
 	/**
 	 * Parses a configuration file for use by the JNLTest program.
-	 * 
 	 * @param path
 	 *            The path to a file to use as the configuration.
 	 * @return The {@link Config}
@@ -120,7 +132,7 @@ public class Config {
 	}
 
 	private InetAddress address;
-	private boolean connect;
+	private boolean listener;
 	private File inputPath;
 	private File outputPath;
 	private Map<InetAddress, PeerConfig> peerConfigs;
@@ -134,7 +146,7 @@ public class Config {
 
 	/**
 	 * Create a new {@link Config} object.
-	 * 
+	 *
 	 * @param source
 	 *            This string will be used in generated errors to indicate what
 	 *            resources caused a problem.
@@ -150,7 +162,7 @@ public class Config {
 
 	/**
 	 * Get the IP address.
-	 * 
+	 *
 	 * @return The {@link InetAddress}. Currently on IPv4 addresses are
 	 *         supported.
 	 */
@@ -160,7 +172,7 @@ public class Config {
 
 	/**
 	 * Retrieve the directory path to use when acting as publisher.
-	 * 
+	 *
 	 * @return The directory specified for where to obtain records from.
 	 */
 	public File getInputPath() {
@@ -169,7 +181,7 @@ public class Config {
 
 	/**
 	 * Retrieve the directory path to use when acting as a subscriber.
-	 * 
+	 *
 	 * @return The directory specified for store records into.
 	 */
 	public File getOutputPath() {
@@ -178,7 +190,7 @@ public class Config {
 
 	/**
 	 * Obtains the {@link PeerConfig} map for this configuration.
-	 * 
+	 *
 	 * @return The a {@link Map} of {@link PeerConfig} objects.
 	 */
 	public Map<InetAddress, PeerConfig> getPeerConfigs() {
@@ -188,7 +200,7 @@ public class Config {
 	/**
 	 * Obtain the indicated maximum number of digests to calculate before
 	 * sending a "digest" message. This maximum is a per session maximum.
-	 * 
+	 *
 	 * @return The maximum number of digests to calculate before sending a
 	 *         "digest" message.
 	 */
@@ -199,7 +211,7 @@ public class Config {
 	/**
 	 * Obtain the indicated number of seconds to wait before sending a "digest"
 	 * message.
-	 * 
+	 *
 	 * @return The maximum number of seconds to wait before sending a digest
 	 *         message.
 	 */
@@ -209,9 +221,9 @@ public class Config {
 
 	/**
 	 * Get the port to listen on (for listeners) or connect to (for connector).
-	 * 
+	 *
 	 * @return The port
-	 * @see Config#isConnector()
+	 * @see Config#isListener()
 	 */
 	public int getPort() {
 		return this.port;
@@ -220,10 +232,10 @@ public class Config {
 	/**
 	 * Obtain the set of record types to subscribe/publish. This is not
 	 * applicable for a listener.
-	 * 
+	 *
 	 * @return The JALoP records that should be transfered using this
 	 *         connection.
-	 * @see Config#isConnector()
+	 * @see Config#isListener()
 	 */
 	public Set<RecordType> getRecordTypes() {
 		return this.recordTypes;
@@ -232,8 +244,8 @@ public class Config {
 	/**
 	 * Obtain the indicated role, {@link Role#Publisher} or
 	 * {@link Role#Subscriber}. This is not applicable for listeners.
-	 * 
-	 * @see Config#isConnector()
+	 *
+	 * @see Config#isListener()
 	 * @return The designated role.
 	 */
 	public Role getRole() {
@@ -244,10 +256,11 @@ public class Config {
 	 * Obtain the session timeout. The session timeout indicates how long an
 	 * connector should wait (once the connection is established) before
 	 * disconnecting from a remote.
-	 * 
+	 *
 	 * @return A Date that represents the amount of time to wait. This is the
 	 *         amount of time to wait, not a future date.
 	 */
+	
 	public Date getSessionTimeout() {
 		return this.sessionTimeout;
 	}
@@ -255,7 +268,7 @@ public class Config {
 	/**
 	 * Obtain the identifier (i.e. path) of the configuration used to create
 	 * this {@link Config} object.
-	 * 
+	 *
 	 * @see Config#Config(String)
 	 * @return The source identifier.
 	 */
@@ -266,7 +279,7 @@ public class Config {
 	/**
 	 * Get IP address from the {@link JSONObject}. This expects there to be a
 	 * key with the name "address" in the {@link JSONObject} obj.
-	 * 
+	 *
 	 * @param obj
 	 *            The context to look in.
 	 * @throws ConfigurationException
@@ -279,7 +292,7 @@ public class Config {
 
 	/**
 	 * Helper utility to handle the common configuration keys.
-	 * 
+	 *
 	 * @param obj
 	 *            The context to lookup keys in.
 	 * @throws ConfigurationException
@@ -292,15 +305,14 @@ public class Config {
 
 	/**
 	 * Handle common configuration keys for connectors.
-	 * 
+	 *
 	 * @param obj
 	 *            The context to look up keys in.
 	 * @throws ConfigurationException
 	 *             If an error is detected in the configuration.
 	 */
-	void handleConnectCommon(final JSONObject obj)
+	void handleSessionTimeout(final JSONObject obj)
 			throws ConfigurationException {
-		this.connect = true;
 		final String sessionTimeout = itemAsString(SESSION_TIMEOUT, obj);
 		try {
 			setSessionTimeout(new SimpleDateFormat("hh:mm:ss")
@@ -310,55 +322,33 @@ public class Config {
 					+ SESSION_TIMEOUT + "' (" + sessionTimeout + ") "
 					+ e.toString());
 		}
-		final JSONArray dataClasses = itemAsArray(DATA_CLASS, obj);
-		for (final Object o : dataClasses) {
-			this.recordTypes.add(objectToRecordType(o));
-		}
-
 	}
 
 	/**
-	 * Helper function to process keys related to being a 'connector'.
-	 * 
+	 * Handle parsing the dataClass field for a publisher or listener.
 	 * @param obj
 	 *            The context to look up keys in.
 	 * @throws ConfigurationException
-	 *             If an error is detected during processing.
+     *            If an error is detected in the configuration.
 	 */
-	void handleConnector(final JSONObject obj) throws ConfigurationException {
-		final Object subscriber = obj.get(SUBSCRIBER);
-		final Object publisher = obj.get(PUBLISHER);
-		if ((subscriber == null) && (publisher == null)) {
-			throw new ConfigurationException(this.source,
-					"Configuration specifies '" + CONNECT + "', but no '"
-							+ PUBLISHER + "' or '" + SUBSCRIBER
-							+ "' specified.");
-		}
-		if ((subscriber != null) && (publisher != null)) {
-			throw new ConfigurationException(this.source,
-					"Illegal configuration specifies both '" + PUBLISHER
-							+ "' and '" + SUBSCRIBER + "' for '" + CONNECT
-							+ "'.");
-		}
-		if (subscriber != null) {
-			handleSubscriber(asJsonObject(this.source, SUBSCRIBER, subscriber));
-		}
-		if (publisher != null) {
-			handlePublisher(asJsonObject(this.source, PUBLISHER, publisher));
-		}
+	void handleDataClass(final JSONObject obj) throws ConfigurationException {
+	    final JSONArray dataClasses = itemAsArray(DATA_CLASS, obj);
+	    for (final Object o : dataClasses) {
+	        this.recordTypes.add(objectToRecordType(o));
+	    }
 	}
 
 	/**
 	 * Helper utility to process the remainder of a configuration as a
 	 * 'listener'.
-	 * 
+	 *
 	 * @param obj
 	 *            The context to look up keys in.
 	 * @throws ConfigurationException
 	 *             If an error is detected in the configuration.
 	 */
 	void handleListener(final JSONObject obj) throws ConfigurationException {
-		this.connect = false;
+	    this.listener = true;
 		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, obj).shortValue());
 		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, obj)
 				.longValue());
@@ -374,7 +364,7 @@ public class Config {
 	/**
 	 * Helper utility to process a segment of the configuration as a
 	 * 'publisher'.
-	 * 
+	 *
 	 * @param publisher
 	 *            The context to look up keys in.
 	 * @throws ConfigurationException
@@ -382,15 +372,17 @@ public class Config {
 	 */
 	void handlePublisher(final JSONObject publisher)
 			throws ConfigurationException {
+	    this.listener = false;
+        handleSessionTimeout(publisher);
+        handleDataClass(publisher);
 		setRole(Role.Publisher);
 		setInputPath(new File(itemAsString(INPUT, publisher, true)));
-		handleConnectCommon(publisher);
 	}
 
 	/**
 	 * Helper utility to process a segment of the configuration as a
 	 * 'subscriber'.
-	 * 
+	 *
 	 * @param subscriber
 	 *            The context to look up keys in.
 	 * @throws ConfigurationException
@@ -398,8 +390,10 @@ public class Config {
 	 */
 	void handleSubscriber(final JSONObject subscriber)
 			throws ConfigurationException {
+        this.listener = false;
 		setRole(Role.Subscriber);
-		handleConnectCommon(subscriber);
+		handleSessionTimeout(subscriber);
+		handleDataClass(subscriber);
 		setOutputPath(new File(itemAsString(OUTPUT, subscriber, true)));
 		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, subscriber)
 				.shortValue());
@@ -409,18 +403,19 @@ public class Config {
 
 	/**
 	 * Returns whether or not this Config specifies a listener, or connector.
-	 * 
-	 * @return true if the configuration indicates to connect to a remote, false
-	 *         if the configuration indicates to listen for connections.
+	 *
+	 * @return <code>true</code> if the configuration indicates to a listener.
+	 * <code>false</code> if the configuration specifies a connection should be
+	 * initiated.
 	 */
-	public boolean isConnector() {
-		return this.connect;
+	public boolean isListener() {
+		return this.listener;
 	}
 
 	/**
 	 * Lookup the required element named by 'key' in the {@link JSONObject} obj.
-	 * 
-	 * 
+	 *
+	 *
 	 * @see Config#itemAsArray(String, JSONObject, boolean)
 	 * @param key
 	 *            The name of the element to look up.
@@ -438,7 +433,7 @@ public class Config {
 	 * Simple helper function to retrieve an element as a {@link JSONArray}. If
 	 * the element is not an array, this function throws an appropriate
 	 * {@link ConfigurationException}.
-	 * 
+	 *
 	 * @param key
 	 *            The name of the element to look up.
 	 * @param obj
@@ -461,9 +456,9 @@ public class Config {
 
 	/**
 	 * Look up the required key as a Number in the {@link JSONObject} obj.
-	 * 
+	 *
 	 * @see Config#itemAsNumber(String, JSONObject, boolean)
-	 * 
+	 *
 	 * @param key
 	 *            The key to look up.
 	 * @param obj
@@ -480,7 +475,7 @@ public class Config {
 	 * Simple helper function to retrieve an element as a {@link Number}. If the
 	 * element is not a number, this function throws an appropriate
 	 * {@link ConfigurationException}.
-	 * 
+	 *
 	 * @param key
 	 *            The name of the element to look up.
 	 * @param obj
@@ -502,7 +497,7 @@ public class Config {
 
 	/**
 	 * Look up the required key in the {@link JSONObject} obj.
-	 * 
+	 *
 	 * @param key
 	 *            The key to look up.
 	 * @param obj
@@ -520,7 +515,7 @@ public class Config {
 	 * Simple helper function to retrieve an element as a {@link String}. If the
 	 * element is not a string, this function throws an appropriate
 	 * {@link ConfigurationException}.
-	 * 
+	 *
 	 * @param key
 	 *            The name of the element to look up.
 	 * @param obj
@@ -568,7 +563,7 @@ public class Config {
 	/**
 	 * Take a JSON array of strings and convert it to a set of
 	 * {@link RecordType}.
-	 * 
+	 *
 	 * @param recordTypesArr
 	 * @return A {@link Set} containing all the {@link RecordType} indicated in
 	 *         recordTypesArr.
@@ -590,7 +585,7 @@ public class Config {
 
 	/**
 	 * Set the address for this {@link Config}.
-	 * 
+	 *
 	 * @param address
 	 *            The address.
 	 */
@@ -600,20 +595,20 @@ public class Config {
 
 	/**
 	 * Configure this to initiate a connection, or listen for connetions.
-	 * 
+	 *
 	 * @param connect
 	 *            if set to true, specifies that a connection should be
 	 *            initiated. If set to false, specifies to listen for
 	 *            connections.
 	 */
 	public void setConnect(final boolean connect) {
-		this.connect = connect;
+		this.listener = connect;
 	}
 
 	/**
 	 * Set the path to a directory to user for input. Not applicable to a
 	 * "Subscriber".
-	 * 
+	 *
 	 * @param inputPath
 	 *            The path to get records from.
 	 */
@@ -624,7 +619,7 @@ public class Config {
 	/**
 	 * Set the path to store recrods from remotes in. Not applicable to a
 	 * "Publisher".
-	 * 
+	 *
 	 * @param outputPath
 	 */
 	public void setOutputPath(final File outputPath) {
@@ -633,7 +628,7 @@ public class Config {
 
 	/**
 	 * Set the peer configurations.
-	 * 
+	 *
 	 * @param peerConfigs
 	 *            a {@link Map} of {@link InetAddress} to {@link PeerConfig}
 	 *            objects indicating what records each remote is allowed to
@@ -646,7 +641,7 @@ public class Config {
 	/**
 	 * Set the maximum number of digests to store before sending a "digest"
 	 * message.
-	 * 
+	 *
 	 * @param pendingDigestMax
 	 *            The number of digests to calculate before sending a "digest"
 	 *            message.
@@ -658,7 +653,7 @@ public class Config {
 	/**
 	 * Set the maximum number of seconds to wait before sending a "digest"
 	 * message.
-	 * 
+	 *
 	 * @param pendingDigestTimeout
 	 *            The time to wait, in seconds.
 	 */
@@ -668,7 +663,7 @@ public class Config {
 
 	/**
 	 * Set the port to connect to/listen on.
-	 * 
+	 *
 	 * @param port
 	 *            The port number.
 	 */
@@ -677,19 +672,9 @@ public class Config {
 	}
 
 	/**
-	 * Set the types records to subscribe to or publish. This is only applicable
-	 * for connectors (i.e. {@link Config#isConnector()} returns true).
-	 * 
-	 * @param recordTypes
-	 */
-	public void setRecordTypes(final Set<RecordType> recordTypes) {
-		this.recordTypes = recordTypes;
-	}
-
-	/**
 	 * Set the role. This is only applicable for connectors (i.e.
-	 * {@link Config#isConnector()} returns true).
-	 * 
+	 * {@link Config#isListener()} returns <code>false</code>).
+	 *
 	 * @param role
 	 *            The role.
 	 */
@@ -699,8 +684,8 @@ public class Config {
 
 	/**
 	 * Configure the session timeout. This is only applicable for connectors
-	 * (i.e. {@link Config#isConnector()} returns true).
-	 * 
+	 * (i.e. {@link Config#isListener()} returns <code>false</code>).
+	 *
 	 * @param sessionTimeout
 	 */
 	public void setSessionTimeout(final Date sessionTimeout) {
@@ -710,7 +695,7 @@ public class Config {
 	/**
 	 * Simple helper utility to convert a string to an InetAddress. Currently,
 	 * only IPv4 addresses are supported.
-	 * 
+	 *
 	 * @param s
 	 *            The String to convert to an {@link InetAddress}
 	 * @return The {@link InetAddresss} for <code>s</code>
@@ -730,7 +715,7 @@ public class Config {
 
 	/**
 	 * Helper utility to append permissions to the {@link PeerConfig} map.
-	 * 
+	 *
 	 * @param elm
 	 *            A "PeerConfig" object.
 	 * @throws ConfigurationException
@@ -761,7 +746,7 @@ public class Config {
 
 	/**
 	 * Helper utility to cast a {@link Object} as a {@link String}.
-	 * 
+	 *
 	 * @param path
 	 *            The file where the error occurred.
 	 * @param key
@@ -789,7 +774,7 @@ public class Config {
 
 	/**
 	 * Helper utility to cast a {@link Object} as a {@link Number}.
-	 * 
+	 *
 	 * @param path
 	 *            The file where the error occurred.
 	 * @param key
@@ -817,7 +802,7 @@ public class Config {
 
 	/**
 	 * Helper utility to cast an {@link Object} as a {@link JSONObject}.
-	 * 
+	 *
 	 * @param path
 	 *            The file where the error occurred.
 	 * @param key
@@ -845,7 +830,7 @@ public class Config {
 
 	/**
 	 * Helper utility to cast a value to a {@link JSONArray}.
-	 * 
+	 *
 	 * @param path
 	 *            The file where the error occurred.
 	 * @param key

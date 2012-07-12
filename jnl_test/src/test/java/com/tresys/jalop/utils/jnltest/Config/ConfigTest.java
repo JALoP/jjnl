@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -50,18 +51,37 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 @SuppressWarnings("unchecked")
 public class ConfigTest {
 	private JSONObject jsonCfg;
+    private JSONObject sub;
+    private JSONObject pub;
+    private JSONObject listener;
 
 	@Before
 	public void setup() throws Exception {
 		jsonCfg = new JSONObject();
 		jsonCfg.put("address", "localhost");
-		jsonCfg.put("beepAction", "listen");
 		jsonCfg.put("port", 1234);
-		jsonCfg.put("pendingDigestMax", 128);
-		jsonCfg.put("pendingDigestTimeout", 120);
-		jsonCfg.put("input", "./input");
-		jsonCfg.put("output", "./output");
-		jsonCfg.put("peers", new JSONArray());
+        JSONArray dataClassArray = new JSONArray();
+        dataClassArray.add("audit");
+
+        sub = new JSONObject();
+        sub.put("dataClass", dataClassArray);
+        sub.put("pendingDigestMax", 128);
+        sub.put("pendingDigestTimeout", 120);
+        sub.put("output", "./output");
+        sub.put("sessionTimeout", "00:00:00");
+        
+	    pub = new JSONObject();
+        pub.put("dataClass", dataClassArray);
+	    pub.put("input", "./input");
+	    pub.put("sessionTimeout", "00:00:00");
+
+	    listener = new JSONObject();
+	    listener.put("pendingDigestMax", 128);
+	    listener.put("pendingDigestTimeout", 120);
+	    listener.put("output", "./output");
+        listener.put("input", "./input");
+	    listener.put("peers", new JSONArray());
+	    listener.put("sessionTimeout", "00:00:00");
 	}
 
 	@Test
@@ -77,7 +97,8 @@ public class ConfigTest {
 	}
 
 	@Test
-	public void createFromJsonReturnsValidConfigWithBeepActionListen() throws Exception {
+	public void createFromJsonReturnsValidConfigForListener() throws Exception {
+	    jsonCfg.put("listener", listener);
 		Config cfg = Config.createFromJson("path/to/nothing", jsonCfg);
 		assertNotNull(cfg);
 		assertEquals("path/to/nothing", cfg.getSource());
@@ -89,12 +110,7 @@ public class ConfigTest {
 	}
 
 	@Test
-	public void createFromJsonReturnsValidConfigWithBeepActionConnect() throws Exception {
-		jsonCfg.put("beepAction", "connect");
-		JSONObject pub = new JSONObject();
-		pub.put("input", "/path/to/input");
-		pub.put("sessionTimeout", "00:00:00");
-		pub.put("dataClass", new JSONArray());
+	public void createFromJsonReturnsValidConfigWithPublisher() throws Exception {
 		jsonCfg.put("publisher", pub);
 		Config cfg = Config.createFromJson("path/to/nothing", jsonCfg);
 		assertNotNull(cfg);
@@ -105,19 +121,28 @@ public class ConfigTest {
 		assertEquals(1234, cfg.getPort());
 		assertNotNull(cfg.getPeerConfigs());
 		assertTrue(cfg.getPeerConfigs().isEmpty());
+		assertEquals(new File("./input").getPath(), cfg.getInputPath().getPath());
 		assertEquals(new SimpleDateFormat("hh:mm:ss").parse("00:00:00"), cfg.getSessionTimeout());
 	}
 
-	@Test(expected = ConfigurationException.class)
-	public void createFromJsonFailsWithMissingBeepAction() throws Exception {
-		jsonCfg.remove("beepAction");
-		Config.createFromJson("path/to/nothing", jsonCfg);
-	}
+	@Test
+    public void createFromJsonReturnsValidConfigWithSubscriber() throws Exception {
+        jsonCfg.put("subscriber", sub);
+        Config cfg = Config.createFromJson("path/to/nothing", jsonCfg);
+        assertNotNull(cfg);
+        assertEquals("path/to/nothing", cfg.getSource());
+        assertEquals("localhost/0.0.0.0", cfg.getAddress().toString());
+        assertEquals(128, cfg.getPendingDigestMax());
+        assertEquals(120, cfg.getPendingDigestTimeout());
+        assertEquals(1234, cfg.getPort());
+        assertNotNull(cfg.getPeerConfigs());
+        assertTrue(cfg.getPeerConfigs().isEmpty());
+        assertEquals(new File("./output").getPath(), cfg.getOutputPath().getPath());
+        assertEquals(new SimpleDateFormat("hh:mm:ss").parse("00:00:00"), cfg.getSessionTimeout());
+    }
 
 	@Test(expected = ConfigurationException.class)
-	public void createFromJsonFailsWithImproperBeepAction() throws Exception {
-		jsonCfg.remove("beepAction");
-		jsonCfg.put("beepAction", "nothing");
+	public void createFromJsonFailsWithWithNoListenerPublisherOrSubscriber() throws Exception {
 		Config.createFromJson("path/to/nothing", jsonCfg);
 	}
 
@@ -128,8 +153,6 @@ public class ConfigTest {
 
 	@Test
 	public void itemAsArrayWorks() throws Exception {
-		JSONObject pub = new JSONObject();
-		pub.put("sessionTimeout", "00:00:00");
 		JSONArray data = new JSONArray();
 		data.add("audit");
 		pub.put("dataClass", data);
@@ -184,9 +207,9 @@ public class ConfigTest {
 	@Test
 	public void itemAsStringWorks() throws Exception {
 		Config cfg = new Config("/path/to/nothing");
-		String action = cfg.itemAsString("beepAction", jsonCfg, true);
+		String action = cfg.itemAsString("address", jsonCfg, true);
 
-		assertEquals("listen", action);
+		assertEquals("localhost", action);
 	}
 
 	@Test(expected = ConfigurationException.class)
@@ -235,7 +258,6 @@ public class ConfigTest {
 	public void objectToRecordTypeFailsOnInvalidObject() throws Exception {
 		Config cfg = new Config("/path/to/nothing");
 		cfg.objectToRecordType((Object)cfg);
-		// Keeps throwing a ClassCastException
 	}
 
 	@Test
@@ -368,4 +390,36 @@ public class ConfigTest {
 
 		cfg.updateKnownHosts(peer1);
 	}
-}
+
+	@Test (expected = ConfigurationException.class)
+	public void throwsExceptionWhenHasListenerAndSubscriber() throws ConfigurationException {
+	    jsonCfg.put("subscriber", sub);
+        jsonCfg.put("listener", listener);
+        Config.createFromJson("path/to/nothing", jsonCfg);
+	}
+
+    @Test (expected = ConfigurationException.class)
+    public void throwsExceptionWhenHasListenerAndPublisher() throws ConfigurationException {
+        jsonCfg.put("publisher", pub);
+        jsonCfg.put("listener", listener);
+        Config.createFromJson("path/to/nothing", jsonCfg);
+    }
+    @Test (expected = ConfigurationException.class)
+    public void throwsExceptionWhenHasPublisherAndSubscriber() throws ConfigurationException {
+        jsonCfg.put("subscriber", sub);
+        jsonCfg.put("publisher", pub);
+        Config.createFromJson("path/to/nothing", jsonCfg);
+    }
+    @Test (expected = ConfigurationException.class)
+    public void throwsExceptionWhenHasPublisherAndListenerAndSubscriber() throws ConfigurationException {
+        jsonCfg.put("subscriber", sub);
+        jsonCfg.put("publisher", pub);
+        jsonCfg.put("listener", listener);
+        Config.createFromJson("path/to/nothing", jsonCfg);
+    }
+
+/*    @Test (expected = ConfigurationException.class)
+    public void throwsExceptionWhenDoesNotHaveAnyPublisherOrListenerOrSubscriber() throws ConfigurationException {
+        Config.createFromJson("path/to/nothing", jsonCfg);
+    }
+*/}
