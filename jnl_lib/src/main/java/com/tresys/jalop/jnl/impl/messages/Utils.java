@@ -61,7 +61,7 @@ public class Utils {
 	public static final String CONFIRMED = "confirmed";
 	public static final String CONFIRMED_EQUALS = CONFIRMED + "=";
 	public static final String CT_JALOP = "application/beep+jalop";
-	public static final String DGST_CHAN_FORMAT_STR = "digest:%d";
+	public static final String DGST_CHAN_FORMAT_STR = "digest:";
 	public static final String DGST_SHA256 = "sha256";
 	public static final String ENC_XML = "xml";
 	public static final String INVALID = "invalid";

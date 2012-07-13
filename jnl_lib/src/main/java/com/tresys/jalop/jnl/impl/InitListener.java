@@ -116,6 +116,9 @@ public class InitListener implements ReplyListener {
 
 				final OutputDataStream ods = Utils.createSubscribeMessage(request.getSerialId());
 				message.getChannel().sendMSG(ods, sessionImpl.getListener());
+
+				new Thread(sessionImpl, "digestThread").start();
+
 			} else if(Role.Publisher.equals(this.role)) {
 				//TODO: bug-16718 augment InitListener to work for publishers
 			}

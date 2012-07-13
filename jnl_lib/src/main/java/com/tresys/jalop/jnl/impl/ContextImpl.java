@@ -51,6 +51,8 @@ import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
  */
 public final class ContextImpl implements Context {
 
+	public static final String URI = "http://www.dod.mil/logging/jalop-1.0";
+
 	private final Publisher publisher;
 	private final Subscriber subscriber;
 	private final ConnectionHandler connectionHandler;

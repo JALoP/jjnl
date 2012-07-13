@@ -27,7 +27,12 @@ package com.tresys.jalop.jnl.impl.subscriber;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.beepcore.beep.core.BEEPError;
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
+import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
 
 import com.tresys.jalop.jnl.RecordType;
@@ -35,12 +40,15 @@ import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.ContextImpl;
+import com.tresys.jalop.jnl.impl.DigestListener;
+import com.tresys.jalop.jnl.impl.messages.Utils;
 
 /**
  * Implementation of a {@link SubscriberSession}. This represents a {@link Session}
  * that is receiving JALoP records from a remote JALoP Network Store.
  */
-public class SubscriberSessionImpl implements SubscriberSession {
+public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 
 	private static final Logger log = Logger.getLogger(SubscriberSessionImpl.class);
 
@@ -250,6 +258,58 @@ public class SubscriberSessionImpl implements SubscriberSession {
 			synchronized(this) {
 				this.notifyAll();
 			}
+		}
+	}
+
+	@Override
+	public void run() {
+
+		if(log.isDebugEnabled()) {
+			log.debug("SubscriberSessionImpl running");
+		}
+
+		try {
+			final Channel digestChannel = this.session.startChannel(
+					ContextImpl.URI, false, Utils.DGST_CHAN_FORMAT_STR + this.channelNum);
+
+			while(this.isOk()) {
+
+				if(this.digestMap.size() < this.pendingDigestMax) {
+					synchronized(this) {
+						long waitTime = this.pendingDigestTimeoutSeconds * 1000;
+						this.wait(waitTime);
+					}
+				}
+
+				Map<String, String> digestsToSend = new HashMap<String, String>();
+				synchronized(this) {
+					if(this.digestMap.isEmpty()) {
+						continue;
+					}
+
+					digestsToSend = this.digestMap;
+					this.digestMap = new HashMap<String, String>();
+				}
+
+				final OutputDataStream digestOds = Utils.createDigestMessage(digestsToSend);
+				digestChannel.sendMSG(digestOds, new DigestListener(this, digestsToSend));
+			}
+
+		} catch (BEEPError e) {
+			if(log.isEnabledFor(Level.ERROR)) {
+				log.error(e.getMessage());
+			}
+			setErrored();
+		} catch (BEEPException e) {
+			if(log.isEnabledFor(Level.ERROR)) {
+				log.error(e.getMessage());
+			}
+			setErrored();
+		} catch (InterruptedException e) {
+			if(log.isEnabledFor(Level.ERROR)) {
+				log.error(e.getMessage());
+			}
+			setErrored();
 		}
 	}
 
