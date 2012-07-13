@@ -329,9 +329,9 @@ public class ContextImplTest {
             final Subscriber subscriber, final ConnectionHandler connectionHandler)
             throws JNLException, IllegalAccessException {
         final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1, 1, sess);
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Journal, subscriber, "foo", "bar", 1, 1);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Journal, subscriber, "foo", "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
 
         final Map<RecordType, SubscriberSessionImpl> subSessionMap = getSubscriberMap(c).get(sess);
@@ -346,7 +346,7 @@ public class ContextImplTest {
             final ConnectionHandler connectionHandler) throws JNLException {
 
         final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Unset, null, null, null, 0, 0);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Unset, null, null, null, 0, 0, 1, sess);
         c.addSession(sess, subSess);
     }
 
@@ -356,9 +356,9 @@ public class ContextImplTest {
             throws JNLException, IllegalAccessException {
 
         final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1, 1, sess);
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
     }
 }

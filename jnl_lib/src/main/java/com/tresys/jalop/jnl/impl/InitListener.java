@@ -107,7 +107,8 @@ public class InitListener implements ReplyListener {
 				final Subscriber subscriber = contextImpl.getSubscriber();
 				final SubscriberSessionImpl sessionImpl = new SubscriberSessionImpl(this.recordType,
 						subscriber, msg.getDigest(), msg.getEncoding(),
-						contextImpl.getDefaultDigestTimeout(), contextImpl.getDefaultPendingDigestMax());
+						contextImpl.getDefaultDigestTimeout(), contextImpl.getDefaultPendingDigestMax(),
+						message.getChannel().getNumber(), message.getChannel().getSession());
 
 				this.contextImpl.addSession(message.getChannel().getSession(), sessionImpl);
 

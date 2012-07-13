@@ -24,6 +24,9 @@
 
 package com.tresys.jalop.jnl.impl.subscriber;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.ReplyListener;
 
@@ -49,6 +52,9 @@ public class SubscriberSessionImpl implements SubscriberSession {
 	private volatile int pendingDigestTimeoutSeconds;
 	private volatile int pendingDigestMax;
 	private volatile boolean errored;
+	private final int channelNum;
+	private final org.beepcore.beep.core.Session session;
+	private Map<String, String> digestMap;
 
 	/**
 	 * Create a {@link SubscriberSessionImpl} object.
@@ -69,7 +75,7 @@ public class SubscriberSessionImpl implements SubscriberSession {
 	 */
 	public SubscriberSessionImpl(final RecordType recordType, final Subscriber subscriber,
 			final String digestMethod, final String xmlEncoding, final int pendingDigestTimeoutSeconds,
-			final int pendingDigestMax) {
+			final int pendingDigestMax, int channelNum, org.beepcore.beep.core.Session session) {
 
 		if(recordType == null || recordType.equals(RecordType.Unset)) {
 			throw new IllegalArgumentException("'recordType' cannot be null or Unset.");
@@ -97,6 +103,11 @@ public class SubscriberSessionImpl implements SubscriberSession {
 					+ "must be a positive number.");
 		}
 
+		if(session == null) {
+			throw new IllegalArgumentException("'session' "
+					+ "cannot be null.");
+		}
+
 		this.recordType = recordType;
 		this.subscriber = subscriber;
 		this.listener = null;
@@ -104,6 +115,9 @@ public class SubscriberSessionImpl implements SubscriberSession {
 		this.xmlEncoding = xmlEncoding.trim();
 		this.pendingDigestMax = pendingDigestMax;
 		this.pendingDigestTimeoutSeconds = pendingDigestTimeoutSeconds;
+		this.channelNum = channelNum;
+		this.session = session;
+		this.digestMap = new HashMap<String, String>();
 	}
 
 	@Override
@@ -118,8 +132,9 @@ public class SubscriberSessionImpl implements SubscriberSession {
 
 	@Override
 	public boolean isOk() {
-		// TODO Auto-generated method stub
-		return false;
+
+		return (this.session.getState() == org.beepcore.beep.core.Session.SESSION_STATE_ACTIVE
+				&& !this.errored);
 	}
 
 	@Override
@@ -165,6 +180,20 @@ public class SubscriberSessionImpl implements SubscriberSession {
 		return this.subscriber;
 	}
 
+	/**
+	 * @return the channelNum
+	 */
+	public int getChannelNum() {
+		return channelNum;
+	}
+
+	/**
+	 * @return the session
+	 */
+	public org.beepcore.beep.core.Session getSession() {
+		return session;
+	}
+
 	@Override
 	public void setDigestTimeout(final int pendingDigestTimeoutSeconds) {
 
@@ -185,6 +214,43 @@ public class SubscriberSessionImpl implements SubscriberSession {
 		}
 
 		this.pendingDigestMax = pendingDigestMax;
+	}
+
+	/**
+	 * Adds a map of serialIds and their related digests to the current map
+	 * to be sent to the publisher
+	 *
+	 * @param toAdd
+	 *            A map of serialIDs and digests to add to the map to be sent.
+	 */
+	public synchronized void addAllDigests(Map<String, String> toAdd) {
+
+		this.digestMap.putAll(toAdd);
+		if(this.digestMap.size() >= this.pendingDigestMax) {
+			synchronized(this) {
+				this.notifyAll();
+			}
+		}
+	}
+
+	/**
+	 * Adds a serialId and the related digest to a map to be sent to the publisher
+	 *
+	 * @param serialId
+	 *            A String which is the serialId to be added to the map of
+	 *            digests to send.
+	 * @param digest
+	 *            A String which is the digest for the serialId to be added
+	 *            to the map of digests to send.
+	 */
+	public synchronized void addDigest(String serialId, String digest) {
+
+		this.digestMap.put(serialId, digest);
+		if(this.digestMap.size() >= this.pendingDigestMax) {
+			synchronized(this) {
+				this.notifyAll();
+			}
+		}
 	}
 
 }
