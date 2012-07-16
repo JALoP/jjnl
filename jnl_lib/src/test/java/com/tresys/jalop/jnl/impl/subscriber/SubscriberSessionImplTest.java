@@ -33,16 +33,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 import mockit.NonStrictExpectations;
+import mockit.VerificationsInOrder;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
+import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.Session;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.impl.DigestListener;
 
 public class SubscriberSessionImplTest {
+
     private static Field errored;
     private static Field digestMapField;
     @BeforeClass
@@ -57,6 +66,12 @@ public class SubscriberSessionImplTest {
     private static Map<String, String> getDigestMap(final SubscriberSessionImpl s)
             throws IllegalArgumentException, IllegalAccessException {
         return (Map<String, String>) digestMapField.get(s);
+    }
+
+    @Before
+    public void setUp() {
+        // Disable logging so the build doesn't get spammed.
+        Logger.getRootLogger().setLevel(Level.OFF);
     }
 
     @Test
@@ -350,4 +365,85 @@ public class SubscriberSessionImplTest {
 		assertTrue(org.beepcore.beep.core.Session.SESSION_STATE_ACTIVE != sess.getState());
 		assertFalse(errored.getBoolean(s));
     }
+
+	@Test
+	public void testRunWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess,
+			final Channel channel, final DigestListener listener)
+			throws InterruptedException, BEEPException {
+
+		final SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 2, 0, sess);
+
+		final Map<String, String> digestMap = new HashMap<String, String>();
+		digestMap.put("serial", "digest");
+
+		new NonStrictExpectations(s) {
+	        {
+				s.isOk(); result = true;
+				sess.startChannel(anyString, false, anyString); result = channel;
+	        }
+	    };
+
+	    Thread digestThread = new Thread(s, "digestThreadWorks");
+	    digestThread.start();
+
+	    s.addAllDigests(digestMap);
+	    digestThread.join(1000);
+	    assertTrue(digestThread.isAlive());
+
+	    Thread.sleep(1000);
+
+		new VerificationsInOrder() {
+		    {
+				sess.startChannel(anyString, false, anyString);
+				channel.sendMSG((OutputDataStream)any, (DigestListener)any);
+		    }
+		};
+	}
+
+	@Test
+	public void testRunStopsWhenNotOk(final Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			throws InterruptedException {
+
+		final SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 2, 0, sess);
+
+		new NonStrictExpectations(s) {
+	        {
+				s.isOk(); result = false;
+	        }
+	    };
+
+	    Thread digestThread = new Thread(s, "digestThread");
+	    digestThread.start();
+
+	    digestThread.join(1000);
+
+	    assertFalse(digestThread.isAlive());
+	}
+
+	@Test
+	public void testRunSetsErrorOnException(final Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			throws InterruptedException, BEEPException, IllegalArgumentException, IllegalAccessException {
+
+		final SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 2, 0, sess);
+
+		new NonStrictExpectations(s) {
+	        {
+				s.isOk(); result = true;
+				sess.startChannel(anyString, false, anyString); result = new BEEPException("");
+	        }
+	    };
+
+	    Thread digestThread = new Thread(s, "digestThread");
+	    digestThread.start();
+	    digestThread.join(1000);
+
+	    assertTrue(errored.getBoolean(s));
+	}
+
 }
