@@ -40,20 +40,20 @@ public class DigestResponse extends Message {
 
 	/**
 	 * Create a new {@link DigestResponse}
-	 * 
+	 *
 	 * @param map
 	 *            The map of serial IDs to DigestStatuses sent in the message.
 	 * @param otherHeaders
 	 *            Any additional headers sent as part of this message.
 	 */
-	DigestResponse(Map<String, DigestStatus> map, MimeHeaders otherHeaders) {
+	public DigestResponse(Map<String, DigestStatus> map, MimeHeaders otherHeaders) {
 		super(otherHeaders);
 		this.statusMap = map;
 	}
 
 	/**
 	 * Get the serial ID indicated in this message.
-	 * 
+	 *
 	 * @return the serialId
 	 */
 	public Map<String, DigestStatus> getMap() {
