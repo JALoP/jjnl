@@ -29,7 +29,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 
+import mockit.NonStrictExpectations;
+
+import org.beepcore.beep.core.Session;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -39,10 +44,19 @@ import com.tresys.jalop.jnl.Subscriber;
 
 public class SubscriberSessionImplTest {
     private static Field errored;
+    private static Field digestMapField;
     @BeforeClass
     public static void setupBeforeClass() throws SecurityException, NoSuchFieldException {
         errored = SubscriberSessionImpl.class.getDeclaredField("errored");
         errored.setAccessible(true);
+        digestMapField = SubscriberSessionImpl.class.getDeclaredField("digestMap");
+        digestMapField.setAccessible(true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, String> getDigestMap(final SubscriberSessionImpl s)
+            throws IllegalArgumentException, IllegalAccessException {
+        return (Map<String, String>) digestMapField.get(s);
     }
 
     @Test
@@ -247,6 +261,7 @@ public class SubscriberSessionImplTest {
                                       "barfoo", 1, 2, 0, sess);
         s.setPendingDigestMax(0);
     }
+
     @Test
     public void testSetErroredWorks(Subscriber subscriber, final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
@@ -256,5 +271,83 @@ public class SubscriberSessionImplTest {
         s.setErrored();
         assertTrue(errored.getBoolean(s));
 
+    }
+
+    @Test
+    public void testAddAllDigestsWorks(Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			throws IllegalArgumentException, IllegalAccessException {
+		SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 1, 0, sess);
+		Map<String, String> mapToAdd = new HashMap<String, String>();
+		mapToAdd.put("key1", "value1");
+		mapToAdd.put("key2", "value2");
+		s.addAllDigests(mapToAdd);
+		Map<String, String> map = getDigestMap(s);
+		assertTrue(map.containsKey("key1"));
+		assertEquals("value1", map.get("key1"));
+		assertTrue(map.containsKey("key2"));
+		assertEquals("value2", map.get("key2"));
+    }
+
+    @Test
+    public void testAddDigestsWorks(Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			throws IllegalArgumentException, IllegalAccessException {
+		SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 1, 0, sess);
+		s.addDigest("serialId", "digest");
+		Map<String, String> map = getDigestMap(s);
+		assertTrue(map.containsKey("serialId"));
+		assertEquals("digest", map.get("serialId"));
+    }
+
+    @Test
+    public void testIsOkTrueWorks(Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			throws IllegalArgumentException, IllegalAccessException {
+		SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 2, 0, sess);
+
+		new NonStrictExpectations() {
+			{
+				sess.getState(); result = Session.SESSION_STATE_ACTIVE;
+			}
+		};
+
+	    assertTrue(s.isOk());
+		assertEquals(org.beepcore.beep.core.Session.SESSION_STATE_ACTIVE, sess.getState());
+		assertFalse(errored.getBoolean(s));
+    }
+
+    @Test
+    public void testIsOkFalseWhenErrored(Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			throws IllegalArgumentException, IllegalAccessException {
+		SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 2, 0, sess);
+
+		new NonStrictExpectations() {
+			{
+				sess.getState(); result = Session.SESSION_STATE_ACTIVE;
+			}
+		};
+
+		s.setErrored();
+		assertFalse(s.isOk());
+		assertEquals(org.beepcore.beep.core.Session.SESSION_STATE_ACTIVE, sess.getState());
+		assertTrue(errored.getBoolean(s));
+    }
+
+    @Test
+	public void testIsOkFalseWhenInactive(Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			throws IllegalArgumentException, IllegalAccessException {
+		SubscriberSessionImpl s =
+	        new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+	                                  "barfoo", 1, 2, 0, sess);
+
+		assertFalse(s.isOk());
+		assertTrue(org.beepcore.beep.core.Session.SESSION_STATE_ACTIVE != sess.getState());
+		assertFalse(errored.getBoolean(s));
     }
 }
