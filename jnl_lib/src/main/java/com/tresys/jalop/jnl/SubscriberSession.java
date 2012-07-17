@@ -24,6 +24,8 @@
 
 package com.tresys.jalop.jnl;
 
+import java.net.InetAddress;
+
 /**
  * This represents a {@link Session} that is receiving JALoP records from a
  * remote JALoP Network Store. The {@link SubscriberSession} is responsible for
@@ -59,4 +61,6 @@ public interface SubscriberSession extends Session {
 	 *            The maximum number of digests to queue.
 	 */
 	void setPendingDigestMax(int pendingDigestMax);
+
+    InetAddress getAddress();
 }

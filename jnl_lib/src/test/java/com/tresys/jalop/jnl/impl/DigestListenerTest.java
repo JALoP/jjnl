@@ -27,6 +27,7 @@ package com.tresys.jalop.jnl.impl;
 import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -140,7 +141,7 @@ public class DigestListenerTest {
 
     @Test
     public void testDigestListenerAddsDigestsBackInReceiveRpy(final Message message, final InputDataStream ids,
-			final InputDataStreamAdapter isa, final Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+			final InputDataStreamAdapter isa, final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalAccessException, MissingMimeHeaderException, UnexpectedMimeValueException,
 			BEEPException {
 
@@ -153,7 +154,7 @@ public class DigestListenerTest {
 		digestsSent.put("serialNotReturned", "anotherDigest");
 
 		final SubscriberSessionImpl subSess =
-            new SubscriberSessionImpl(RecordType.Audit, subscriber, DigestMethod.SHA256,
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
 
 	    new NonStrictExpectations() {

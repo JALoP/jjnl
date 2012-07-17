@@ -24,6 +24,7 @@
 
 package com.tresys.jalop.jnl.impl.subscriber;
 
+import java.net.InetAddress;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -63,6 +64,7 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 	private final String xmlEncoding;
 	private final ReplyListener listener;
 	private final Subscriber subscriber;
+	private final InetAddress address;
 	private volatile int pendingDigestTimeoutSeconds;
 	private volatile int pendingDigestMax;
 	private volatile boolean errored;
@@ -89,9 +91,14 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 	 * @throws InvalidAlgorithmParameterException
 	 * @throws NoSuchAlgorithmException
 	 */
-	public SubscriberSessionImpl(final RecordType recordType, final Subscriber subscriber,
+	public SubscriberSessionImpl(final InetAddress remoteAddress, final RecordType recordType, final Subscriber subscriber,
 			final String digestMethod, final String xmlEncoding, final int pendingDigestTimeoutSeconds,
 			final int pendingDigestMax, final int channelNum, final org.beepcore.beep.core.Session session) {
+
+		if (remoteAddress == null) {
+			throw new IllegalArgumentException("SubscriberSession must be created with an address");
+		}
+		this.address = remoteAddress;
 
 		if(recordType == null || recordType.equals(RecordType.Unset)) {
 			throw new IllegalArgumentException("'recordType' cannot be null or Unset.");
@@ -274,6 +281,10 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 				this.notifyAll();
 			}
 		}
+	}
+	@Override
+	public InetAddress getAddress() {
+		return this.address;
 	}
 
 	@Override

@@ -23,6 +23,7 @@
  */
 package com.tresys.jalop.jnl.impl;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +57,7 @@ public class InitListener implements ReplyListener {
 
 	static Logger log = Logger.getLogger(InitListener.class);
 
+	final InetAddress address;
 	Role role;
 	RecordType recordType;
 	ContextImpl contextImpl;
@@ -71,7 +73,8 @@ public class InitListener implements ReplyListener {
 	 *            The {@link ContextImpl} that initiated the connection and will be
 	 *            associated with the created {@link Session}.
 	 */
-	public InitListener(final Role role, final RecordType recordType, final ContextImpl contextImpl) {
+	public InitListener(final InetAddress address, final Role role, final RecordType recordType, final ContextImpl contextImpl) {
+		this.address = address; 
 		this.role = role;
 		this.recordType = recordType;
 		this.contextImpl = contextImpl;
@@ -105,7 +108,7 @@ public class InitListener implements ReplyListener {
 				}
 
 				final Subscriber subscriber = contextImpl.getSubscriber();
-				final SubscriberSessionImpl sessionImpl = new SubscriberSessionImpl(this.recordType,
+				final SubscriberSessionImpl sessionImpl = new SubscriberSessionImpl(this.address, this.recordType,
 						subscriber, msg.getDigest(), msg.getEncoding(),
 						contextImpl.getDefaultDigestTimeout(), contextImpl.getDefaultPendingDigestMax(),
 						message.getChannel().getNumber(), message.getChannel().getSession());

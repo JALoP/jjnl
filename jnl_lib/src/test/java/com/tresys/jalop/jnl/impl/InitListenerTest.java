@@ -24,6 +24,7 @@
 package com.tresys.jalop.jnl.impl;
 
 
+import java.net.InetAddress;
 import java.util.LinkedList;
 
 import javax.xml.crypto.dsig.DigestMethod;
@@ -74,19 +75,19 @@ public class InitListenerTest {
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionOnReceiveNul(final ContextImpl contextImpl, final Message message) throws AbortChannelException {
-        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+    public void testInitListenerThrowsExceptionOnReceiveNul(final InetAddress address, final ContextImpl contextImpl, final Message message) throws AbortChannelException {
+        final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveNUL(message);
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionOnReceiveAns(final ContextImpl contextImpl, final Message message) throws AbortChannelException {
-        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+    public void testInitListenerThrowsExceptionOnReceiveAns(final InetAddress address, final ContextImpl contextImpl, final Message message) throws AbortChannelException {
+        final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveANS(message);
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionForInitAckWithIllegalDigest(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+    public void testInitListenerThrowsExceptionForInitAckWithIllegalDigest(final InetAddress address, final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final InitAckMessage iam = new InitAckMessage("foo", "bar", new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
         allowedDigests.add("other");
@@ -104,12 +105,13 @@ public class InitListenerTest {
 
             }
         };
-        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+
+        final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveRPY(msg);
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionForInitAckWithIllegalEncoding(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+    public void testInitListenerThrowsExceptionForInitAckWithIllegalEncoding(final InetAddress address, final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final InitAckMessage iam = new InitAckMessage("foo", "bar", new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
         allowedDigests.add("other");
@@ -125,7 +127,8 @@ public class InitListenerTest {
                 contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
             }
         };
-        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+
+        final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveRPY(msg);
     }
 
@@ -135,13 +138,14 @@ public class InitListenerTest {
             final Message msg, final Subscriber subscriber,
             final SubscribeRequest subRequest, final OutputDataStream ods,
             final Channel channel, final Session sess,
-            final ReplyListener rpyListener) throws BEEPException, JNLException, InterruptedException {
+            final ReplyListener rpyListener, final InetAddress address) throws BEEPException, JNLException, InterruptedException {
         final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
+
         final LinkedList<String> allowedDigests = new LinkedList<String>();
         allowedDigests.add(DigestMethod.SHA256);
         final LinkedList<String> allowedEncs = new LinkedList<String>();
         allowedEncs.add("foo");
-        // mock up thread since this function is supposed to spawn a new thread, but 
+        // mock up thread since this function is supposed to spawn a new thread, but
         // don't actually want it to do that.
         new MockUp<Thread>() {
             @Mock
@@ -149,7 +153,7 @@ public class InitListenerTest {
                 // do nothing
             }
         };
-        
+
         new NonStrictExpectations() {
             {
                 msg.getDataStream(); result = ids;
@@ -168,7 +172,7 @@ public class InitListenerTest {
             }
         };
 
-        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+        final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveRPY(msg);
         new VerificationsInOrder() {
             {
@@ -178,7 +182,7 @@ public class InitListenerTest {
         };
     }
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsException(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+    public void testInitListenerThrowsException(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg, final InetAddress address) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final LinkedList<ConnectError> errors = new LinkedList<ConnectError>();
         errors.add(ConnectError.UnauthorizedMode);
         final InitNackMessage inm = new InitNackMessage(errors, new MimeHeaders());
@@ -189,7 +193,7 @@ public class InitListenerTest {
                 Utils.processInitNack(isa); result = inm;
             }
         };
-        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+        final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveERR(msg);
     }
 

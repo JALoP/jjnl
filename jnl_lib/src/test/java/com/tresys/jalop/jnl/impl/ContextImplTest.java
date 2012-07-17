@@ -346,15 +346,14 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testAddSessionsAddsToExistingMap(final org.beepcore.beep.core.Session sess,
+    public final void testAddSessionsAddsToExistingMap(final InetAddress address, final org.beepcore.beep.core.Session sess,
             final Subscriber subscriber, final ConnectionHandler connectionHandler)
             throws JNLException, IllegalAccessException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, null, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
-
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Journal, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(address, RecordType.Journal, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
 
         final Map<RecordType, SubscriberSessionImpl> subSessionMap = getSubscriberMap(c).get(sess);
@@ -365,23 +364,23 @@ public class ContextImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testAddSessionThrowsExceptionWithUnsetRecordType(final org.beepcore.beep.core.Session sess, final Subscriber subscriber,
+    public final void testAddSessionThrowsExceptionWithUnsetRecordType(final InetAddress address, final org.beepcore.beep.core.Session sess, final Subscriber subscriber,
             final ConnectionHandler connectionHandler) throws JNLException {
 
     	final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, null, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Unset, null, null, null, 0, 0, 1, sess);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Unset, null, null, null, 0, 0, 1, sess);
         c.addSession(sess, subSess);
     }
 
     @Test(expected = JNLException.class)
-    public final void testAddSessionsFailsWithDuplicateRecordType(final org.beepcore.beep.core.Session sess,
+    public final void testAddSessionsFailsWithDuplicateRecordType(final InetAddress address, final org.beepcore.beep.core.Session sess,
             final Subscriber subscriber, final ConnectionHandler connectionHandler)
             throws JNLException, IllegalAccessException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, null, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
     }
 
