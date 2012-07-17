@@ -137,7 +137,7 @@ public class Config {
 	private File outputPath;
 	private Map<InetAddress, PeerConfig> peerConfigs;
 	private short pendingDigestMax;
-	private long pendingDigestTimeout;
+	private int pendingDigestTimeout;
 	private int port;
 	private Set<RecordType> recordTypes;
 	private Role role;
@@ -215,7 +215,7 @@ public class Config {
 	 * @return The maximum number of seconds to wait before sending a digest
 	 *         message.
 	 */
-	public long getPendingDigestTimeout() {
+	public int getPendingDigestTimeout() {
 		return this.pendingDigestTimeout;
 	}
 
@@ -351,7 +351,7 @@ public class Config {
 	    this.listener = true;
 		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, obj).shortValue());
 		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, obj)
-				.longValue());
+				.intValue());
 		setInputPath(new File(itemAsString(INPUT, obj, true)));
 		setOutputPath(new File(itemAsString(OUTPUT, obj, true)));
 		final JSONArray peers = itemAsArray(PEERS, obj);
@@ -398,7 +398,7 @@ public class Config {
 		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, subscriber)
 				.shortValue());
 		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, subscriber)
-				.longValue());
+				.intValue());
 	}
 
 	/**
@@ -657,7 +657,7 @@ public class Config {
 	 * @param pendingDigestTimeout
 	 *            The time to wait, in seconds.
 	 */
-	public void setPendingDigestTimeout(final long pendingDigestTimeout) {
+	public void setPendingDigestTimeout(final int pendingDigestTimeout) {
 		this.pendingDigestTimeout = pendingDigestTimeout;
 	}
 
