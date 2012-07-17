@@ -55,6 +55,7 @@ import org.junit.Test;
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
+import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 
@@ -1223,5 +1224,116 @@ public class TestUtils {
 		InputDataStreamAdapter ids = data.getInputStream();
 
 		Utils.processDigestMessage(ids);
+	}
+	
+	public static class MockResponseOutputDataStream {
+		@Mock
+		public void $init(org.beepcore.beep.core.MimeHeaders mh, BufferSegment bs) throws Exception {
+			assertEquals(Utils.CT_JALOP, mh.getContentType());
+			assertEquals(Utils.MSG_DIGEST_RESP, mh.getHeaderValue(Utils.HDRS_MESSAGE));
+			assertEquals("3", mh.getHeaderValue(Utils.HDRS_COUNT));
+			String digests = "12346=Invalid\r\n12347=Unknown\r\n12345=Confirmed";
+			assertEquals(digests, new String(bs.getData()));
+		}
+	}
+	
+	@Test
+	public void testCreateDigestResponseWorks() throws Exception {
+		Map<String, DigestStatus> digests = new HashMap<String, DigestStatus>();
+		digests.put("12345", DigestStatus.Confirmed);
+		digests.put("12346", DigestStatus.Invalid);
+		digests.put("12347", DigestStatus.Unknown);
+
+		Mockit.setUpMock(OutputDataStream.class, new MockResponseOutputDataStream());
+
+		OutputDataStream ods = Utils.createDigestResponse(digests);
+		assertNotNull(ods);
+		assertTrue(ods.isComplete());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateDigestResponseThrowsExceptionWhenSidIsEmpty() throws Exception {
+		Map<String, DigestStatus> digests = new HashMap<String, DigestStatus>();
+		digests.put("", DigestStatus.Confirmed);
+		digests.put("nothing", DigestStatus.Invalid);
+		digests.put("blah", DigestStatus.Unknown);
+
+		Mockit.setUpMock(OutputDataStream.class, new MockResponseOutputDataStream());
+
+		Utils.createDigestResponse(digests);
+	}
+
+	@Test
+	public void testProcessDigestResponseWorks() throws Exception {
+
+		String digests = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
+		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(Utils.CT_JALOP);
+		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST_RESP);
+		mh.setHeader(Utils.HDRS_COUNT, "3");
+
+		createDataStream(mh, digests);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+
+		DigestResponse dr = Utils.processDigestResponse(ids);
+		assertNotNull(dr);
+
+		HashMap<String, DigestStatus> digestsMap = (HashMap<String, DigestStatus>) dr.getMap();
+		assertNotNull(digestsMap);
+		assertFalse(digestsMap.isEmpty());
+		assertTrue(digestsMap.containsKey("12345"));
+		assertTrue(digestsMap.containsKey("12346"));
+		assertTrue(digestsMap.containsKey("12347"));
+		assertEquals(DigestStatus.Confirmed, digestsMap.get("12345"));
+		assertEquals(DigestStatus.Invalid, digestsMap.get("12346"));
+		assertEquals(DigestStatus.Unknown, digestsMap.get("12347"));
+	}
+		
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testProcessDigestResponseThrowsMissingMimeHeaderException() throws Exception {
+
+		String digests = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
+		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(Utils.CT_JALOP);
+		mh.setHeader(Utils.HDRS_COUNT, "3");
+
+		createDataStream(mh, digests);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+
+		Utils.processDigestResponse(ids);
+	}
+
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testProcessDigestResponseThrowsUnexpectedMimeValueException() throws Exception {
+
+		String digests = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
+		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(Utils.CT_JALOP);
+		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST);
+		mh.setHeader(Utils.HDRS_COUNT, "3");
+
+		createDataStream(mh, digests);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+
+		Utils.processDigestResponse(ids);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testProcessDigestResponseThrowsIllegalArgumenException() throws Exception {
+
+		String digests = "nothing=12345\r\nnull=12346\r\nnil=12347";
+		org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+		mh.setContentType(Utils.CT_JALOP);
+		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST_RESP);
+		mh.setHeader(Utils.HDRS_COUNT, "3");
+
+		createDataStream(mh, digests);
+
+		InputDataStreamAdapter ids = data.getInputStream();
+
+		Utils.processDigestResponse(ids);
 	}
 }
