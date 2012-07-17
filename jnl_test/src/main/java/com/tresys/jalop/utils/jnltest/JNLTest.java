@@ -77,7 +77,7 @@ public class JNLTest implements Subscriber {
 	public static void main(String[] args) {
 		if (args.length != 1) {
 			System.err.println("Must specify exactly one argument that is "
-					+ "the configuration file use");
+					+ " the configuration file to use");
             System.exit(1);
 		}
 		Config config;
@@ -131,7 +131,7 @@ public class JNLTest implements Subscriber {
 
     @Override
     public SubscribeRequest getSubscribeRequest(SubscriberSession sess) {
-        // TODO: All the code here to manage the maps should really be happening in the the 
+        // TODO: All the code here to manage the maps should really be happening in the 
         // connection handler callbacks, but the library isn't generating those events 
         // quite yet.
         Map<RecordType, SubscriberImpl> map;
