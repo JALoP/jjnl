@@ -31,24 +31,26 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.xml.soap.MimeHeader;
+
 import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.NonStrictExpectations;
 
-import javax.xml.soap.MimeHeader;
-
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.beepcore.beep.core.AbortChannelException;
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.DigestStatus;
@@ -63,6 +65,12 @@ import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
  * Tests for SubscriberANSHandler class.
  */
 public class SubscriberANSHandlerTest {
+
+	@Before
+	public void setUp() {
+		// Disable logging so the build doesn't get spammed.
+		Logger.getRootLogger().setLevel(Level.OFF);
+	}
 
 	@Test
 	public void testSubscriberANSHandlerWorks(MessageDigest md,
@@ -906,8 +914,6 @@ public class SubscriberANSHandlerTest {
 				if (count > 2)
 					count = 0;
 
-				System.out.println(len);
-				System.out.println("count: " + count);
 				System.arraycopy(b2, 0, b, 0, b2.length);
 
 				return b2.length;
