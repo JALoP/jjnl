@@ -136,7 +136,7 @@ public class Config {
 	private File inputPath;
 	private File outputPath;
 	private Map<InetAddress, PeerConfig> peerConfigs;
-	private short pendingDigestMax;
+	private int pendingDigestMax;
 	private int pendingDigestTimeout;
 	private int port;
 	private Set<RecordType> recordTypes;
@@ -204,7 +204,7 @@ public class Config {
 	 * @return The maximum number of digests to calculate before sending a
 	 *         "digest" message.
 	 */
-	public short getPendingDigestMax() {
+	public int getPendingDigestMax() {
 		return this.pendingDigestMax;
 	}
 
@@ -349,7 +349,7 @@ public class Config {
 	 */
 	void handleListener(final JSONObject obj) throws ConfigurationException {
 	    this.listener = true;
-		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, obj).shortValue());
+		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, obj).intValue());
 		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, obj)
 				.intValue());
 		setInputPath(new File(itemAsString(INPUT, obj, true)));
@@ -396,7 +396,7 @@ public class Config {
 		handleDataClass(subscriber);
 		setOutputPath(new File(itemAsString(OUTPUT, subscriber, true)));
 		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, subscriber)
-				.shortValue());
+				.intValue());
 		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, subscriber)
 				.intValue());
 	}
@@ -594,8 +594,13 @@ public class Config {
 	}
 
 	/**
+<<<<<<< HEAD
 	 * Configure this to initiate a connection, or listen for connetions.
 	 *
+=======
+	 * Configure this to initiate a connection, or listen for connections.
+	 * 
+>>>>>>> 42ca8b1... bug-16313: Changing the type for pendingDigestMax in the Config parser to match the rest of the library.
 	 * @param connect
 	 *            if set to true, specifies that a connection should be
 	 *            initiated. If set to false, specifies to listen for
@@ -617,7 +622,7 @@ public class Config {
 	}
 
 	/**
-	 * Set the path to store recrods from remotes in. Not applicable to a
+	 * Set the path to store records from remotes in. Not applicable to a
 	 * "Publisher".
 	 *
 	 * @param outputPath
@@ -646,7 +651,7 @@ public class Config {
 	 *            The number of digests to calculate before sending a "digest"
 	 *            message.
 	 */
-	public void setPendingDigestMax(final short pendingDigestMax) {
+	public void setPendingDigestMax(final int pendingDigestMax) {
 		this.pendingDigestMax = pendingDigestMax;
 	}
 

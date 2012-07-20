@@ -374,14 +374,19 @@ public class SubscriberImpl implements Subscriber {
                     this.sid =
                         SID_FORMATER.parse(lastDir.getName()).longValue();
                     this.journalInputStream = new FileInputStream(
-                                           new File(lastDir, PAYLOAD_FILENAME));
+                                       new File(lastDir, PAYLOAD_FILENAME));
                 } else {
                    // all records synced (or for journal, either no un-synced
                    // or no bytes downloaded.
                    this.lastSerialFromRemote = (String) status.get(REMOTE_SID);
-                   deleteDirs.add(lastDir);
+                   if (lastDir != null) {
+                       deleteDirs.add(lastDir);
+                   }
                 }
                 break;
+            }
+            if (lastDir != null) {
+                deleteDirs.add(lastDir);
             }
             lastDir = recordDirs[idx];
             lastStatus = status;
