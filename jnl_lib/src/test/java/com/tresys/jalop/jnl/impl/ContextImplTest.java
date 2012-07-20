@@ -30,12 +30,24 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
+import mockit.Mocked;
+import mockit.NonStrictExpectations;
+import mockit.VerificationsInOrder;
+
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
+import org.beepcore.beep.core.OutputDataStream;
+import org.beepcore.beep.core.ReplyListener;
+import org.beepcore.beep.transport.tcp.TCPSession;
+import org.beepcore.beep.transport.tcp.TCPSessionCreator;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,12 +56,20 @@ import com.google.common.collect.Lists;
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.exceptions.ConnectionException;
 import com.tresys.jalop.jnl.exceptions.JNLException;
+import com.tresys.jalop.jnl.impl.ContextImpl.ConnectionState;
+import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 public class ContextImplTest {
+
+	// Needed to mock static functions in the Utils class.
+    @Mocked
+    private Utils utils;
 
     private LinkedList<String> encodings;
     private LinkedList<String> digests;
@@ -364,4 +384,76 @@ public class ContextImplTest {
         final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
     }
+
+	@SuppressWarnings({ "unchecked" })
+	@Test
+	public final void testSubscribeWorks(final Subscriber subscriber,
+			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator,
+			final OutputDataStream ods)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+
+		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+
+		new NonStrictExpectations() {
+			{
+				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				session.startChannel(anyString); result = channel;
+				channel.getState(); result = Channel.STATE_ACTIVE;
+				Utils.createInitMessage((Role)any,
+						(RecordType)any,
+						(List<String>)any,
+						(List<String>)any,
+						anyString);
+					result = ods;
+			}
+		};
+
+		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Log);
+		assertEquals(ConnectionState.CONNECTED, connectionStateField.get(c));
+
+		new VerificationsInOrder() {
+			{
+				channel.sendMSG(ods, (ReplyListener)any);
+			}
+		};
+	}
+
+	@Test(expected = ConnectionException.class)
+	public final void testSubscribeThrowsExceptionIfAlreadyConnected(final Subscriber subscriber)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+		connectionStateField.set(c, ConnectionState.CONNECTED);
+		c.subscribe(InetAddress.getByName("localhost"), 1234, RecordType.Log);
+	}
+
+	@Test(expected = JNLException.class)
+	public final void testSubscribeThrowsExceptionWithNullSubscriber(final Publisher publisher)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+		ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, false, "agent", digests, encodings);
+		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Log);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public final void testSubscribeThrowsExceptionWithNullAddress(final Subscriber subscriber)
+			throws IllegalAccessException, JNLException, BEEPException {
+		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+		c.subscribe(null, 0, RecordType.Log);
+	}
+
+	@Test(expected = JNLException.class)
+	public final void testSubscribeThrowsExceptionWithUnsetRecordType(final Subscriber subscriber,
+			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+
+		new NonStrictExpectations() {
+			{
+				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				session.startChannel(anyString); result = channel;
+				channel.getState(); result = Channel.STATE_ACTIVE;
+			}
+		};
+
+		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Unset);
+	}
 }
