@@ -25,6 +25,7 @@ package com.tresys.jalop.jnl.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -276,6 +277,7 @@ public class SubscriberANSHandler implements ReplyListener {
 
 	@Override
 	public void receiveANS(final Message message) throws AbortChannelException {
+        this.md.reset();
 		this.ds = message.getDataStream();
 		final InputDataStreamAdapter dsa = this.ds.getInputStream();
 		final long sysMetadataSize;
@@ -369,6 +371,9 @@ public class SubscriberANSHandler implements ReplyListener {
 			if (!sub.notifyDigest(subsess, recInfo, getRecordDigest())) {
 				throw new AbortChannelException("Error in notifyDigest");
 			}
+			BigInteger dgst = new BigInteger(1, this.md.digest());
+			dgst.toString(16);
+			this.subsess.addDigest(recInfo.getSerialId(), dgst.toString());
 		} catch (final BEEPException e) {
 			throw new AbortChannelException(e.getMessage());
 		} catch (final UnexpectedMimeValueException e) {
