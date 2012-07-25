@@ -34,6 +34,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -450,6 +451,7 @@ public class SubscriberImpl implements Subscriber {
             this.sid += 1;
             this.sidMap.put(recordInfo.getSerialId(), lri);
         }
+        lri.statusFile.getParentFile().mkdirs();
         if (!dumpStatus(lri)) {
             return false;
         }
@@ -511,7 +513,6 @@ public class SubscriberImpl implements Subscriber {
         byte[] buffer = new byte[this.bufferSize];
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
-
         long total = 0;
         boolean ret = true;
         try {
@@ -541,6 +542,7 @@ public class SubscriberImpl implements Subscriber {
                          + ", received " + total);
             ret = false;
         }
+
         return ret;
     }
 
@@ -595,8 +597,7 @@ public class SubscriberImpl implements Subscriber {
     public final boolean notifyDigest(final SubscriberSession sess,
                                       final RecordInfo recordInfo,
                                       final byte[] digest) {
-        String hexString =
-            javax.xml.bind.DatatypeConverter.printHexBinary(digest);
+		String hexString = (new BigInteger(1, digest)).toString(16);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Calculated digest for " + recordInfo.getSerialId()
                         + ": " + hexString);

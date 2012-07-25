@@ -201,7 +201,7 @@ public final class ContextImpl implements Context {
 
 			for(final RecordType rt : recordTypeSet) {
 
-				final ReplyListener listener = new InitListener(Role.Subscriber, rt, this);
+				final ReplyListener listener = new InitListener(addr, Role.Subscriber, rt, this);
 
 				final OutputDataStream ods = Utils.createInitMessage(Role.Subscriber, rt, this.allowedXmlEncodings,
 						this.allowedMessageDigests, this.agent);

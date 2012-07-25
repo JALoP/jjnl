@@ -37,6 +37,7 @@ import java.util.Map;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
+import mockit.Expectations;
 import mockit.NonStrictExpectations;
 import mockit.VerificationsInOrder;
 
@@ -83,7 +84,7 @@ public class SubscriberSessionImplTest {
 	public void testSubscriberImplConstructor(final InetAddress address, final Subscriber subscriber, final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
         SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         assertEquals(DigestMethod.SHA256, s.getDigestMethod());
         assertEquals(2, s.getPendingDigestMax());
@@ -97,7 +98,7 @@ public class SubscriberSessionImplTest {
         assertEquals(0, s.getChannelNum());
         assertEquals(sess, s.getSession());
 
-        s = new SubscriberSessionImpl(address, RecordType.Journal, subscriber, "foobar",
+        s = new SubscriberSessionImpl(address, RecordType.Journal, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         assertEquals(DigestMethod.SHA256, s.getDigestMethod());
         assertEquals(2, s.getPendingDigestMax());
@@ -111,7 +112,7 @@ public class SubscriberSessionImplTest {
         assertEquals(0, s.getChannelNum());
         assertEquals(sess, s.getSession());
 
-        s = new SubscriberSessionImpl(address, RecordType.Log, subscriber, "foobar",
+        s = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         assertEquals(DigestMethod.SHA256, s.getDigestMethod());
         assertEquals(2, s.getPendingDigestMax());
@@ -125,7 +126,7 @@ public class SubscriberSessionImplTest {
         assertEquals(0, s.getChannelNum());
         assertEquals(sess, s.getSession());
 
-        s = new SubscriberSessionImpl(address, RecordType.Log, subscriber, "   foobar   ",
+        s = new SubscriberSessionImpl(address, RecordType.Log, subscriber, "   " + DigestMethod.SHA256 + "   ",
                                       "   barfoo   ", 1, 2, 0, sess);
         assertEquals(DigestMethod.SHA256, s.getDigestMethod());
         assertEquals(2, s.getPendingDigestMax());
@@ -144,25 +145,25 @@ public class SubscriberSessionImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionForBadRecordType(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Unset, subscriber, "foobar", "barfoo", 1, 2, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Unset, subscriber, DigestMethod.SHA256, "barfoo", 1, 2, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionForEmptyEncoding(final InetAddress address, final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar", "   ", 1, 2, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, "   ", 1, 2, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionForZeroLengthEncoding(final InetAddress address, final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar", "", 1, 2, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, "", 1, 2, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionForNullEncoding(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar", null, 1, 2, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, null, 1, 2, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -185,54 +186,54 @@ public class SubscriberSessionImplTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForBadDigest(final Subscriber subscriber,
-			final org.beepcore.beep.core.Session sess) {
-		new SubscriberSessionImpl(RecordType.Audit, subscriber, "notADigest", "enc", 1, 2, 0, sess);
+			final org.beepcore.beep.core.Session sess, final InetAddress address) {
+		new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "notADigest", "enc", 1, 2, 0, sess);
 	}
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionZeroDigestMax(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "digest", "enc", 1, 0, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, "enc", 1, 0, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionNegativeDigestMax(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "digest", "enc", 1, -1, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, "enc", 1, -1, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionZeroDigestTimeout(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "digest", "enc", 0, 1, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, "enc", 0, 1, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionNegativeDigestTimeout(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "digest", "enc", -1, 1, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, "enc", -1, 1, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionForNullSubscriber(final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Audit, null, "digest", "enc", 1, 1, 0, sess);
+        new SubscriberSessionImpl(address, RecordType.Audit, null, DigestMethod.SHA256, "enc", 1, 1, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionForNullRecordType(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
-        new SubscriberSessionImpl(address, null, subscriber, "digest", "enc", 1, 1, 0, sess);
+        new SubscriberSessionImpl(address, null, subscriber, DigestMethod.SHA256, "enc", 1, 1, 0, sess);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionForNullSession(final Subscriber subscriber, final InetAddress address) {
-        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "digest", "enc", 1, 1, 0, null);
+        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256, "enc", 1, 1, 0, null);
     }
 
     @Test
     public void testSetPendingTimeout(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address) {
         final SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         s.setDigestTimeout(5);
         assertEquals(5, s.getPendingDigestTimeoutSeconds());
@@ -240,14 +241,14 @@ public class SubscriberSessionImplTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void testConstructorThrowsExceptionWhenMissingAddress(final Subscriber subscriber, final InetAddress address, final Session sess) {
-        new SubscriberSessionImpl(null, RecordType.Unset, subscriber, "foobar", "barfoo", 1, 1, 2, sess);
+        new SubscriberSessionImpl(null, RecordType.Unset, subscriber, DigestMethod.SHA256, "barfoo", 1, 1, 2, sess);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void testSetPendingTimeoutThrowsExceptionForNegative(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
         final SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         s.setDigestTimeout(-1);
     }
@@ -255,7 +256,7 @@ public class SubscriberSessionImplTest {
     public void testSetPendingTimeoutThrowsExceptionForZero(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
         final SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         s.setDigestTimeout(0);
     }
@@ -263,7 +264,7 @@ public class SubscriberSessionImplTest {
     @Test
     public void testSetPendingDigestMax(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address) {
         final SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         s.setPendingDigestMax(5);
         assertEquals(5, s.getPendingDigestMax());
@@ -273,7 +274,7 @@ public class SubscriberSessionImplTest {
     public void testSetPendingMaxThrowsExceptionForNegative(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
         final SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         s.setPendingDigestMax(-1);
     }
@@ -282,7 +283,7 @@ public class SubscriberSessionImplTest {
     public void testSetPendingMaxThrowsExceptionForZero(final Subscriber subscriber,
 			final org.beepcore.beep.core.Session sess, final InetAddress address) {
         final SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         s.setPendingDigestMax(0);
     }
@@ -291,7 +292,7 @@ public class SubscriberSessionImplTest {
     public void testSetErroredWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalArgumentException, IllegalAccessException {
         final SubscriberSessionImpl s =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
         s.setErrored();
         assertTrue(errored.getBoolean(s));
@@ -302,7 +303,7 @@ public class SubscriberSessionImplTest {
     public void testAddAllDigestsWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 1, 0, sess);
 		final Map<String, String> mapToAdd = new HashMap<String, String>();
 		mapToAdd.put("key1", "value1");
@@ -319,7 +320,7 @@ public class SubscriberSessionImplTest {
     public void testAddDigestsWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 1, 0, sess);
 		s.addDigest("serialId", "digest");
 		final Map<String, String> map = getDigestMap(s);
@@ -331,7 +332,7 @@ public class SubscriberSessionImplTest {
     public void testIsOkTrueWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 2, 0, sess);
 
 		new NonStrictExpectations() {
@@ -349,7 +350,7 @@ public class SubscriberSessionImplTest {
     public void testIsOkFalseWhenErrored(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 2, 0, sess);
 
 		new NonStrictExpectations() {
@@ -368,7 +369,7 @@ public class SubscriberSessionImplTest {
 	public void testIsOkFalseWhenInactive(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "foobar",
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 2, 0, sess);
 
 		assertFalse(s.isOk());
@@ -378,46 +379,41 @@ public class SubscriberSessionImplTest {
 
 	@Test
 	public void testRunWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess,
-			final Channel channel, final DigestListener listener)
+			final Channel channel, final DigestListener listener, final InetAddress address)
 			throws InterruptedException, BEEPException {
 
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(RecordType.Audit, subscriber, DigestMethod.SHA256,
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 2, 0, sess);
 
 		final Map<String, String> digestMap = new HashMap<String, String>();
 		digestMap.put("serial", "digest");
 
-		new NonStrictExpectations(s) {
+		new Expectations(s) {
 	        {
-				s.isOk(); result = true;
 				sess.startChannel(anyString, false, anyString); result = channel;
+				s.isOk(); result = true;
+				s.isOk(); result = false;
 	        }
 	    };
 
-	    final Thread digestThread = new Thread(s, "digestThreadWorks");
-	    digestThread.start();
-
 	    s.addAllDigests(digestMap);
-	    digestThread.join(1000);
-	    assertTrue(digestThread.isAlive());
 
-	    Thread.sleep(1000);
-
+	    s.run();
 		new VerificationsInOrder() {
 		    {
-				sess.startChannel(anyString, false, anyString);
 				channel.sendMSG((OutputDataStream)any, (DigestListener)any);
 		    }
 		};
 	}
 
 	@Test
-	public void testRunStopsWhenNotOk(final Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+	public void testRunStopsWhenNotOk(final Subscriber subscriber, final org.beepcore.beep.core.Session sess,
+			final InetAddress address)
 			throws InterruptedException {
 
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(RecordType.Audit, subscriber, DigestMethod.SHA256,
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 2, 0, sess);
 
 		new NonStrictExpectations(s) {
@@ -435,11 +431,12 @@ public class SubscriberSessionImplTest {
 	}
 
 	@Test
-	public void testRunSetsErrorOnException(final Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+	public void testRunSetsErrorOnException(final Subscriber subscriber, final org.beepcore.beep.core.Session sess,
+			final InetAddress address)
 			throws InterruptedException, BEEPException, IllegalArgumentException, IllegalAccessException {
 
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(RecordType.Audit, subscriber, DigestMethod.SHA256,
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 2, 0, sess);
 
 		new NonStrictExpectations(s) {
@@ -457,11 +454,11 @@ public class SubscriberSessionImplTest {
 	}
 
 	@Test
-	public void testGetDigestTypeWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess)
+	public void testGetDigestTypeWorks(final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws SecurityException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 
 		final SubscriberSessionImpl s =
-	        new SubscriberSessionImpl(RecordType.Audit, subscriber, DigestMethod.SHA256,
+	        new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 	                                  "barfoo", 1, 2, 0, sess);
 
 		final Method digestTypeMethod = SubscriberSessionImpl.class.getDeclaredMethod("getDigestType", String.class);

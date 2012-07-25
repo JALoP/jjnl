@@ -25,10 +25,13 @@ package com.tresys.jalop.utils.jnltest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.beepcore.beep.core.BEEPException;
 import org.json.simple.parser.ParseException;
 
 import com.tresys.jalop.jnl.DigestStatus;
@@ -39,6 +42,7 @@ import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
@@ -73,8 +77,10 @@ public class JNLTest implements Subscriber {
 	 *
 	 * @param args
 	 *            The command line arguments
+	 * @throws BEEPException 
+	 * @throws JNLException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws JNLException, BEEPException {
 		if (args.length != 1) {
 			System.err.println("Must specify exactly one argument that is "
 					+ " the configuration file to use");
@@ -105,12 +111,15 @@ public class JNLTest implements Subscriber {
 	/**
 	 * Once a {@link JNLTest} object has a config, call this method to connect to the 
 	 * remotes, or wait for incoming connections.
+	 * @throws BEEPException 
+	 * @throws JNLException 
 	 */
-    private void start() {
-        if (this.config.isConnector()) {
+    private void start() throws JNLException, BEEPException {
+        if (!this.config.isListener()) {
             if (this.config.getRole() == Role.Subscriber) {
-                ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), false, null, null);
-                contextImpl.subscribe(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
+                ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), false, "agent", null, null);
+				contextImpl.subscribe(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
+
             } else if (this.config.getRole() == Role.Publisher) {
                 // TODO: do things as publisher:
                 this.logger.error("Role of Publisher not currently supported");
@@ -147,6 +156,7 @@ public class JNLTest implements Subscriber {
             sub = map.get(sess.getRecordType());
             if (sub == null) {
                 sub = new SubscriberImpl(sess.getRecordType(), this.config.getOutputPath(), sess.getAddress());
+                map.put(sess.getRecordType(), sub);
             }
         }
         return sub.getSubscribeRequest(sess);

@@ -282,6 +282,7 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 			}
 		}
 	}
+
 	@Override
 	public InetAddress getAddress() {
 		return this.address;

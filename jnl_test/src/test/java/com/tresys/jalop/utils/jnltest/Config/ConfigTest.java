@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,6 +44,7 @@ import org.json.simple.JSONObject;
 import org.junit.Test;
 import org.junit.Before;
 
+import com.google.common.net.InetAddresses;
 import com.tresys.jalop.jnl.RecordType;
 
 import com.tresys.jalop.utils.jnltest.Config.Config;
@@ -58,7 +60,7 @@ public class ConfigTest {
 	@Before
 	public void setup() throws Exception {
 		jsonCfg = new JSONObject();
-		jsonCfg.put("address", "localhost");
+		jsonCfg.put("address", "127.0.0.1");
 		jsonCfg.put("port", 1234);
         JSONArray dataClassArray = new JSONArray();
         dataClassArray.add("audit");
@@ -102,7 +104,7 @@ public class ConfigTest {
 		Config cfg = Config.createFromJson("path/to/nothing", jsonCfg);
 		assertNotNull(cfg);
 		assertEquals("path/to/nothing", cfg.getSource());
-		assertEquals("localhost/0.0.0.0", cfg.getAddress().toString());
+		assertTrue(Arrays.equals(new byte[]{127,0,0,1}, cfg.getAddress().getAddress()));
 		assertEquals(128, cfg.getPendingDigestMax());
 		assertEquals(120, cfg.getPendingDigestTimeout());
 		assertEquals(1234, cfg.getPort());
@@ -115,7 +117,7 @@ public class ConfigTest {
 		Config cfg = Config.createFromJson("path/to/nothing", jsonCfg);
 		assertNotNull(cfg);
 		assertEquals("path/to/nothing", cfg.getSource());
-		assertEquals("localhost/0.0.0.0", cfg.getAddress().toString());
+		assertTrue(Arrays.equals(new byte[]{127,0,0,1}, cfg.getAddress().getAddress()));
 		assertEquals(-1, cfg.getPendingDigestMax());
 		assertEquals(-1, cfg.getPendingDigestTimeout());
 		assertEquals(1234, cfg.getPort());
@@ -131,7 +133,7 @@ public class ConfigTest {
         Config cfg = Config.createFromJson("path/to/nothing", jsonCfg);
         assertNotNull(cfg);
         assertEquals("path/to/nothing", cfg.getSource());
-        assertEquals("localhost/0.0.0.0", cfg.getAddress().toString());
+        assertTrue(Arrays.equals(new byte[]{127,0,0,1}, cfg.getAddress().getAddress()));
         assertEquals(128, cfg.getPendingDigestMax());
         assertEquals(120, cfg.getPendingDigestTimeout());
         assertEquals(1234, cfg.getPort());
@@ -209,7 +211,7 @@ public class ConfigTest {
 		Config cfg = new Config("/path/to/nothing");
 		String action = cfg.itemAsString("address", jsonCfg, true);
 
-		assertEquals("localhost", action);
+		assertEquals("127.0.0.1", action);
 	}
 
 	@Test(expected = ConfigurationException.class)
@@ -320,44 +322,44 @@ public class ConfigTest {
 		subAllow.add("log");
 		peer1.put("subscribeAllow", subAllow);
 
+		cfg.updateKnownHosts(peer1);
+
 		JSONObject peer2 = new JSONObject();
 		hosts.clear();
 		hosts.add("192.168.1.2");
 		peer2.put("hosts", hosts);
 
 		pubAllow.clear();
-		pubAllow.add("audit");
+		pubAllow.add("log");
 		peer2.put("publishAllow", pubAllow);
 
 		subAllow.clear();
-		subAllow.add("log");
+		subAllow.add("audit");
 		peer2.put("subscribeAllow", subAllow);
-
-		cfg.updateKnownHosts(peer1);
 
 		Map<InetAddress, PeerConfig> peerCfgs = cfg.getPeerConfigs();
 
-		InetAddress addr1 = cfg.stringToAddress("192.168.1.1");
+		InetAddress addr1 = InetAddresses.forString("192.168.1.1");
 
 		assertTrue(peerCfgs.containsKey(addr1));
-		assertTrue(peerCfgs.get(cfg.stringToAddress("192.168.1.1")).getPublishAllow().contains(RecordType.Audit));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.1")).getPublishAllow().contains(RecordType.Journal));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.1")).getPublishAllow().contains(RecordType.Log));
-		assertTrue(peerCfgs.get(cfg.stringToAddress("192.168.1.1")).getSubscribeAllow().contains(RecordType.Log));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.1")).getSubscribeAllow().contains(RecordType.Audit));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.1")).getSubscribeAllow().contains(RecordType.Journal));
+		assertTrue(peerCfgs.get(InetAddresses.forString("192.168.1.1")).getPublishAllow().contains(RecordType.Audit));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.1")).getPublishAllow().contains(RecordType.Journal));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.1")).getPublishAllow().contains(RecordType.Log));
+		assertTrue(peerCfgs.get(InetAddresses.forString("192.168.1.1")).getSubscribeAllow().contains(RecordType.Log));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.1")).getSubscribeAllow().contains(RecordType.Audit));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.1")).getSubscribeAllow().contains(RecordType.Journal));
 
 		cfg.updateKnownHosts(peer2);
 
 		peerCfgs = cfg.getPeerConfigs();
 
-		assertTrue(peerCfgs.containsKey(cfg.stringToAddress("192.168.1.2")));
-		assertTrue(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getPublishAllow().contains(RecordType.Audit));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getPublishAllow().contains(RecordType.Journal));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getPublishAllow().contains(RecordType.Log));
-		assertTrue(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getSubscribeAllow().contains(RecordType.Log));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getSubscribeAllow().contains(RecordType.Journal));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getSubscribeAllow().contains(RecordType.Audit));
+		assertTrue(peerCfgs.containsKey(InetAddresses.forString("192.168.1.2")));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getPublishAllow().contains(RecordType.Audit));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getPublishAllow().contains(RecordType.Journal));
+		assertTrue(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getPublishAllow().contains(RecordType.Log));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getSubscribeAllow().contains(RecordType.Log));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getSubscribeAllow().contains(RecordType.Journal));
+		assertTrue(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getSubscribeAllow().contains(RecordType.Audit));
 
 		peer2.remove("subscribeAllow");
 
@@ -370,13 +372,13 @@ public class ConfigTest {
 
 		peerCfgs = cfg.getPeerConfigs();
 
-		assertTrue(peerCfgs.containsKey(cfg.stringToAddress("192.168.1.2")));
-		assertTrue(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getPublishAllow().contains(RecordType.Audit));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getPublishAllow().contains(RecordType.Journal));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getPublishAllow().contains(RecordType.Log));
-		assertTrue(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getSubscribeAllow().contains(RecordType.Log));
-		assertTrue(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getSubscribeAllow().contains(RecordType.Journal));
-		assertFalse(peerCfgs.get(cfg.stringToAddress("192.168.1.2")).getSubscribeAllow().contains(RecordType.Audit));
+		assertTrue(peerCfgs.containsKey(InetAddresses.forString("192.168.1.2")));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getPublishAllow().contains(RecordType.Audit));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getPublishAllow().contains(RecordType.Journal));
+		assertTrue(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getPublishAllow().contains(RecordType.Log));
+		assertFalse(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getSubscribeAllow().contains(RecordType.Log));
+		assertTrue(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getSubscribeAllow().contains(RecordType.Journal));
+		assertTrue(peerCfgs.get(InetAddresses.forString("192.168.1.2")).getSubscribeAllow().contains(RecordType.Audit));
 	}
 
 	@Test(expected = ConfigurationException.class)

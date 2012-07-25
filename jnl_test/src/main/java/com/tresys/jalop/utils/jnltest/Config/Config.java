@@ -40,6 +40,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.google.common.net.InetAddresses;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 
@@ -287,7 +288,7 @@ public class Config {
 	 */
 	void handleAddress(final JSONObject obj) throws ConfigurationException {
 		final String addrString = itemAsString(ADDRESS, obj);
-		this.address = stringToAddress(addrString);
+		this.address = InetAddresses.forString(addrString);
 	}
 
 	/**
@@ -594,13 +595,8 @@ public class Config {
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Configure this to initiate a connection, or listen for connetions.
-	 *
-=======
 	 * Configure this to initiate a connection, or listen for connections.
 	 * 
->>>>>>> 42ca8b1... bug-16313: Changing the type for pendingDigestMax in the Config parser to match the rest of the library.
 	 * @param connect
 	 *            if set to true, specifies that a connection should be
 	 *            initiated. If set to false, specifies to listen for
@@ -698,27 +694,6 @@ public class Config {
 	}
 
 	/**
-	 * Simple helper utility to convert a string to an InetAddress. Currently,
-	 * only IPv4 addresses are supported.
-	 *
-	 * @param s
-	 *            The String to convert to an {@link InetAddress}
-	 * @return The {@link InetAddresss} for <code>s</code>
-	 * @throws ConfigurationException
-	 *             If <code>s</code> cannot be converted to an
-	 *             {@link InetAddress}
-	 */
-	InetAddress stringToAddress(final String s) throws ConfigurationException {
-		try {
-			return InetAddress.getByAddress(s, new byte[4]);
-		} catch (final UnknownHostException e) {
-			throw new ConfigurationException(this.source,
-					"Bad value for key: '" + ADDRESS + "' (" + e.getMessage()
-							+ ")");
-		}
-	}
-
-	/**
 	 * Helper utility to append permissions to the {@link PeerConfig} map.
 	 *
 	 * @param elm
@@ -736,7 +711,7 @@ public class Config {
 		for (final Object o : hosts) {
 			String host;
 			host = asStringValue(this.source, null, o);
-			final InetAddress hostAddress = stringToAddress(host);
+			final InetAddress hostAddress = InetAddresses.forString(host);
 			PeerConfig pc;
 			if (this.peerConfigs.containsKey(hostAddress)) {
 				pc = this.peerConfigs.get(hostAddress);
