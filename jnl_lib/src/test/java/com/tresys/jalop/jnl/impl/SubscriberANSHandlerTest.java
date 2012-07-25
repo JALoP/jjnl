@@ -51,6 +51,7 @@ import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.DigestStatus;
@@ -72,68 +73,82 @@ public class SubscriberANSHandlerTest {
 		Logger.getRootLogger().setLevel(Level.OFF);
 	}
 
+	private static Field dsField;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
+		dsField = SubscriberANSHandler.class.getDeclaredField("ds");
+		dsField.setAccessible(true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void setDs(final SubscriberANSHandler s, final InputDataStream ds)
+			throws IllegalArgumentException, IllegalAccessException {
+       dsField.set(s, ds);
+    }
+
 	@Test
-	public void testSubscriberANSHandlerWorks(MessageDigest md,
-			SubscriberSessionImpl subsess, InputDataStream ds) throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+	public void testSubscriberANSHandlerWorks(final MessageDigest md,
+			final SubscriberSessionImpl subsess) throws Exception {
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 	}
 
 	public class FakeGoodSubscriber implements Subscriber {
 		@Override
-		public boolean notifySysMetadata(SubscriberSession sess,
-				final RecordInfo recordInfo, InputStream sysMetaData) {
+		public boolean notifySysMetadata(final SubscriberSession sess,
+				final RecordInfo recordInfo, final InputStream sysMetaData) {
 			return true;
 		}
 
 		@Override
-		public boolean notifyAppMetadata(SubscriberSession sess,
-				final RecordInfo recordInfo, InputStream appMetaData) {
+		public boolean notifyAppMetadata(final SubscriberSession sess,
+				final RecordInfo recordInfo, final InputStream appMetaData) {
 			return true;
 		}
 
 		@Override
-		public boolean notifyPayload(SubscriberSession sess,
-				final RecordInfo recordInfo, InputStream payload) {
+		public boolean notifyPayload(final SubscriberSession sess,
+				final RecordInfo recordInfo, final InputStream payload) {
 			return true;
 		}
 
 		@Override
-		public boolean notifyDigest(SubscriberSession sess,
+		public boolean notifyDigest(final SubscriberSession sess,
 				final RecordInfo recordInfo, final byte[] digest) {
 			return true;
 		}
 
 		@Override
-		public boolean notifyDigestResponse(SubscriberSession sess,
+		public boolean notifyDigestResponse(final SubscriberSession sess,
 				final Map<String, DigestStatus> statuses) {
 			return false;
 
 		}
 
 		@Override
-		public SubscribeRequest getSubscribeRequest(SubscriberSession sess) {
+		public SubscribeRequest getSubscribeRequest(final SubscriberSession sess) {
 			// TODO Auto-generated method stub
 			return null;
 		}
 	}
 
 	@Test
-	public void testReceiveANSLogRecordWorks(MessageDigest md,
+	public void testReceiveANSLogRecordWorks(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
 		new MockUp<InputDataStreamAdapter>() {
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREAK".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -182,14 +197,14 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testReceiveANSLogRecordWorksNoPayload(MessageDigest md,
+	public void testReceiveANSLogRecordWorksNoPayload(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
 		new NonStrictExpectations() {
@@ -219,8 +234,8 @@ public class SubscriberANSHandlerTest {
 			// int numTimes = 0;
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREAK".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -247,7 +262,7 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testReceiveANSAuditRecordWorks(MessageDigest md,
+	public void testReceiveANSAuditRecordWorks(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
@@ -257,8 +272,8 @@ public class SubscriberANSHandlerTest {
 		new MockUp<InputDataStreamAdapter>() {
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREAK".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -303,14 +318,14 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
 		sh.receiveANS(msg);
 	}
 
 	@Test
-	public void testReceiveANSJournalRecordWorks(MessageDigest md,
+	public void testReceiveANSJournalRecordWorks(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
@@ -320,8 +335,8 @@ public class SubscriberANSHandlerTest {
 		new MockUp<InputDataStreamAdapter>() {
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREAK".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -366,7 +381,7 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
 		sh.receiveANS(msg);
@@ -374,20 +389,20 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = AbortChannelException.class)
 	public void testReceiveANSLogRecordThrowsErrorWithDataAfterLastBreak(
-			MessageDigest md, final SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final Message msg,
 			final InputDataStreamAdapter dsa) throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
 		new MockUp<InputDataStreamAdapter>() {
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREAK".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -436,11 +451,11 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test(expected = AbortChannelException.class)
-	public void testReceiveANSThrowsExceptionOnUnknownType(MessageDigest md,
+	public void testReceiveANSThrowsExceptionOnUnknownType(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
 		new NonStrictExpectations() {
@@ -463,52 +478,53 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IncompleteRecordException.class)
 	public void testGetRecordDigestThrowsIncompleteRecordExceptionWhenPayloadNotComplete(
-			MessageDigest md, SubscriberSessionImpl subsess, InputDataStream ds)
+			final MessageDigest md, final SubscriberSessionImpl subsess)
 			throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 		sh.getRecordDigest();
 	}
 
 	@Test(expected = AbortChannelException.class)
-	public void testReceiveRPYThrowsException(MessageDigest md,
-			SubscriberSessionImpl subsess, InputDataStream ds, Message msg)
+	public void testReceiveRPYThrowsException(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final Message msg)
 			throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 		sh.receiveRPY(msg);
 	}
 
 	@Test(expected = AbortChannelException.class)
-	public void testReceiveERRThrowsException(MessageDigest md,
-			SubscriberSessionImpl subsess, InputDataStream ds, Message msg)
+	public void testReceiveERRThrowsException(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final Message msg)
 			throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 		sh.receiveERR(msg);
 	}
 
 	@Test(expected = AbortChannelException.class)
-	public void testReceiveNULThrowsException(MessageDigest md,
-			SubscriberSessionImpl subsess, InputDataStream ds, Message msg)
+	public void testReceiveNULThrowsException(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final Message msg)
 			throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 		sh.receiveNUL(msg);
 	}
 
 	@Test
-	public void testJalopDataStreamWorks(MessageDigest md,
-			SubscriberSessionImpl subsess, InputDataStream ds) throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+	public void testJalopDataStreamWorks(final MessageDigest md, final InputDataStream ds,
+			final SubscriberSessionImpl subsess) throws Exception {
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(1234);
+		setDs(sh, ds);
+		final InputStream jds = sh.getJalopDataStreamInstance(1234);
 		assertNotNull(jds);
 	}
 
 	@Test
-	public void testJalopDataStreamReadWorks(MessageDigest md,
-			SubscriberSessionImpl subsess, final InputDataStream ds,
+	public void testJalopDataStreamReadWorks(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final InputDataStreamAdapter is) throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
@@ -518,8 +534,8 @@ public class SubscriberANSHandlerTest {
 			}
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREAK".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -539,9 +555,11 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		setDs(sh, ds);
+
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 		int b = jds.read();
 		assertEquals(1, b);
 		b = jds.read();
@@ -555,20 +573,20 @@ public class SubscriberANSHandlerTest {
 		b = jds.read();
 		assertEquals(-1, b);
 
-		Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
 		pcf.setAccessible(true);
-		boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
+		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
 		assertTrue(pc);
 
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 	}
 
 	@Test
 	public void testJalopDataStreamReadReturnsNegativeWhenFinished(
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final InputDataStreamAdapter is)
 			throws Exception {
 
@@ -580,25 +598,27 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		setDs(sh, ds);
+
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 
 		frf.setAccessible(true);
 		frf.setBoolean(jds, true);
 
-		int ret = jds.read(new byte[5], 0, 5);
+		final int ret = jds.read(new byte[5], 0, 5);
 		assertEquals(-1, ret);
 
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 
 	}
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadPayloadNotCorrectWhenBREA(
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final InputDataStreamAdapter is)
 			throws Exception {
 
@@ -609,8 +629,8 @@ public class SubscriberANSHandlerTest {
 			}
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREA".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREA".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -630,9 +650,10 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		setDs(sh, ds);
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 		int b = jds.read();
 		assertEquals(1, b);
 		b = jds.read();
@@ -646,20 +667,20 @@ public class SubscriberANSHandlerTest {
 		b = jds.read();
 		assertEquals(-1, b);
 
-		Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
 		pcf.setAccessible(true);
-		boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
+		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
 		assertFalse(pc);
 
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 	}
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadThrowsIOExceptionUponFailure(
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final InputDataStreamAdapter is)
 			throws Exception {
 
@@ -679,21 +700,22 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		setDs(sh, ds);
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 		jds.read();
 	}
 
 	@Test
-	public void testJalopDataStreamReadByteArrayOffsetWorks(MessageDigest md,
-			SubscriberSessionImpl subsess, final InputDataStream ds,
+	public void testJalopDataStreamReadByteArrayOffsetWorks(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final InputDataStreamAdapter is) throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
+			int read(final byte[] b, final int off, final int len) throws Exception {
 				byte[] b2 = null;
 
 				switch (count) {
@@ -722,36 +744,37 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		setDs(sh, ds);
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 
-		byte b[] = new byte[5];
-		int read = jds.read(b, 0, 5);
+		final byte b[] = new byte[5];
+		final int read = jds.read(b, 0, 5);
 		assertEquals(5, read);
 		assertEquals("12345", new String(b, "utf-8"));
 
-		Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
 		pcf.setAccessible(true);
-		boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
+		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
 		assertTrue(pc);
 
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 	}
 
 	@Test
 	public void testJalopDataStreamReadByteArrayOffsetWorksLengthLargerThanPayload(
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final InputDataStreamAdapter is)
 			throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
+			int read(final byte[] b, final int off, final int len) throws Exception {
 				byte[] b2 = null;
 
 				switch (count) {
@@ -780,36 +803,37 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		setDs(sh, ds);
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 
-		byte b[] = new byte[5];
-		int read = jds.read(b, 0, 10);
+		final byte b[] = new byte[5];
+		final int read = jds.read(b, 0, 10);
 		assertEquals(5, read);
 		assertEquals("12345", new String(b, "utf-8"));
 
-		Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
 		pcf.setAccessible(true);
-		boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
+		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
 		assertTrue(pc);
 
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 	}
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadByteArrayPayloadIncorrectWhenRcvBREA(
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final InputDataStreamAdapter is)
 			throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
+			int read(final byte[] b, final int off, final int len) throws Exception {
 				byte[] b2 = null;
 
 				switch (count) {
@@ -838,35 +862,36 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		setDs(sh, ds);
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 
-		byte b[] = new byte[5];
-		int read = jds.read(b, 0, 5);
+		final byte b[] = new byte[5];
+		final int read = jds.read(b, 0, 5);
 		assertEquals(5, read);
 		assertEquals("12345", new String(b, "utf-8"));
 
-		Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
 		pcf.setAccessible(true);
-		boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
+		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
 		assertFalse(pc);
 
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 	}
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadByteArrayThrowsIOExceptionUponFailure(
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final InputDataStreamAdapter is)
 			throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
 			@Mock
-			int read(byte[] b, int off, int len) {
+			int read(final byte[] b, final int off, final int len) {
 				return 1;
 			}
 
@@ -881,22 +906,24 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		setDs(sh, ds);
+
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 		jds.read(new byte[5], 0, 5);
 	}
 
 	@Test
 	public void testJalopDataStreamReadByteArrayOffsetWorksWithDataSizeLargerThanBuffer(
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final InputDataStreamAdapter is)
 			throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
+			int read(final byte[] b, final int off, final int len) throws Exception {
 				byte[] b2 = null;
 
 				switch (count) {
@@ -931,34 +958,36 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		InputStream jds = sh.getJalopDataStreamInstance(6);
+		setDs(sh, ds);
 
-		byte b[] = new byte[3];
+		final InputStream jds = sh.getJalopDataStreamInstance(6);
+
+		final byte b[] = new byte[3];
 		int read = jds.read(b, 0, 3);
 		assertEquals(3, read);
 		assertEquals("123", new String(b, "utf-8"));
 
-		byte b2[] = new byte[3];
+		final byte b2[] = new byte[3];
 		read = jds.read(b2, 0, 3);
 		assertEquals(3, read);
 		assertEquals("456", new String(b2, "utf-8"));
 
-		Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
 		pcf.setAccessible(true);
-		boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
+		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
 		assertTrue(pc);
 
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 	}
 
 	@Test
-	public void testJalopDataStreamFlushWorks(MessageDigest md,
-			SubscriberSessionImpl subsess, final InputDataStream ds,
+	public void testJalopDataStreamFlushWorks(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final InputDataStreamAdapter is) throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
@@ -968,8 +997,8 @@ public class SubscriberANSHandlerTest {
 			}
 
 			@Mock
-			int read(byte[] b, int off, int len) throws Exception {
-				byte[] b2 = "BREAK".getBytes("utf-8");
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
 				System.arraycopy(b2, 0, b, 0, b2.length);
 				return len;
 			}
@@ -984,33 +1013,35 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
+		setDs(sh, ds);
 
-		InputStream jds = sh.getJalopDataStreamInstance(5);
+		final InputStream jds = sh.getJalopDataStreamInstance(5);
 
-		Method flush = jds.getClass().getDeclaredMethod("flush");
+		final Method flush = jds.getClass().getDeclaredMethod("flush");
 		flush.invoke(jds);
 
-		Field frf = jds.getClass().getDeclaredField("finishedReading");
+		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		boolean fr = ((Boolean) frf.get(jds)).booleanValue();
+		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
 		assertTrue(fr);
 		flush.invoke(jds);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testJalopDataStreamThrowsExceptionWithDataSizeLessThanZero(
-			MessageDigest md, SubscriberSessionImpl subsess, InputDataStream ds)
+			final MessageDigest md, final SubscriberSessionImpl subsess, final InputDataStream ds)
 			throws Exception {
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
+		setDs(sh, ds);
 		sh.getJalopDataStreamInstance(-1);
 	}
 
 	@Test
 	public void testGetAdditionalHeadersWorks(final InputDataStreamAdapter dsa,
-			MessageDigest md, SubscriberSessionImpl subsess,
+			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds) throws Exception {
 
 		final Vector<String> v = new Vector<String>();
@@ -1028,21 +1059,22 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		List<MimeHeader> mhl = sh.getAdditionalHeaders();
+		setDs(sh, ds);
+		final List<MimeHeader> mhl = sh.getAdditionalHeaders();
 		assertNotNull(mhl);
 		assertEquals(1, mhl.size());
 
-		MimeHeader mh = mhl.get(0);
+		final MimeHeader mh = mhl.get(0);
 		assertEquals("asdf", mh.getName());
 		assertEquals("hello", mh.getValue());
 	}
 
 	@Test
 	public void testGetAdditionalHeadersWorksWithBlankValue(
-			final InputDataStreamAdapter dsa, MessageDigest md,
-			SubscriberSessionImpl subsess, final InputDataStream ds)
+			final InputDataStreamAdapter dsa, final MessageDigest md,
+			final SubscriberSessionImpl subsess, final InputDataStream ds)
 			throws Exception {
 
 		final Vector<String> v = new Vector<String>();
@@ -1059,19 +1091,20 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		List<MimeHeader> mhl = sh.getAdditionalHeaders();
+		setDs(sh, ds);
+		final List<MimeHeader> mhl = sh.getAdditionalHeaders();
 		assertNotNull(mhl);
-		MimeHeader mh = mhl.get(0);
+		final MimeHeader mh = mhl.get(0);
 		assertEquals("asdf", mh.getName());
 		assertEquals("", mh.getValue());
 	}
 
 	@Test
 	public void testGetAdditionalHeadersWorksWithBlankName(
-			final InputDataStreamAdapter dsa, MessageDigest md,
-			SubscriberSessionImpl subsess, final InputDataStream ds)
+			final InputDataStreamAdapter dsa, final MessageDigest md,
+			final SubscriberSessionImpl subsess, final InputDataStream ds)
 			throws Exception {
 
 		final Vector<String> v = new Vector<String>();
@@ -1088,18 +1121,19 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		List<MimeHeader> mhl = sh.getAdditionalHeaders();
+		setDs(sh, ds);
+		final List<MimeHeader> mhl = sh.getAdditionalHeaders();
 		assertNotNull(mhl);
-		MimeHeader mh = mhl.get(0);
+		final MimeHeader mh = mhl.get(0);
 		assertEquals("", mh.getName());
 		assertEquals("hello", mh.getValue());
 	}
 
 	@Test
 	public void testGetRecordDigestWorks(final MessageDigest md,
-			SubscriberSessionImpl subsess, InputDataStream ds) throws Exception {
+			final SubscriberSessionImpl subsess) throws Exception {
 
 		new Expectations() {
 			byte[] b = "DIGEST".getBytes();
@@ -1109,31 +1143,31 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		Field payloadComplete = sh.getClass().getDeclaredField(
+		final Field payloadComplete = sh.getClass().getDeclaredField(
 				"payloadComplete");
 		payloadComplete.setAccessible(true);
 		payloadComplete.setBoolean(sh, true);
 
-		Field payloadCorrect = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field payloadCorrect = sh.getClass().getDeclaredField("payloadCorrect");
 		payloadCorrect.setAccessible(true);
 		payloadCorrect.setBoolean(sh, true);
 
-		byte[] digest = sh.getRecordDigest();
+		final byte[] digest = sh.getRecordDigest();
 		assertEquals("DIGEST", new String(digest));
 	}
 
 	@Test(expected = IncompleteRecordException.class)
 	public void testGetRecordDigestThrowsExceptionWhenPayloadNotComplete(
-			MessageDigest md, SubscriberSessionImpl subsess, InputDataStream ds)
+			final MessageDigest md, final SubscriberSessionImpl subsess)
 			throws Exception {
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		Field payloadComplete = sh.getClass().getDeclaredField(
+		final Field payloadComplete = sh.getClass().getDeclaredField(
 				"payloadComplete");
 		payloadComplete.setAccessible(true);
 		payloadComplete.setBoolean(sh, false);
@@ -1143,18 +1177,18 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IncompleteRecordException.class)
 	public void testGetRecordDigestThrowsExceptionWhenPayloadNotCorrect(
-			MessageDigest md, SubscriberSessionImpl subsess, InputDataStream ds)
+			final MessageDigest md, final SubscriberSessionImpl subsess)
 			throws Exception {
 
-		SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess, ds);
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		Field payloadComplete = sh.getClass().getDeclaredField(
+		final Field payloadComplete = sh.getClass().getDeclaredField(
 				"payloadComplete");
 		payloadComplete.setAccessible(true);
 		payloadComplete.setBoolean(sh, true);
 
-		Field payloadCorrect = sh.getClass().getDeclaredField("payloadCorrect");
+		final Field payloadCorrect = sh.getClass().getDeclaredField("payloadCorrect");
 		payloadCorrect.setAccessible(true);
 		payloadCorrect.setBoolean(sh, false);
 

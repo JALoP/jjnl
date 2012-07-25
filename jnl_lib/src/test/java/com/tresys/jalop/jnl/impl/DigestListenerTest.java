@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.soap.MimeHeaders;
 
 import mockit.Mocked;
@@ -82,26 +83,26 @@ public class DigestListenerTest {
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testDigestListenerReceiveErr(SubscriberSessionImpl subSess, Message message)
+    public void testDigestListenerReceiveErr(final SubscriberSessionImpl subSess, final Message message)
 			throws AbortChannelException {
-		Map<String, String> map = new HashMap<String, String>();
-		DigestListener digestListener = new DigestListener(subSess, map);
+		final Map<String, String> map = new HashMap<String, String>();
+		final DigestListener digestListener = new DigestListener(subSess, map);
 	    digestListener.receiveERR(message);
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testDigestListenerThrowsExceptionOnReceiveAns(SubscriberSessionImpl subSess, Message message)
+    public void testDigestListenerThrowsExceptionOnReceiveAns(final SubscriberSessionImpl subSess, final Message message)
 			throws AbortChannelException {
-		Map<String, String> map = new HashMap<String, String>();
-		DigestListener digestListener = new DigestListener(subSess, map);
+		final Map<String, String> map = new HashMap<String, String>();
+		final DigestListener digestListener = new DigestListener(subSess, map);
 	    digestListener.receiveANS(message);
     }
 
     @Test
-    public void testDigestListenerDoesNothingOnReceiveNul(SubscriberSessionImpl subSess, Message message)
+    public void testDigestListenerDoesNothingOnReceiveNul(final SubscriberSessionImpl subSess, final Message message)
 			throws AbortChannelException {
-		Map<String, String> map = new HashMap<String, String>();
-		DigestListener digestListener = new DigestListener(subSess, map);
+		final Map<String, String> map = new HashMap<String, String>();
+		final DigestListener digestListener = new DigestListener(subSess, map);
 	    digestListener.receiveNUL(message);
     }
 
@@ -127,7 +128,7 @@ public class DigestListenerTest {
 	        }
 	    };
 
-	    DigestListener digestListener = new DigestListener(subSess, digestsSent);
+	    final DigestListener digestListener = new DigestListener(subSess, digestsSent);
 	    digestListener.receiveRPY(message);
 
 	    new Verifications() {
@@ -152,7 +153,7 @@ public class DigestListenerTest {
 		digestsSent.put("serialNotReturned", "anotherDigest");
 
 		final SubscriberSessionImpl subSess =
-            new SubscriberSessionImpl(RecordType.Audit, subscriber, "foobar",
+            new SubscriberSessionImpl(RecordType.Audit, subscriber, DigestMethod.SHA256,
                                       "barfoo", 1, 2, 0, sess);
 
 	    new NonStrictExpectations() {
@@ -164,7 +165,7 @@ public class DigestListenerTest {
 	        }
 	    };
 
-	    DigestListener digestListener = new DigestListener(subSess, digestsSent);
+	    final DigestListener digestListener = new DigestListener(subSess, digestsSent);
 	    digestListener.receiveRPY(message);
 
 	    new VerificationsInOrder() {

@@ -24,8 +24,13 @@
 
 package com.tresys.jalop.jnl.impl.subscriber;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -42,6 +47,7 @@ import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.jnl.impl.DigestListener;
+import com.tresys.jalop.jnl.impl.SubscriberANSHandler;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 
 /**
@@ -80,10 +86,12 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 	 *            message.
 	 * @param pendingDigestMax
 	 *            The maximum number of digests to queue.
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws NoSuchAlgorithmException
 	 */
 	public SubscriberSessionImpl(final RecordType recordType, final Subscriber subscriber,
 			final String digestMethod, final String xmlEncoding, final int pendingDigestTimeoutSeconds,
-			final int pendingDigestMax, int channelNum, org.beepcore.beep.core.Session session) {
+			final int pendingDigestMax, final int channelNum, final org.beepcore.beep.core.Session session) {
 
 		if(recordType == null || recordType.equals(RecordType.Unset)) {
 			throw new IllegalArgumentException("'recordType' cannot be null or Unset.");
@@ -116,9 +124,16 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 					+ "cannot be null.");
 		}
 
+		try {
+			this.listener = new SubscriberANSHandler(MessageDigest.getInstance(
+					getDigestType(digestMethod.trim())), this);
+		} catch (final NoSuchAlgorithmException e) {
+			throw new IllegalArgumentException("'digestMethod' must be a valid DigestMethod", e);
+		}
+
+
 		this.recordType = recordType;
 		this.subscriber = subscriber;
-		this.listener = null;
 		this.digestMethod = digestMethod.trim();
 		this.xmlEncoding = xmlEncoding.trim();
 		this.pendingDigestMax = pendingDigestMax;
@@ -231,7 +246,7 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 	 * @param toAdd
 	 *            A map of serialIDs and digests to add to the map to be sent.
 	 */
-	public synchronized void addAllDigests(Map<String, String> toAdd) {
+	public synchronized void addAllDigests(final Map<String, String> toAdd) {
 
 		this.digestMap.putAll(toAdd);
 		if(this.digestMap.size() >= this.pendingDigestMax) {
@@ -251,7 +266,7 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 	 *            A String which is the digest for the serialId to be added
 	 *            to the map of digests to send.
 	 */
-	public synchronized void addDigest(String serialId, String digest) {
+	public synchronized void addDigest(final String serialId, final String digest) {
 
 		this.digestMap.put(serialId, digest);
 		if(this.digestMap.size() >= this.pendingDigestMax) {
@@ -276,7 +291,7 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 
 				if(this.digestMap.size() < this.pendingDigestMax) {
 					synchronized(this) {
-						long waitTime = this.pendingDigestTimeoutSeconds * 1000;
+						final long waitTime = this.pendingDigestTimeoutSeconds * 1000;
 						this.wait(waitTime);
 					}
 				}
@@ -295,22 +310,34 @@ public class SubscriberSessionImpl implements SubscriberSession, Runnable {
 				digestChannel.sendMSG(digestOds, new DigestListener(this, digestsToSend));
 			}
 
-		} catch (BEEPError e) {
+		} catch (final BEEPError e) {
 			if(log.isEnabledFor(Level.ERROR)) {
 				log.error(e.getMessage());
 			}
 			setErrored();
-		} catch (BEEPException e) {
+		} catch (final BEEPException e) {
 			if(log.isEnabledFor(Level.ERROR)) {
 				log.error(e.getMessage());
 			}
 			setErrored();
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			if(log.isEnabledFor(Level.ERROR)) {
 				log.error(e.getMessage());
 			}
 			setErrored();
 		}
+	}
+
+	private String getDigestType(final String algorithm) {
+
+		if(DigestMethod.SHA256.equals(algorithm)) {
+			return "SHA-256";
+		} else if (DigestMethod.SHA512.equals(algorithm)) {
+			return "SHA-512";
+		} else if ("http://www.w3.org/2001/04/xmldsig-more#sha384".equals(algorithm)) {
+			return "SHA-384";
+		}
+		return "";
 	}
 
 }

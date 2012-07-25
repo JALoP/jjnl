@@ -30,11 +30,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 import javax.xml.soap.MimeHeader;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.beepcore.beep.core.AbortChannelException;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStream;
@@ -56,14 +56,14 @@ import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
  * {@link java.io.InputStream}s.
  */
 public class SubscriberANSHandler implements ReplyListener {
-	
+
 	private static final String[] KNOWN_HEADERS = { Utils.HDRS_APP_META_LEN.toLowerCase(),
 			Utils.HDRS_SYS_META_LEN.toLowerCase(), Utils.HDRS_LOG_LEN.toLowerCase(), Utils.HDRS_AUDIT_LEN.toLowerCase(), Utils.HDRS_JOURNAL_LEN.toLowerCase(),
 			Utils.HDRS_CONTENT_TYPE.toLowerCase(), Utils.HDRS_MESSAGE.toLowerCase(), Utils.HDRS_SERIAL_ID.toLowerCase() };
 	/**
 	 * The MessageDigest to use for calculating the JALoP digest.
 	 */
-	private MessageDigest md;
+	private final MessageDigest md;
 	/**
 	 * The {@link InputDataStream} for a particular ANS message.
 	 */
@@ -78,7 +78,7 @@ public class SubscriberANSHandler implements ReplyListener {
 	private boolean payloadComplete;
 
 	private JalopDataStream js;
-	private SubscriberSessionImpl subsess;
+	private final SubscriberSessionImpl subsess;
 	static Logger log = Logger.getLogger(SubscriberANSHandler.class);
 
 	/**
@@ -91,11 +91,10 @@ public class SubscriberANSHandler implements ReplyListener {
 	 * @param ds
 	 *            the {@link InputDataStream} to read
 	 */
-	public SubscriberANSHandler(MessageDigest md,
-			SubscriberSessionImpl subsess, InputDataStream ds) {
+	public SubscriberANSHandler(final MessageDigest md,
+			final SubscriberSessionImpl subsess) {
 		super();
 		this.md = md;
-		this.ds = ds;
 		this.subsess = subsess;
 		this.payloadCorrect = true;
 		this.payloadComplete = false;
@@ -104,10 +103,10 @@ public class SubscriberANSHandler implements ReplyListener {
 	private class JalopDataStream extends InputStream {
 		private boolean finishedReading;
 		InputDataStreamAdapter dsa;
-		private long dataSize;
+		private final long dataSize;
 		private long bytesRead;
 
-		public JalopDataStream(long dataSize) throws IOException,
+		public JalopDataStream(final long dataSize) throws IOException,
 				BEEPException, UnexpectedMimeValueException {
 			this.finishedReading = false;
 			this.dsa = ds.getInputStream();
@@ -138,7 +137,7 @@ public class SubscriberANSHandler implements ReplyListener {
 
 			if (this.bytesRead == this.dataSize) {
 				// we should be done. Try to read the BREAK string
-				byte b[] = new byte[5];
+				final byte b[] = new byte[5];
 				this.dsa.read(b, 0, 5);
 				if (!Arrays.equals("BREAK".getBytes("utf-8"), b)) {
 					payloadCorrect = false;
@@ -152,12 +151,12 @@ public class SubscriberANSHandler implements ReplyListener {
 		}
 
 		@Override
-		public int read(byte[] b) throws IOException {
+		public int read(final byte[] b) throws IOException {
 			return read(b, 0, b.length);
 		}
 
 		@Override
-		public int read(byte[] b, int off, int len) throws IOException {
+		public int read(final byte[] b, final int off, final int len) throws IOException {
 			if (this.finishedReading == true)
 				return -1;
 
@@ -166,7 +165,7 @@ public class SubscriberANSHandler implements ReplyListener {
 			if ((len + this.bytesRead) > this.dataSize) {
 				new_len = (int) (this.dataSize - this.bytesRead);
 			}
-			
+
 			ret = this.dsa.read(b, off, new_len);
 			this.bytesRead+=ret;
 			if (ret != new_len) {
@@ -176,7 +175,7 @@ public class SubscriberANSHandler implements ReplyListener {
 			md.update(b, off, new_len);
 			if (this.bytesRead == this.dataSize) {
 				// check for break string
-				byte brk[] = new byte[5];
+				final byte brk[] = new byte[5];
 				this.dsa.read(brk, 0, 5);
 				if (!Arrays.equals("BREAK".getBytes("utf-8"), brk)) {
 					payloadCorrect = false;
@@ -207,7 +206,7 @@ public class SubscriberANSHandler implements ReplyListener {
 	 *
 	 * @param size the size to give the instance of JalopDataStream
 	 */
-	JalopDataStream getJalopDataStreamInstance(long size)
+	JalopDataStream getJalopDataStreamInstance(final long size)
 			throws UnexpectedMimeValueException, IOException, BEEPException {
 		return new JalopDataStream(size);
 	}
@@ -224,9 +223,9 @@ public class SubscriberANSHandler implements ReplyListener {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<MimeHeader> getAdditionalHeaders() throws BEEPException {
-		InputDataStreamAdapter dsa = this.ds.getInputStream();
-		Enumeration<String> headers = dsa.getHeaderNames();
-		ArrayList<MimeHeader> ret = new ArrayList<MimeHeader>();
+		final InputDataStreamAdapter dsa = this.ds.getInputStream();
+		final Enumeration<String> headers = dsa.getHeaderNames();
+		final ArrayList<MimeHeader> ret = new ArrayList<MimeHeader>();
 		String hdr = "";
 		while (headers.hasMoreElements()) {
 			hdr = headers.nextElement();
@@ -254,7 +253,7 @@ public class SubscriberANSHandler implements ReplyListener {
 	}
 
 	@Override
-	public void receiveRPY(Message message) throws AbortChannelException {
+	public void receiveRPY(final Message message) throws AbortChannelException {
 
 		if (log.isEnabledFor(Level.ERROR)) {
 			log.error("SubscriberANSHandler received RPY, which should not happen");
@@ -266,7 +265,7 @@ public class SubscriberANSHandler implements ReplyListener {
 	}
 
 	@Override
-	public void receiveERR(Message message) throws AbortChannelException {
+	public void receiveERR(final Message message) throws AbortChannelException {
 
 		if (log.isEnabledFor(Level.ERROR)) {
 			log.error("SubscriberANSHandler received ERR");
@@ -276,7 +275,7 @@ public class SubscriberANSHandler implements ReplyListener {
 	}
 
 	@Override
-	public void receiveANS(Message message) throws AbortChannelException {
+	public void receiveANS(final Message message) throws AbortChannelException {
 		this.ds = message.getDataStream();
 		final InputDataStreamAdapter dsa = this.ds.getInputStream();
 		final long sysMetadataSize;
@@ -304,19 +303,19 @@ public class SubscriberANSHandler implements ReplyListener {
 				throw new AbortChannelException(
 						"Did not receive appropriate headers");
 			}
-		} catch (BEEPException e) {
+		} catch (final BEEPException e) {
 			throw new AbortChannelException(e.getMessage());
 		}
 
-		Subscriber sub = this.subsess.getSubscriber();
+		final Subscriber sub = this.subsess.getSubscriber();
 		try {
-			RecordInfo recInfo = new RecordInfo() {
+			final RecordInfo recInfo = new RecordInfo() {
 
-				private long sysMetadataLength = sysMetadataSize;
-				private long appMetadataLength = appMetadataSize;
-				private long payloadLength = payloadSize;
-				private String serialId = dsa.getHeaderValue(Utils.HDRS_SERIAL_ID);
-				private RecordType recordType = recType;
+				private final long sysMetadataLength = sysMetadataSize;
+				private final long appMetadataLength = appMetadataSize;
+				private final long payloadLength = payloadSize;
+				private final String serialId = dsa.getHeaderValue(Utils.HDRS_SERIAL_ID);
+				private final RecordType recordType = recType;
 
 				@Override
 				public long getSysMetaLength() {
@@ -370,20 +369,20 @@ public class SubscriberANSHandler implements ReplyListener {
 			if (!sub.notifyDigest(subsess, recInfo, getRecordDigest())) {
 				throw new AbortChannelException("Error in notifyDigest");
 			}
-		} catch (BEEPException e) {
+		} catch (final BEEPException e) {
 			throw new AbortChannelException(e.getMessage());
-		} catch (UnexpectedMimeValueException e) {
+		} catch (final UnexpectedMimeValueException e) {
 			throw new AbortChannelException(e.getMessage());
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new AbortChannelException(e.getMessage());
-		} catch (IncompleteRecordException e) {
+		} catch (final IncompleteRecordException e) {
 			throw new AbortChannelException(e.getMessage());
 		}
 
 	}
 
 	@Override
-	public void receiveNUL(Message message) throws AbortChannelException {
+	public void receiveNUL(final Message message) throws AbortChannelException {
 		if (log.isEnabledFor(Level.ERROR)) {
 			log.error("SubscriberANSHandler received NUL");
 		}

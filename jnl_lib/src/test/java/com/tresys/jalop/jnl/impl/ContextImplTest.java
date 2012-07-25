@@ -116,9 +116,9 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWithoutPublisher(Subscriber subscriber,
-            ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
-        ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, false, "agent", digests, encodings);
+    public final void testContextImplConstructorWithoutPublisher(final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
+        final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, false, "agent", digests, encodings);
         assertEquals(null, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -138,9 +138,9 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithoutSubscriber(Publisher publisher,
-            ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
-        ContextImpl c = new ContextImpl(publisher, null, connectionHandler, 100, 150, false, null, digests, encodings);
+    public final void testContextImplConstructorWorksWithoutSubscriber(final Publisher publisher,
+            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
+        final ContextImpl c = new ContextImpl(publisher, null, connectionHandler, 100, 150, false, null, digests, encodings);
         assertEquals(publisher, c.getPublisher());
         assertEquals(null, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -159,9 +159,9 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithoutConnectionHandler(Publisher publisher, Subscriber subscriber)
+    public final void testContextImplConstructorWorksWithoutConnectionHandler(final Publisher publisher, final Subscriber subscriber)
             throws IllegalArgumentException, IllegalAccessException {
-        ContextImpl c = new ContextImpl(publisher, subscriber, null, 100, 150, false, null, digests, encodings);
+        final ContextImpl c = new ContextImpl(publisher, subscriber, null, 100, 150, false, null, digests, encodings);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(null, c.getConnectionHandler());
@@ -180,9 +180,9 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithTlsRequired(Publisher publisher, Subscriber subscriber,
-            ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, true, null, digests, encodings);
+    public final void testContextImplConstructorWorksWithTlsRequired(final Publisher publisher, final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, true, null, digests, encodings);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -201,9 +201,9 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksNullDigests(Publisher publisher, Subscriber subscriber,
-            ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, null, encodings);
+    public final void testContextImplConstructorWorksNullDigests(final Publisher publisher, final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, null, encodings);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -214,7 +214,7 @@ public class ContextImplTest {
         assertArrayEquals(encodings.toArray(new String[0]),
                           Lists.newArrayList(c.getAllowedXmlEncodings()).toArray(new String[0]));
         assertNotNull(c.getAllowedMessageDigests());
-        List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
+        final List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
         assertNotNull(dgsts);
         assertEquals(1, dgsts.size());
         assertEquals(DigestMethod.SHA256, dgsts.get(0));
@@ -225,10 +225,10 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithEmptyDigests(Publisher publisher, Subscriber subscriber,
-            ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
+    public final void testContextImplConstructorWorksWithEmptyDigests(final Publisher publisher, final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
         digests.clear();
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, digests, encodings);
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, digests, encodings);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -240,7 +240,7 @@ public class ContextImplTest {
                           Lists.newArrayList(c.getAllowedXmlEncodings()).toArray(new String[0]));
 
         assertNotNull(c.getAllowedMessageDigests());
-        List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
+        final List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
         assertEquals(1, dgsts.size());
         assertEquals(DigestMethod.SHA256, dgsts.get(0));
 
@@ -251,9 +251,9 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithNullEncodings(Publisher publisher, Subscriber subscriber,
-            ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, digests, null);
+    public final void testContextImplConstructorWorksWithNullEncodings(final Publisher publisher, final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, digests, null);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -262,7 +262,7 @@ public class ContextImplTest {
         assertFalse(tlsField.getBoolean(c));
 
         assertNotNull(c.getAllowedXmlEncodings());
-        List<String> encs = Lists.newArrayList(c.getAllowedXmlEncodings());
+        final List<String> encs = Lists.newArrayList(c.getAllowedXmlEncodings());
         assertNotNull(encs);
         assertEquals(1, encs.size());
         assertEquals("xml", encs.get(0));
@@ -275,10 +275,10 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksEmptyEncodings(Publisher publisher, Subscriber subscriber,
-            ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
+    public final void testContextImplConstructorWorksEmptyEncodings(final Publisher publisher, final Subscriber subscriber,
+            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException {
         encodings.clear();
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, digests, encodings);
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, false, null, digests, encodings);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -287,7 +287,7 @@ public class ContextImplTest {
         assertFalse(tlsField.getBoolean(c));
 
         assertNotNull(c.getAllowedXmlEncodings());
-        List<String> encs = Lists.newArrayList(c.getAllowedXmlEncodings());
+        final List<String> encs = Lists.newArrayList(c.getAllowedXmlEncodings());
         assertEquals(1, encs.size());
         assertEquals("xml", encs.get(0));
 
@@ -300,33 +300,33 @@ public class ContextImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForZeroDigestTimeout(Publisher publisher,
-            Subscriber subscriber, ConnectionHandler connectionHandler) {
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 0, 150, false, null, digests, encodings);
+    public final void testContextImplConstructorThrowsExceptionForZeroDigestTimeout(final Publisher publisher,
+            final Subscriber subscriber, final ConnectionHandler connectionHandler) {
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 0, 150, false, null, digests, encodings);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForNegativeDigestTimeout(Publisher publisher,
-            Subscriber subscriber, ConnectionHandler connectionHandler) {
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, -1, 150, false, null, digests, encodings);
+    public final void testContextImplConstructorThrowsExceptionForNegativeDigestTimeout(final Publisher publisher,
+            final Subscriber subscriber, final ConnectionHandler connectionHandler) {
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, -1, 150, false, null, digests, encodings);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForZeroDigestMax(Publisher publisher,
-            Subscriber subscriber, ConnectionHandler connectionHandler) {
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 0, false, null, digests, encodings);
+    public final void testContextImplConstructorThrowsExceptionForZeroDigestMax(final Publisher publisher,
+            final Subscriber subscriber, final ConnectionHandler connectionHandler) {
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 0, false, null, digests, encodings);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForNegativeDigestMax(Publisher publisher,
-            Subscriber subscriber, ConnectionHandler connectionHandler) {
-        ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, -1, false, null, digests, encodings);
+    public final void testContextImplConstructorThrowsExceptionForNegativeDigestMax(final Publisher publisher,
+            final Subscriber subscriber, final ConnectionHandler connectionHandler) {
+        final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, -1, false, null, digests, encodings);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public final void testContextImplConstructorThrowsExceptionWhenSubscribeAndPublisherAreNull(
-            ConnectionHandler connectionHandler) {
-        ContextImpl c = new ContextImpl(null, null, connectionHandler, 100, 10, false, null, digests, encodings);
+            final ConnectionHandler connectionHandler) {
+        final ContextImpl c = new ContextImpl(null, null, connectionHandler, 100, 10, false, null, digests, encodings);
 
     }
 
@@ -351,10 +351,10 @@ public class ContextImplTest {
             throws JNLException, IllegalAccessException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, null, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
 
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Journal, subscriber, "foo", "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Journal, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
 
         final Map<RecordType, SubscriberSessionImpl> subSessionMap = getSubscriberMap(c).get(sess);
@@ -379,9 +379,9 @@ public class ContextImplTest {
             throws JNLException, IllegalAccessException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, false, null, digests, encodings);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Log, subscriber, "foo", "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
     }
 
@@ -392,7 +392,7 @@ public class ContextImplTest {
 			final OutputDataStream ods)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 
-		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
 
 		new NonStrictExpectations() {
 			{
@@ -421,7 +421,7 @@ public class ContextImplTest {
 	@Test(expected = ConnectionException.class)
 	public final void testSubscribeThrowsExceptionIfAlreadyConnected(final Subscriber subscriber)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
-		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
 		connectionStateField.set(c, ConnectionState.CONNECTED);
 		c.subscribe(InetAddress.getByName("localhost"), 1234, RecordType.Log);
 	}
@@ -429,14 +429,14 @@ public class ContextImplTest {
 	@Test(expected = JNLException.class)
 	public final void testSubscribeThrowsExceptionWithNullSubscriber(final Publisher publisher)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
-		ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, false, "agent", digests, encodings);
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, false, "agent", digests, encodings);
 		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Log);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public final void testSubscribeThrowsExceptionWithNullAddress(final Subscriber subscriber)
 			throws IllegalAccessException, JNLException, BEEPException {
-		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
 		c.subscribe(null, 0, RecordType.Log);
 	}
 
@@ -444,7 +444,7 @@ public class ContextImplTest {
 	public final void testSubscribeThrowsExceptionWithUnsetRecordType(final Subscriber subscriber,
 			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
-		ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
 
 		new NonStrictExpectations() {
 			{

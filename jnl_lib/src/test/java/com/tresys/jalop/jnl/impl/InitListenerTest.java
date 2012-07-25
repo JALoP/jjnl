@@ -25,15 +25,14 @@ package com.tresys.jalop.jnl.impl;
 
 
 import java.util.LinkedList;
-import java.util.logging.LogManager;
 
+import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.soap.MimeHeaders;
 
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
-import mockit.Verifications;
 import mockit.VerificationsInOrder;
 
 import org.apache.log4j.Level;
@@ -48,7 +47,6 @@ import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
 import org.beepcore.beep.core.Session;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
@@ -74,16 +72,16 @@ public class InitListenerTest {
         // Disable logging so the build doesn't get spammed.
         Logger.getRootLogger().setLevel(Level.OFF);
     }
-    
+
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionOnReceiveNul(ContextImpl contextImpl, Message message) throws AbortChannelException {
-        InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+    public void testInitListenerThrowsExceptionOnReceiveNul(final ContextImpl contextImpl, final Message message) throws AbortChannelException {
+        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveNUL(message);
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionOnReceiveAns(ContextImpl contextImpl, Message message) throws AbortChannelException {
-        InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+    public void testInitListenerThrowsExceptionOnReceiveAns(final ContextImpl contextImpl, final Message message) throws AbortChannelException {
+        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveANS(message);
     }
 
@@ -103,10 +101,10 @@ public class InitListenerTest {
                 Utils.processInitAck(isa); result = iam;
                 contextImpl.getAllowedMessageDigests(); result = allowedDigests;
                 contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
-                
+
             }
         };
-        InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveRPY(msg);
     }
 
@@ -127,7 +125,7 @@ public class InitListenerTest {
                 contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
             }
         };
-        InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveRPY(msg);
     }
 
@@ -138,9 +136,9 @@ public class InitListenerTest {
             final SubscribeRequest subRequest, final OutputDataStream ods,
             final Channel channel, final Session sess,
             final ReplyListener rpyListener) throws BEEPException, JNLException, InterruptedException {
-        final InitAckMessage iam = new InitAckMessage("foo", "bar", new MimeHeaders());
+        final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
-        allowedDigests.add("bar");
+        allowedDigests.add(DigestMethod.SHA256);
         final LinkedList<String> allowedEncs = new LinkedList<String>();
         allowedEncs.add("foo");
         // mock up thread since this function is supposed to spawn a new thread, but 
@@ -170,7 +168,7 @@ public class InitListenerTest {
             }
         };
 
-        InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveRPY(msg);
         new VerificationsInOrder() {
             {
@@ -191,7 +189,7 @@ public class InitListenerTest {
                 Utils.processInitNack(isa); result = inm;
             }
         };
-        InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
+        final InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveERR(msg);
     }
 
