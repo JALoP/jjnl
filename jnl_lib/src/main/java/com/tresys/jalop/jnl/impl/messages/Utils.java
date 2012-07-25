@@ -542,7 +542,7 @@ public class Utils {
 	 *            journal record.
 	 * @return The {@link OutputDataStream}.
 	 */
-	static public OutputDataStream createJournalResumeMessage(String serialId,
+	static public OutputDataStream createJournalResumeMessage(final String serialId,
 			final long offset) {
 		checkForEmptyString(serialId, HDRS_SERIAL_ID);
 
@@ -714,7 +714,7 @@ public class Utils {
 	 *            The String that holds the synced serialID
 	 * @return an {@link OutputDataStream} that holds the sync message
 	 */
-	static public OutputDataStream createSyncMessage(String serialId) {
+	static public OutputDataStream createSyncMessage(final String serialId) {
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(CT_JALOP);
 		mh.setHeader(HDRS_MESSAGE, MSG_SYNC);
@@ -748,21 +748,21 @@ public class Utils {
 				HDRS_MESSAGE, HDRS_COUNT);
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
-		int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0]
+		final int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0]
 				.trim());
 
 		// get the digest map from the input stream
-		Map<String, String> digestMap = new HashMap<String, String>();
-		int numLeft = is.available();
-		byte[] messageArray = new byte[numLeft];
+		final Map<String, String> digestMap = new HashMap<String, String>();
+		final int numLeft = is.available();
+		final byte[] messageArray = new byte[numLeft];
 		try {
 			is.read(messageArray);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-		String msgStr = new String(messageArray);
+		final String msgStr = new String(messageArray);
 
-		String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
+		final String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
 
 		for (int x = 0; x < count * 2; x += 2) {
 			pairs[x] = checkForEmptyString(pairs[x], MSG_DIGEST);
@@ -782,17 +782,17 @@ public class Utils {
 	 * @return an {@link OutputDataStream}
 	 */
 	static public OutputDataStream createDigestMessage(
-			Map<String, String> digestMap) {
+			final Map<String, String> digestMap) {
 
-		StringBuilder message = new StringBuilder();
+		final StringBuilder message = new StringBuilder();
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(CT_JALOP);
 		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST);
 		mh.setHeader(HDRS_COUNT, String.valueOf(digestMap.size()));
 
-		Iterator<String> sIDs = digestMap.keySet().iterator();
+		final Iterator<String> sIDs = digestMap.keySet().iterator();
 		while (sIDs.hasNext()) {
-			String id = sIDs.next();
+			final String id = sIDs.next();
 			message.append(checkForEmptyString(digestMap.get(id), MSG_DIGEST));
 			message.append("=");
 			message.append(checkForEmptyString(id, SERIAL_ID));
@@ -802,7 +802,7 @@ public class Utils {
 		OutputDataStream ret;
 		try {
 			ret = new OutputDataStream(mh, new BufferSegment(message.toString().getBytes("utf-8")));
-		} catch (UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			// We should never get here
 			e.printStackTrace();
 			return null;
@@ -814,7 +814,7 @@ public class Utils {
 
 	/**
 	 * Process a Digest Response.
-	 * 
+	 *
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
 	 *            message.
@@ -836,26 +836,26 @@ public class Utils {
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
 
-		int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0].trim());
+		final int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0].trim());
 
 		return new DigestResponse(getDigestStatuses(is, count), unknownHeaders);
 
 	}
 
 	private static Map<String, DigestStatus> getDigestStatuses(
-			InputDataStreamAdapter is, int count) throws BEEPException {
-		Map<String, DigestStatus> ret = new HashMap<String, DigestStatus>();
+			final InputDataStreamAdapter is, final int count) throws BEEPException {
+		final Map<String, DigestStatus> ret = new HashMap<String, DigestStatus>();
 		ret.clear();
-		int numLeft = is.available();
-		byte[] messageArray = new byte[numLeft];
+		final int numLeft = is.available();
+		final byte[] messageArray = new byte[numLeft];
 		try {
 			is.read(messageArray);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
-		String msgStr = new String(messageArray);
+		final String msgStr = new String(messageArray);
 
-		String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
+		final String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
 		if (pairs.length != count * 2) {
 			throw new IllegalArgumentException("The data provided does not match the count or is poorly formed");
 		}
@@ -879,34 +879,25 @@ public class Utils {
 
 	/**
 	 * Generate a digest response from a Map<String (serialID), DigestStatus (digest status)>.
-	 * 
+	 *
 	 * @param statusMap
 	 *            The Map<String, DigestStatus> that holds the serialID to digest status mappings
 	 * @return an {@link OutputDataStream}
 	 */
-	static public OutputDataStream createDigestResponse(Map<String, DigestStatus> statusMap) {
-		StringBuffer message = new StringBuffer();
+	static public OutputDataStream createDigestResponse(final Map<String, DigestStatus> statusMap) {
+		final StringBuffer message = new StringBuffer();
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(CT_JALOP);
 		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST_RESP);
 		mh.setHeader(HDRS_COUNT, String.valueOf(statusMap.size()));
 
-		Iterator<String> sIDs = statusMap.keySet().iterator();
+		final Iterator<String> sIDs = statusMap.keySet().iterator();
 		while (sIDs.hasNext()) {
-			String id = sIDs.next();
-
-			if (sIDs.hasNext())
-				message.append(checkForEmptyString(
-						id, SERIAL_ID)
-						+ "="
-						+ checkForEmptyString(statusMap.get(id).toString(),
-								STATUS) + "\r\n");
-			else
-				message.append(checkForEmptyString(
-						id, SERIAL_ID)
-						+ "="
-						+ checkForEmptyString(statusMap.get(id).toString(),
-								STATUS));
+			final String id = sIDs.next();
+			message.append(checkForEmptyString(id, SERIAL_ID));
+			message.append("=");
+			message.append(checkForEmptyString(statusMap.get(id).toString(), STATUS));
+			message.append("\r\n");
 		}
 
 		final OutputDataStream ret = new OutputDataStream(mh, new BufferSegment(
