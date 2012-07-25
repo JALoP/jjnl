@@ -29,6 +29,8 @@ import java.util.logging.LogManager;
 
 import javax.xml.soap.MimeHeaders;
 
+import mockit.Mock;
+import mockit.MockUp;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
@@ -93,6 +95,7 @@ public class InitListenerTest {
         final LinkedList<String> allowedEncs = new LinkedList<String>();
         allowedEncs.add("other");
         allowedEncs.add("foo");
+
         new NonStrictExpectations() {
             {
                 msg.getDataStream(); result = ids;
@@ -134,13 +137,21 @@ public class InitListenerTest {
             final Message msg, final Subscriber subscriber,
             final SubscribeRequest subRequest, final OutputDataStream ods,
             final Channel channel, final Session sess,
-            final ReplyListener rpyListener) throws BEEPException, JNLException {
+            final ReplyListener rpyListener) throws BEEPException, JNLException, InterruptedException {
         final InitAckMessage iam = new InitAckMessage("foo", "bar", new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
         allowedDigests.add("bar");
         final LinkedList<String> allowedEncs = new LinkedList<String>();
         allowedEncs.add("foo");
-
+        // mock up thread since this function is supposed to spawn a new thread, but 
+        // don't actually want it to do that.
+        new MockUp<Thread>() {
+            @Mock
+            public void start() {
+                // do nothing
+            }
+        };
+        
         new NonStrictExpectations() {
             {
                 msg.getDataStream(); result = ids;
@@ -161,7 +172,6 @@ public class InitListenerTest {
 
         InitListener initListener = new InitListener(Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveRPY(msg);
-
         new VerificationsInOrder() {
             {
                 contextImpl.addSession(sess, (SubscriberSessionImpl) any);
