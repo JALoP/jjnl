@@ -39,10 +39,12 @@ import java.util.Vector;
 
 import javax.xml.soap.MimeHeader;
 
+import mockit.Deencapsulation;
 import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.NonStrictExpectations;
+import mockit.Verifications;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -51,7 +53,6 @@ import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.DigestStatus;
@@ -60,6 +61,7 @@ import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.SubscriberANSHandler.Dispatcher;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 /**
@@ -72,20 +74,6 @@ public class SubscriberANSHandlerTest {
 		// Disable logging so the build doesn't get spammed.
 		Logger.getRootLogger().setLevel(Level.OFF);
 	}
-
-	private static Field dsField;
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
-		dsField = SubscriberANSHandler.class.getDeclaredField("ds");
-		dsField.setAccessible(true);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void setDs(final SubscriberANSHandler s, final InputDataStream ds)
-			throws IllegalArgumentException, IllegalAccessException {
-       dsField.set(s, ds);
-    }
 
 	@Test
 	public void testSubscriberANSHandlerWorks(final MessageDigest md,
@@ -134,7 +122,27 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testReceiveANSLogRecordWorks(final MessageDigest md,
+	public void testReceiveANSWorks(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final Message msg)
+			throws Exception {
+
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
+		assertNotNull(sh);
+
+		// mock up thread since this function is supposed to spawn a new thread, but
+        // don't actually want it to do that.
+        new MockUp<Thread>() {
+            @Mock
+            public void start() {
+                // do nothing
+            }
+        };
+
+		sh.receiveANS(msg);
+	}
+
+	@Test
+	public void testDispatcherRunLogWorks(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
@@ -193,11 +201,12 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		sh.receiveANS(msg);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).run();
 	}
 
 	@Test
-	public void testReceiveANSLogRecordWorksNoPayload(final MessageDigest md,
+	public void testDispatcherRunLogRecordWorksNoPayload(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
@@ -231,7 +240,6 @@ public class SubscriberANSHandlerTest {
 		};
 
 		new MockUp<InputDataStreamAdapter>() {
-			// int numTimes = 0;
 
 			@Mock
 			int read(final byte[] b, final int off, final int len) throws Exception {
@@ -250,19 +258,18 @@ public class SubscriberANSHandlerTest {
 				dsa.read();
 				result = 1;
 				dsa.read(new byte[5], 0, 5);
-				// dsa.read();
-				// result = 0;
 				dsa.read(new byte[5], 0, 5);
 				dsa.read();
 				result = -1;
 			}
 		};
 
-		sh.receiveANS(msg);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).run();
 	}
 
 	@Test
-	public void testReceiveANSAuditRecordWorks(final MessageDigest md,
+	public void testDispatcherRunAuditRecordWorks(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
@@ -321,11 +328,12 @@ public class SubscriberANSHandlerTest {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		sh.receiveANS(msg);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).run();
 	}
 
 	@Test
-	public void testReceiveANSJournalRecordWorks(final MessageDigest md,
+	public void testDispatcherRunJournalRecordWorks(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
@@ -384,11 +392,12 @@ public class SubscriberANSHandlerTest {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		sh.receiveANS(msg);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).run();
 	}
 
-	@Test(expected = AbortChannelException.class)
-	public void testReceiveANSLogRecordThrowsErrorWithDataAfterLastBreak(
+	@Test
+	public void testDispatcherRunLogRecordThrowsErrorWithDataAfterLastBreak(
 			final MessageDigest md, final SubscriberSessionImpl subsess,
 			final InputDataStream ds, final Message msg,
 			final InputDataStreamAdapter dsa) throws Exception {
@@ -447,11 +456,18 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		sh.receiveANS(msg);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).run();
+
+		new Verifications() {
+			{
+				new IOException(anyString);
+			}
+		};
 	}
 
-	@Test(expected = AbortChannelException.class)
-	public void testReceiveANSThrowsExceptionOnUnknownType(final MessageDigest md,
+	@Test
+	public void testDispatcherRunThrowsExceptionOnUnknownType(final MessageDigest md,
 			final SubscriberSessionImpl subsess, final InputDataStream ds,
 			final Message msg, final InputDataStreamAdapter dsa)
 			throws Exception {
@@ -473,16 +489,76 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		sh.receiveANS(msg);
+
+
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).run();
+
+		new Verifications() {
+			{
+				new AbortChannelException(anyString);
+			}
+		};
 	}
 
 	@Test(expected = IncompleteRecordException.class)
-	public void testGetRecordDigestThrowsIncompleteRecordExceptionWhenPayloadNotComplete(
-			final MessageDigest md, final SubscriberSessionImpl subsess)
+	public void testGetRecordDigestThrowsExceptionWhenPayloadNotComplete(
+			final MessageDigest md, final SubscriberSessionImpl subsess, final InputDataStream ds)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		sh.getRecordDigest();
+
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).getRecordDigest(md);
+	}
+
+	@Test(expected = IncompleteRecordException.class)
+	public void testGetRecordDigestThrowsExceptionWhenPayloadNotCorrect(
+			final MessageDigest md, final SubscriberSessionImpl subsess, final InputDataStream ds)
+			throws Exception {
+
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+
+		final Field payloadComplete = dispatcher.getClass().getDeclaredField(
+				"payloadComplete");
+		payloadComplete.setAccessible(true);
+		payloadComplete.setBoolean(dispatcher, true);
+
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		payloadCorrect.setBoolean(dispatcher, false);
+
+		((Dispatcher) dispatcher).getRecordDigest(md);
+	}
+
+	@Test
+	public void testGetRecordDigestWorks(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final InputDataStream ds) throws Exception {
+
+		new Expectations() {
+			byte[] b = "DIGEST".getBytes();
+			{
+				md.digest();
+				result = b;
+			}
+		};
+
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+
+		final Field payloadComplete = dispatcher.getClass().getDeclaredField(
+				"payloadComplete");
+		payloadComplete.setAccessible(true);
+		payloadComplete.setBoolean(dispatcher, true);
+
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		payloadCorrect.setBoolean(dispatcher, true);
+
+		final byte[] digest = ((Dispatcher) dispatcher).getRecordDigest(md);
+		assertEquals("DIGEST", new String(digest));
 	}
 
 	@Test(expected = AbortChannelException.class)
@@ -516,9 +592,8 @@ public class SubscriberANSHandlerTest {
 	public void testJalopDataStreamWorks(final MessageDigest md, final InputDataStream ds,
 			final SubscriberSessionImpl subsess) throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-		final InputStream jds = sh.getJalopDataStreamInstance(1234);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(1234, ds, md);
 		assertNotNull(jds);
 	}
 
@@ -556,10 +631,9 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
 		int b = jds.read();
 		assertEquals(1, b);
 		b = jds.read();
@@ -573,15 +647,14 @@ public class SubscriberANSHandlerTest {
 		b = jds.read();
 		assertEquals(-1, b);
 
-		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
-		pcf.setAccessible(true);
-		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
-		assertTrue(pc);
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		assertTrue((Boolean) payloadCorrect.get(dispatcher));
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
+		assertTrue((Boolean) frf.get(jds));
 	}
 
 	@Test
@@ -599,21 +672,18 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
 
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
-
 		frf.setAccessible(true);
 		frf.setBoolean(jds, true);
 
 		final int ret = jds.read(new byte[5], 0, 5);
 		assertEquals(-1, ret);
 
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
-
+		assertTrue((Boolean) frf.get(jds));
 	}
 
 	@Test(expected = IOException.class)
@@ -651,9 +721,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 		int b = jds.read();
 		assertEquals(1, b);
 		b = jds.read();
@@ -667,15 +736,14 @@ public class SubscriberANSHandlerTest {
 		b = jds.read();
 		assertEquals(-1, b);
 
-		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
-		pcf.setAccessible(true);
-		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
-		assertFalse(pc);
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		assertTrue((Boolean) payloadCorrect.get(dispatcher));
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
+		assertTrue((Boolean) frf.get(jds));
 	}
 
 	@Test(expected = IOException.class)
@@ -701,9 +769,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 		jds.read();
 	}
 
@@ -745,24 +812,22 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 
 		final byte b[] = new byte[5];
 		final int read = jds.read(b, 0, 5);
 		assertEquals(5, read);
 		assertEquals("12345", new String(b, "utf-8"));
 
-		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
-		pcf.setAccessible(true);
-		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
-		assertTrue(pc);
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		assertTrue((Boolean) payloadCorrect.get(dispatcher));
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
+		assertTrue((Boolean) frf.get(jds));
 	}
 
 	@Test
@@ -804,24 +869,22 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 
 		final byte b[] = new byte[5];
 		final int read = jds.read(b, 0, 10);
 		assertEquals(5, read);
 		assertEquals("12345", new String(b, "utf-8"));
 
-		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
-		pcf.setAccessible(true);
-		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
-		assertTrue(pc);
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		assertTrue((Boolean) payloadCorrect.get(dispatcher));
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
+		assertTrue((Boolean) frf.get(jds));
 	}
 
 	@Test(expected = IOException.class)
@@ -863,24 +926,22 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 
 		final byte b[] = new byte[5];
 		final int read = jds.read(b, 0, 5);
 		assertEquals(5, read);
 		assertEquals("12345", new String(b, "utf-8"));
 
-		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
-		pcf.setAccessible(true);
-		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
-		assertFalse(pc);
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		assertFalse((Boolean) payloadCorrect.get(dispatcher));
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
+		assertTrue((Boolean) frf.get(jds));
 	}
 
 	@Test(expected = IOException.class)
@@ -907,10 +968,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 		jds.read(new byte[5], 0, 5);
 	}
 
@@ -959,10 +1018,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-
-		final InputStream jds = sh.getJalopDataStreamInstance(6);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(6, ds, md);
 
 		final byte b[] = new byte[3];
 		int read = jds.read(b, 0, 3);
@@ -974,15 +1031,14 @@ public class SubscriberANSHandlerTest {
 		assertEquals(3, read);
 		assertEquals("456", new String(b2, "utf-8"));
 
-		final Field pcf = sh.getClass().getDeclaredField("payloadCorrect");
-		pcf.setAccessible(true);
-		final boolean pc = ((Boolean) pcf.get(sh)).booleanValue();
-		assertTrue(pc);
+		final Field payloadCorrect = dispatcher.getClass().getDeclaredField(
+				"payloadCorrect");
+		payloadCorrect.setAccessible(true);
+		assertTrue((Boolean) payloadCorrect.get(dispatcher));
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
+		assertTrue((Boolean) frf.get(jds));
 	}
 
 	@Test
@@ -1014,18 +1070,15 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-
-		final InputStream jds = sh.getJalopDataStreamInstance(5);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
 
 		final Method flush = jds.getClass().getDeclaredMethod("flush");
 		flush.invoke(jds);
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
-		final boolean fr = ((Boolean) frf.get(jds)).booleanValue();
-		assertTrue(fr);
+		assertTrue((Boolean) frf.get(jds));
 		flush.invoke(jds);
 	}
 
@@ -1034,9 +1087,8 @@ public class SubscriberANSHandlerTest {
 			final MessageDigest md, final SubscriberSessionImpl subsess, final InputDataStream ds)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-		setDs(sh, ds);
-		sh.getJalopDataStreamInstance(-1);
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).getJalopDataStreamInstance(-1, ds, md);
 	}
 
 	@Test
@@ -1061,8 +1113,7 @@ public class SubscriberANSHandlerTest {
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		setDs(sh, ds);
-		final List<MimeHeader> mhl = sh.getAdditionalHeaders();
+		final List<MimeHeader> mhl = sh.getAdditionalHeaders(ds);
 		assertNotNull(mhl);
 		assertEquals(1, mhl.size());
 
@@ -1093,8 +1144,7 @@ public class SubscriberANSHandlerTest {
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		setDs(sh, ds);
-		final List<MimeHeader> mhl = sh.getAdditionalHeaders();
+		final List<MimeHeader> mhl = sh.getAdditionalHeaders(ds);
 		assertNotNull(mhl);
 		final MimeHeader mh = mhl.get(0);
 		assertEquals("asdf", mh.getName());
@@ -1123,75 +1173,11 @@ public class SubscriberANSHandlerTest {
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
-		setDs(sh, ds);
-		final List<MimeHeader> mhl = sh.getAdditionalHeaders();
+		final List<MimeHeader> mhl = sh.getAdditionalHeaders(ds);
 		assertNotNull(mhl);
 		final MimeHeader mh = mhl.get(0);
 		assertEquals("", mh.getName());
 		assertEquals("hello", mh.getValue());
 	}
 
-	@Test
-	public void testGetRecordDigestWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess) throws Exception {
-
-		new Expectations() {
-			byte[] b = "DIGEST".getBytes();
-			{
-				md.digest();
-				result = b;
-			}
-		};
-
-		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-
-		final Field payloadComplete = sh.getClass().getDeclaredField(
-				"payloadComplete");
-		payloadComplete.setAccessible(true);
-		payloadComplete.setBoolean(sh, true);
-
-		final Field payloadCorrect = sh.getClass().getDeclaredField("payloadCorrect");
-		payloadCorrect.setAccessible(true);
-		payloadCorrect.setBoolean(sh, true);
-
-		final byte[] digest = sh.getRecordDigest();
-		assertEquals("DIGEST", new String(digest));
-	}
-
-	@Test(expected = IncompleteRecordException.class)
-	public void testGetRecordDigestThrowsExceptionWhenPayloadNotComplete(
-			final MessageDigest md, final SubscriberSessionImpl subsess)
-			throws Exception {
-
-		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-
-		final Field payloadComplete = sh.getClass().getDeclaredField(
-				"payloadComplete");
-		payloadComplete.setAccessible(true);
-		payloadComplete.setBoolean(sh, false);
-
-		sh.getRecordDigest();
-	}
-
-	@Test(expected = IncompleteRecordException.class)
-	public void testGetRecordDigestThrowsExceptionWhenPayloadNotCorrect(
-			final MessageDigest md, final SubscriberSessionImpl subsess)
-			throws Exception {
-
-		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		assertNotNull(sh);
-
-		final Field payloadComplete = sh.getClass().getDeclaredField(
-				"payloadComplete");
-		payloadComplete.setAccessible(true);
-		payloadComplete.setBoolean(sh, true);
-
-		final Field payloadCorrect = sh.getClass().getDeclaredField("payloadCorrect");
-		payloadCorrect.setAccessible(true);
-		payloadCorrect.setBoolean(sh, false);
-
-		sh.getRecordDigest();
-	}
 }
