@@ -13,22 +13,19 @@
       <groupId>org.beepcore-java</groupId>
       <artifactId>beepcore</artifactId>
       <version>${beepcore.version}</version>
-      <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/beepcore.jar</systemPath>
-      <scope>system</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.beepcore-java</groupId>
       <artifactId>beeptls-jsse</artifactId>
       <version>${beepcore.version}</version>
-      <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/beeptls-jsse.jar</systemPath>
-      <scope>system</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>EDU.oswego.cs.dl.util</groupId>
       <artifactId>concurrent</artifactId>
       <version>${oswego.concurrent.version}</version>
-      <systemPath>${third.party.root}/beepcore-${beepcore.version}/lib/concurrent.jar</systemPath>
-      <scope>system</scope>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 </project>

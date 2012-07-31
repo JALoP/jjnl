@@ -29,18 +29,22 @@ Installation Instructions:
 2. Download the beepcore package from the JALoP Area on github, it is available
   here: https://github.com/downloads/jalop-tresys/beepcore-java/beepcore-0.9.09.tgz
 
-3. Extract the beepcore tarball to $HOME/jalop-3rdparty (note that the JJNL build 
-   expects to find the beepcore jars at this location). If you want to extract the
-   binaries somewhere else, you will need to either pass this location on the command
-   line to Maven, or change the property in the top-level POM. To set things on the
-   command line do:
-   mvn -Dthird.party.root=/path/to/3rdparty 
-   Note that you will need to do this every time you run maven. Alternatively, you could
-   modify the pom.xml file in this directory, and replace the value of third.party.root
-   with an absolute path to where you extracted the beepcore files.
+3. Extract the beepcore tarball somewhere, and cd into the beepcore-0.9.09/lib directory
+   and run the following commands:
+   $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
+       -Dfile=beepcore.jar -DgroupId=org.beepcore-java \
+       -DartifactId=beepcore -Dversion=0.9.09 -Dpackaging=jar
+
+   $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
+       -Dfile=beeptls-jsse.jar -DgroupId=org.beepcore-java -DartifactId=beeptls-jsse \
+       -Dversion=0.9.09 -Dpackaging=jar
+
+   $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
+       -Dfile=concurrent.jar -DgroupId=EDU.oswego.cs.dl.util -DartifactId=concurrent \
+       -Dversion=1.3.4 -Dpackaging=jar
 
 4. Package JALoP JNL project
-	- Run mvn package
+	- cd into the jnl_parent directory and run "mvn package"
 
 Other Options (these steps do not need to be executed in order to use the JALoP
 libraries)
