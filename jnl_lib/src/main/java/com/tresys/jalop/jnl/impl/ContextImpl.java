@@ -189,17 +189,17 @@ public final class ContextImpl implements Context {
 			throw new JNLException("A subscriber must be set on ContextImpl if calling subscribe.");
 		}
 
-		final org.beepcore.beep.core.Session session = TCPSessionCreator.initiate(addr, port);
-		final Channel channel = session.startChannel(URI);
+		final Set<RecordType> recordTypeSet = new HashSet<RecordType>(Arrays.asList(types));
+		if(recordTypeSet.contains(RecordType.Unset)) {
+			throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
+		}
 
-		if(channel.getState() == Channel.STATE_ACTIVE) {
+		for(final RecordType rt : recordTypeSet) {
 
-			final Set<RecordType> recordTypeSet = new HashSet<RecordType>(Arrays.asList(types));
-			if(recordTypeSet.contains(RecordType.Unset)) {
-				throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
-			}
+			final org.beepcore.beep.core.Session session = TCPSessionCreator.initiate(addr, port);
+			final Channel channel = session.startChannel(URI);
 
-			for(final RecordType rt : recordTypeSet) {
+			if(channel.getState() == Channel.STATE_ACTIVE) {
 
 				final ReplyListener listener = new InitListener(addr, Role.Subscriber, rt, this);
 
