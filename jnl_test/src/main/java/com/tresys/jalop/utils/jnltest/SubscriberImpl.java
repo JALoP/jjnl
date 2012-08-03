@@ -414,6 +414,7 @@ public class SubscriberImpl implements Subscriber {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Returning subscriber request for: " + sess.getRole()
                         + sess.getRecordType());
+            LOGGER.info("serialID: " + this.lastSerialFromRemote);
         }
         return new SubscribeRequest() {
             @Override

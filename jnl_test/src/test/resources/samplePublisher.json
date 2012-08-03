@@ -6,4 +6,15 @@
   	"dataClass": [ "audit", "log" ],
   	"input": "./input",
   }
+  "ssl": {
+    "Key Algorithm": "SunX509", 
+    "Key Store Passphrase": "changet",
+    "Key Store Data Type": "file",
+    "Key Store": "server.jks",
+
+    "Trust Algorithm": "SunX509",
+    "Trust Store Passphrase": "changeit",
+    "Trust Store Data Type": "file",
+    "Trust Store": "clients.jks",
+  }
 }

@@ -1,0 +1,87 @@
+1) Construct a key store that will hold the private key material and public
+certificate:
+
+$> keytool -genkeypair -keyalg rsa -keystore server.jks
+
+assuming the server.jks file does not already exist, this will first create a
+new keystore and prompt you to enter a password (and re-enter the password) to
+protect the keystore.
+After that, it will prompt you to answer a number of questions (name,
+organization, etc), and finally prompt you for a password for the private key.
+You should leave the private key passphrase blank (i.e. same as the passphrase
+for the keystore). This is a limitation of the beepcore library.
+
+To extract the public certificate, you can do:
+
+$> keytool -exportcert -rfc -keystore server.jks > server.pem
+
+The server.pem file is suitable for use in applications that use OpenSSL (such
+as the C JALoP Network Library).
+
+2) Construct the trust store that will contain the public certificates of
+   authorized remotes.
+
+$> keytool -importcert -keystore remotes.jks -file remote.pem
+
+Where 'remote.pem' is the path to a file that contains the certificate from a
+remote. The keytool program will dump information about the certificate to the
+screen, and prompt for action. You should double check that this is the
+certificate you intended to import. If you answer 'no', then the keytool
+program will not add the certificate to the truststore. If you answer 'yes',
+then the keytool program will add the certificate to the trust store.
+
+3) Now that you have a keystore containing the private key material and
+certificate for your JALoP Network Store (i.e. the server.jks file) and a
+truststore that contains the public certificate for a remote (i.e. the
+remotes.jks file), the only thing left to do is propagate this information
+down to the JSSE library for use.
+
+Do do this, you must create a org.beepcore.beep.profile.ProfileConfiguration 
+object, and set the following keys:
+
+"Key Algorithm"        - In most cases, this should be "SunX509". If left empty,
+                         the remainder of the configuration keys are ignored,
+                         and default providers are used (which is probably not
+                         what you want). See SSLContext.init() for more
+                         information. Omitting the "Key Algorithm" parameter is
+                         akin to passing null for the KeyManager array.
+"Key Provider"         - When configuring the underlying classes, "Key
+                         Algorithm" and "Key Provider" are passed into the
+                         KeyManagerFactory.getInstance() method. See the
+                         documentation of KeyManagerFactory for more details.
+"Key Store Format"     - The default is "JKS" (which is the type of
+                         keystore that keytool creates by default) and should
+                         only be modified if you know what you are doing.
+"Key Store Provider"   - "Key Store Format" and "Key Store Provider"
+                         are passed directly to the KeyStore.getInstance() method.
+                         See the documentation of KeyStore for more information.
+"Key Store Passphrase" - This is the password for the keystore created in step 1.
+"Key Store Data Type"  - Must be set to the string "file"
+"Key Store"            - The path to the keystore containing the private key
+                         material and certificate (i.e. the keystore created in
+                         step 1)
+"Trust Algorithm"        - In most cases, this should be "SunX509". If left
+                         empty the remainder of the configuration keys are
+                         ignored, and default providers are used (which is
+                         probably not what you want). See SSLContext.init() for
+                         more information. Omitting the "Trust Algorithm"
+                         paramter is akin to passing null for the TrustManager
+                         array.
+"Trust Provider"         - "Trust Algorithm" and "Trust Provider" are
+                         passed into the KeyManagerFactory.getInstance() method.
+                         See the documentation of KeyManagerFactory for more
+                         details.
+"Trust Store Format"     - The default is "JKS" (which is the type of
+                         keystore that keytool creates by default) and should
+                         only be modified if you know what you are doing.
+"Trust Store Provider"   - "Trust Store Format" and "Trust Store Provider"
+                         are passed directly to the KeyStore.getInstance() method.
+                         See the documentation of KeyStore for more information.
+"Trust Store Passphrase" - This is the password for the truststore created in step 2.
+"Trust Store Data Type"  - Must be set to the string "file"
+"Trust Store"            - The path to the truststore containing the public
+                         certificates of trusted machines (i.e. the truststore
+                         created in step 2)
+
+Although it is possible to use the system wide (default) settings for the SSL configuration, it is not recommended unless you have access to the system wide key and trust stores (and keep them updated).
+

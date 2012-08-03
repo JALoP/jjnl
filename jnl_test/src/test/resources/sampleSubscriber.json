@@ -1,11 +1,22 @@
 {
-  "address": "192.168.90.1",
+  "address": "192.168.65.10",
   "port": 1234,
   "subscriber": {
   	"sessionTimeout": "00:20:00",
-  	"dataClass": [ "journal", "log" ],
-  	"pendingDigestMax": 128,
+  	"dataClass": [ "log", "log" ],
+  	"pendingDigestMax": 1,
   	"pendingDigestTimeout": 120,
   	"output": "./output",
+  }
+  "ssl": {
+    "Key Algorithm": "SunX509",
+    "Key Store Passphrase": "changeit",
+    "Key Store Data Type": "file",
+    "Key Store": "server.jks",
+
+    "Trust Algorithm": "SunX509",
+    "Trust Store Passphrase": "changeit",
+    "Trust Store Data Type": "file",
+    "Trust Store": "remotes.jks",
   }
 }

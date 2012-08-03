@@ -41,6 +41,10 @@ import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
+import org.beepcore.beep.core.StartChannelListener;
+import org.beepcore.beep.profile.ProfileConfiguration;
+import org.beepcore.beep.profile.tls.TLSProfile;
+import org.beepcore.beep.transport.tcp.TCPSession;
 import org.beepcore.beep.transport.tcp.TCPSessionCreator;
 
 import com.tresys.jalop.jnl.ConnectionHandler;
@@ -64,7 +68,13 @@ import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
  */
 public final class ContextImpl implements Context {
 
-	public static final String URI = "http://www.dod.mil/logging/jalop-1.0";
+	private static final String INITIATOR_AUTHENTICATION_REQUIRED = "Initiator Authentication Required";
+
+	private static final String SSL_ALGORITHMS = "Allowed SSL Protocols";
+
+    public static final String LISTENER_ANONYMOUS = "Listener Anonymous";
+
+    public static final String URI = "http://www.dod.mil/logging/jalop-1.0";
 
 	static Logger log = Logger.getLogger(Context.class);
 
@@ -76,11 +86,16 @@ public final class ContextImpl implements Context {
 	private final List<String> allowedXmlEncodings;
 	private final int defaultDigestTimeout;
 	private final int defaultPendingDigestMax;
-	private final boolean tlsRequired;
 	private ConnectionState connectionState;
 	private final Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>> subscriberMap;
 	private final Map<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>> publisherMap;
 	private final String agent;
+
+    private final ProfileConfiguration sslProperties;
+
+    private final TLSProfile sslProfile;
+
+    private final StartChannelListener sslListener;
 
 	/**
 	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
@@ -102,26 +117,32 @@ public final class ContextImpl implements Context {
 	 * @param defaultPendingDigestMax
 	 *            The maximum number of records to receive before sending a
 	 *            'digest-message'.
-	 * @param tlsRequired
-	 *            <code>true</code> to force the use of TLS. <code>false</code>
-	 *            if TLS is not required or requested.
+	 * @param agent The agent string to send to the remote, this may be 
+	 *             <code>null</code>. 
 	 * @param allowedMessageDigests
 	 *            A List of digest algorithms to allow. The order of this list
 	 *            is important; The first element in the list is considered to
 	 *            have the highest priority, and the last element in the list is
 	 *            considered to have the lowest priority.
 	 * @param allowedXmlEncodings
-	 *            A List of xml encodings to allow. The order of this list is
-	 *            important; The first element in the list is considered to have
-	 *            the highest priority, and the last element in the list is
-	 *            considered to have the lowest priority.
-	 */
+     *            A List of xml encodings to allow. The order of this list is important;
+     *            The first element in the list is considered to have the highest priority,
+     *            and the last element in the list is considered to have the lowest priority.
+     * @param sslProperties
+     *            A map containing the properties for tuning TLS connections. If
+     *            This object is <code>null</code> then TLS negotiations will
+     *            not occur. If this is <code>non-null</code> then all
+     *            connections made with this {@link ContextImpl} will require
+     *            TSL negotiations before any data is sent over the network. 
+     * @throws BEEPException 
+     */
 	public ContextImpl(final Publisher publisher, final Subscriber subscriber,
 			final ConnectionHandler connectionHandler,
 			final int defaultDigestTimeout, final int defaultPendingDigestMax,
-			final boolean tlsRequired, final String agent,
+			final String agent,
 			final List<String> allowedMessageDigests,
-			final List<String> allowedXmlEncodings) {
+			final List<String> allowedXmlEncodings,
+            final ProfileConfiguration sslProperties) throws BEEPException {
 
 		if (publisher == null && subscriber == null) {
 			throw new IllegalArgumentException(
@@ -161,9 +182,21 @@ public final class ContextImpl implements Context {
 
 		this.defaultDigestTimeout = defaultDigestTimeout;
 		this.defaultPendingDigestMax = defaultPendingDigestMax;
-		this.tlsRequired = tlsRequired;
 		this.subscriberMap = new HashMap<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>>();
 		this.publisherMap = new HashMap<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>>();
+		this.sslProperties = sslProperties;
+		if (this.sslProperties != null) {
+		// force mutual authentication
+			this.sslProperties.setProperty(LISTENER_ANONYMOUS, Boolean.FALSE.toString());
+			this.sslProperties.setProperty(INITIATOR_AUTHENTICATION_REQUIRED, Boolean.TRUE.toString());
+			this.sslProperties.setProperty(SSL_ALGORITHMS, "TLSv1");
+			this.sslProfile = TLSProfile.getDefaultInstance();
+			this.sslListener = this.sslProfile.init(TLSProfile.URI, this.sslProperties);
+            
+		} else {
+			this.sslProfile = null;
+			this.sslListener = null;
+		}
 		this.agent = agent;
 	}
 
@@ -246,9 +279,14 @@ public final class ContextImpl implements Context {
 			throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
 		}
 
-		for (final RecordType rt : recordTypeSet) {
+		TCPSession session = TCPSessionCreator.initiate(addr, port);
+		
+        if (this.sslProfile != null) {
+		    session = this.sslProfile.startTLS(session);
+		}
 
-			final org.beepcore.beep.core.Session session = TCPSessionCreator.initiate(addr, port);
+		for(final RecordType rt : recordTypeSet) {
+
 			final Channel channel = session.startChannel(URI);
 
 			if (channel.getState() == Channel.STATE_ACTIVE) {
@@ -264,7 +302,7 @@ public final class ContextImpl implements Context {
 		}
 	}
 
-	/**
+    /**
 	 * Add a session to the set of tracked JALoP Sessions.
 	 *
 	 * @param sess

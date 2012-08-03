@@ -125,11 +125,11 @@ public class JNLTest implements Subscriber, Publisher {
     private void start() throws JNLException, BEEPException {
         if (!this.config.isListener()) {
             if (this.config.getRole() == Role.Subscriber) {
-                final ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), false, "agent", null, null);
+                final ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
 				contextImpl.subscribe(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
 
             } else if (this.config.getRole() == Role.Publisher) {
-				final ContextImpl contextImpl = new ContextImpl(this, null, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), false, "agent", null, null);
+				final ContextImpl contextImpl = new ContextImpl(this, null, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
 				contextImpl.publish(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
             }
             this.logger.info("Waiting: " + config.getSessionTimeout());

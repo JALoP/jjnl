@@ -31,9 +31,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import org.beepcore.beep.profile.ProfileConfiguration;
+import org.beepcore.beep.profile.tls.jsse.TLSProfileJSSE;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -143,6 +147,7 @@ public class Config {
 	private Role role;
 	private Date sessionTimeout;
 	private final String source;
+    private ProfileConfiguration sslConfig;
 
 	/**
 	 * Create a new {@link Config} object.
@@ -301,6 +306,22 @@ public class Config {
 	void handleCommon(final JSONObject obj) throws ConfigurationException {
 		handleAddress(obj);
 		setPort(itemAsNumber(PORT, obj).intValue());
+		obj.get("ssl");
+		JSONObject ssl = asJsonObject(this.source, "ssl", obj.get("ssl"), false);
+		if (ssl != null) {
+		    handleSslConfig(ssl);
+		}
+	}
+	
+	/**
+	 * Retrieve the {@link ProfileConfiguration}, if any, for setting up SSL.
+	 * The object returned by this function should be passed to the
+	 * {@link TLSProfileJSSE#init(String, ProfileConfiguration)} function to
+	 * finish the SSL configuration.
+	 * @return The {@link ProfileConfiguration} for SSL.
+	 */
+	public ProfileConfiguration getSslConfiguration() {
+	    return this.sslConfig;
 	}
 
 	/**
@@ -724,6 +745,26 @@ public class Config {
 	}
 
 	/**
+	 * Build a structure suitable to pass into the beepcore framework for SSL.
+	 * @param ssl The JSON object that contains all the keys to configure SSL.
+	 * 
+	 * These keys are passed directly to the
+	 * {@link TLSProfileJSSE#init(String, ProfileConfiguration)}, so any keys
+	 * recognized by that class are valid here.
+	 * 
+	 * @see TLSProfileJSSE#init(String, ProfileConfiguration)
+	 */
+    @SuppressWarnings("rawtypes") // because the JSON map doesn't use generics
+    void handleSslConfig(JSONObject ssl) {
+	    this.sslConfig = new ProfileConfiguration();
+       Iterator iter = ssl.entrySet().iterator();
+	   while (iter.hasNext()) {
+	       Entry e = (Entry) iter.next();
+	       this.sslConfig.setProperty(e.getKey().toString(),
+	                                  e.getValue().toString());
+	    }
+	}
+	/**
 	 * Helper utility to cast a {@link Object} as a {@link String}.
 	 *
 	 * @param path
@@ -795,18 +836,36 @@ public class Config {
 	 */
 	static JSONObject asJsonObject(final String path, final String key, final Object o)
 			throws ConfigurationException {
-		if (o instanceof JSONObject) {
-			return (JSONObject) o;
-		}
-		if (key != null) {
-			throw new ConfigurationException(path, "Expected JSON Object for '"
-					+ key + "', found '" + o + "'");
-		} else {
-			throw new ConfigurationException(path,
-					"Expected JSON Object, found '" + o + "'");
-		}
+	    return asJsonObject(path, key, o, true);
 	}
-
+    /**
+     * Helper utility to cast an {@link Object} as a {@link JSONObject}.
+     *
+     * @param path
+     *            The file where the error occurred.
+     * @param key
+     *            The key (if any) for <code>o</code>.
+     * @param o
+     *            The {@link Object} to cast
+     * @return <code>o</code> cast as a {@link JSONObject}.
+     * @throws ConfigurationException
+     *             if <code>o</code> is <code>null</code> or not a
+     *             {@link JSONObject}.
+     */
+    static JSONObject asJsonObject(String path, String key, Object o,
+            boolean required)  throws ConfigurationException {
+        if (o instanceof JSONObject) {
+            return (JSONObject) o;
+        }
+        if (key != null && o != null) {
+            throw new ConfigurationException(path, "Expected JSON Object for '"
+                    + key + "', found '" + o + "'");
+        } else if (required) {
+            throw new ConfigurationException(path,
+                    "Expected JSON Object, found '" + o + "'");
+        }
+        return null;
+    }
 	/**
 	 * Helper utility to cast a value to a {@link JSONArray}.
 	 *
