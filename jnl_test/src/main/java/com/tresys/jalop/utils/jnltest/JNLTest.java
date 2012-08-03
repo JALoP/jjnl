@@ -25,20 +25,24 @@ package com.tresys.jalop.utils.jnltest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.xml.soap.MimeHeaders;
 
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.BEEPException;
 import org.json.simple.parser.ParseException;
 
+import com.tresys.jalop.jnl.DigestPair;
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.Publisher;
+import com.tresys.jalop.jnl.PublisherSession;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
+import com.tresys.jalop.jnl.SourceRecord;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
@@ -50,24 +54,28 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 /**
  * Main class for JNLTest
  */
-public class JNLTest implements Subscriber {
+public class JNLTest implements Subscriber, Publisher {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(JNLTest.class);
 	/**
 	 * Configuration for this instance of JNLTest.
 	 */
-	private Config config;
+	private final Config config;
 	/**
-	 * From Sessions to associated {@link SubscriberImpl} 
+	 * From Sessions to associated {@link SubscriberImpl}
 	 */
 	private final Map<Session, Map<RecordType, SubscriberImpl>> sessMap = new HashMap<Session, Map<RecordType,SubscriberImpl>>();
+	/**
+	 * From Sessions to associated {@link PublisherImpl}
+	 */
+	private final Map<Session, Map<RecordType, PublisherImpl>> pubSessMap = new HashMap<Session, Map<RecordType,PublisherImpl>>();
 	/**
 	 * Create a JNLTest object based on the specified configuration.
 	 *
 	 * @param config
 	 *            A {@link Config}
 	 */
-	public JNLTest(Config config) {
+	public JNLTest(final Config config) {
 		this.config = config;
 	}
 
@@ -77,10 +85,10 @@ public class JNLTest implements Subscriber {
 	 *
 	 * @param args
 	 *            The command line arguments
-	 * @throws BEEPException 
-	 * @throws JNLException 
+	 * @throws BEEPException
+	 * @throws JNLException
 	 */
-	public static void main(String[] args) throws JNLException, BEEPException {
+	public static void main(final String[] args) throws JNLException, BEEPException {
 		if (args.length != 1) {
 			System.err.println("Must specify exactly one argument that is "
 					+ " the configuration file to use");
@@ -89,46 +97,46 @@ public class JNLTest implements Subscriber {
 		Config config;
 		try {
 			config = Config.parse(args[0]);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			System.err.println("Caught IO exception: " + e.getMessage());
 			System.exit(1);
 			throw new RuntimeException("Failed to call exit()");
-		} catch (ParseException e) {
+		} catch (final ParseException e) {
 			System.err.print(e.toString());
 			System.exit(1);
 			throw new RuntimeException("Failed to call exit()");
-		} catch (ConfigurationException e) {
+		} catch (final ConfigurationException e) {
 			System.err.println("Exception processing the config file: "
 					+ e.getMessage());
 			System.exit(1);
 			throw new RuntimeException("Failed to call exit()");
 		}
-		JNLTest jt = new JNLTest(config);
+		final JNLTest jt = new JNLTest(config);
         System.out.println("Started Connections");
 		jt.start();
 	}
 
 	/**
-	 * Once a {@link JNLTest} object has a config, call this method to connect to the 
+	 * Once a {@link JNLTest} object has a config, call this method to connect to the
 	 * remotes, or wait for incoming connections.
-	 * @throws BEEPException 
-	 * @throws JNLException 
+	 * @throws BEEPException
+	 * @throws JNLException
 	 */
     private void start() throws JNLException, BEEPException {
         if (!this.config.isListener()) {
             if (this.config.getRole() == Role.Subscriber) {
-                ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), false, "agent", null, null);
+                final ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), false, "agent", null, null);
 				contextImpl.subscribe(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
 
             } else if (this.config.getRole() == Role.Publisher) {
-                // TODO: do things as publisher:
-                this.logger.error("Role of Publisher not currently supported");
+				final ContextImpl contextImpl = new ContextImpl(this, null, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), false, "agent", null, null);
+				contextImpl.publish(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
             }
             this.logger.info("Waiting: " + config.getSessionTimeout());
             synchronized(this) {
                 try {
                     this.wait(config.getSessionTimeout().getTime());
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     this.logger.info("Someone woke us up");
                 }
             }
@@ -139,9 +147,9 @@ public class JNLTest implements Subscriber {
     }
 
     @Override
-    public SubscribeRequest getSubscribeRequest(SubscriberSession sess) {
-        // TODO: All the code here to manage the maps should really be happening in the 
-        // connection handler callbacks, but the library isn't generating those events 
+    public SubscribeRequest getSubscribeRequest(final SubscriberSession sess) {
+        // TODO: All the code here to manage the maps should really be happening in the
+        // connection handler callbacks, but the library isn't generating those events
         // quite yet.
         Map<RecordType, SubscriberImpl> map;
         synchronized (this.sessMap) {
@@ -163,27 +171,93 @@ public class JNLTest implements Subscriber {
     }
 
     @Override
-    public boolean notifySysMetadata(SubscriberSession sess, RecordInfo recordInfo, InputStream sysMetaData) {
+    public boolean notifySysMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream sysMetaData) {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifySysMetadata(sess, recordInfo, sysMetaData);
     }
 
     @Override
-    public boolean notifyAppMetadata(SubscriberSession sess, RecordInfo recordInfo, InputStream appMetaData) {
+    public boolean notifyAppMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream appMetaData) {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifyAppMetadata(sess, recordInfo, appMetaData);
     }
 
     @Override
-    public boolean notifyPayload(SubscriberSession sess, RecordInfo recordInfo, InputStream payload) {
+    public boolean notifyPayload(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream payload) {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifyPayload(sess, recordInfo, payload);
     }
 
     @Override
-    public boolean notifyDigest(SubscriberSession sess, RecordInfo recordInfo, byte[] digest) {
+    public boolean notifyDigest(final SubscriberSession sess, final RecordInfo recordInfo, final byte[] digest) {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigest(sess, recordInfo, digest);
     }
 
     @Override
-    public boolean notifyDigestResponse(SubscriberSession sess, Map<String, DigestStatus> statuses) {
+    public boolean notifyDigestResponse(final SubscriberSession sess, final Map<String, DigestStatus> statuses) {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigestResponse(sess, statuses);
     }
+
+	@Override
+	public SourceRecord getNextRecord(final PublisherSession sess, final String lastSerialId) {
+		return this.pubSessMap.get(sess).get(sess.getRecordType()).getNextRecord(sess, lastSerialId);
+	}
+
+	@Override
+	public SourceRecord onJournalResume(final PublisherSession sess, final String serialId,
+			final long offset, final MimeHeaders headers) {
+		setPubMap(sess);
+		return this.pubSessMap.get(sess).get(sess.getRecordType()).onJournalResume(sess, serialId, offset, headers);
+	}
+
+	@Override
+	public boolean onSubscribe(final PublisherSession sess, final String serialId,
+			final MimeHeaders headers) {
+
+		setPubMap(sess);
+        return this.pubSessMap.get(sess).get(sess.getRecordType()).onSubscribe(sess, serialId, headers);
+	}
+
+	private void setPubMap(final PublisherSession sess) {
+
+		// TODO: All the code here to manage the maps should really be happening in the
+        // connection handler callbacks, but the library isn't generating those events
+        // quite yet.
+        Map<RecordType, PublisherImpl> map;
+        synchronized (this.pubSessMap) {
+            map = this.pubSessMap.get(sess);
+            if (map == null) {
+                map = new HashMap<RecordType, PublisherImpl>();
+                this.pubSessMap.put(sess, map);
+            }
+        }
+
+        synchronized(map) {
+            if (map.get(sess.getRecordType()) == null) {
+                map.put(sess.getRecordType(), new PublisherImpl(
+						this.config.getInputPath(), sess.getRecordType()));
+            }
+        }
+	}
+
+	@Override
+	public boolean onRecordComplete(final PublisherSession sess, final String serailId,
+			final SourceRecord record) {
+		return this.pubSessMap.get(sess).get(sess.getRecordType()).onRecordComplete(sess, serailId, record);
+	}
+
+	@Override
+	public boolean sync(final PublisherSession sess, final String serialId,
+			final MimeHeaders headers) {
+		return this.pubSessMap.get(sess).get(sess.getRecordType()).sync(sess, serialId, headers);
+	}
+
+	@Override
+	public void notifyDigest(final PublisherSession sess, final String serialId,
+			final byte[] digest) {
+		this.pubSessMap.get(sess).get(sess.getRecordType()).notifyDigest(sess, serialId, digest);
+	}
+
+	@Override
+	public void notifyPeerDigest(final PublisherSession sess,
+			final Map<String, DigestPair> digestPairs) {
+		this.pubSessMap.get(sess).get(sess.getRecordType()).notifyPeerDigest(sess, digestPairs);
+	}
 }
