@@ -37,6 +37,7 @@ import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
+import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.SubscribeRequest;
@@ -47,11 +48,12 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.jnl.impl.messages.InitAckMessage;
 import com.tresys.jalop.jnl.impl.messages.InitNackMessage;
 import com.tresys.jalop.jnl.impl.messages.Utils;
+import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 /**
- * Listener class to be used for init messages. This will listen for
- * replies after a message is sent.
+ * Listener class to be used for init messages. This will listen for replies
+ * after a message is sent.
  */
 public class InitListener implements ReplyListener {
 
@@ -70,11 +72,12 @@ public class InitListener implements ReplyListener {
 	 * @param recordType
 	 *            The type of record.
 	 * @param contextImpl
-	 *            The {@link ContextImpl} that initiated the connection and will be
-	 *            associated with the created {@link Session}.
+	 *            The {@link ContextImpl} that initiated the connection and will
+	 *            be associated with the created {@link Session}.
 	 */
-	public InitListener(final InetAddress address, final Role role, final RecordType recordType, final ContextImpl contextImpl) {
-		this.address = address; 
+	public InitListener(final InetAddress address, final Role role,
+			final RecordType recordType, final ContextImpl contextImpl) {
+		this.address = address;
 		this.role = role;
 		this.recordType = recordType;
 		this.contextImpl = contextImpl;
@@ -84,7 +87,7 @@ public class InitListener implements ReplyListener {
 	public void receiveRPY(final Message message)
 			throws AbortChannelException {
 
-		if(log.isDebugEnabled()) {
+		if (log.isDebugEnabled()) {
 			log.debug("***** InitListener receiveRPY");
 		}
 
@@ -93,25 +96,26 @@ public class InitListener implements ReplyListener {
 		try {
 			final InitAckMessage msg = Utils.processInitAck(data);
 
-			if(Role.Subscriber.equals(this.role)) {
+			if (!contextImpl.getAllowedMessageDigests().contains(msg.getDigest())) {
+				throw new UnexpectedMimeValueException(Utils.HDRS_DIGEST,
+						Utils.makeStringList(contextImpl.getAllowedMessageDigests(), "digests"),
+						msg.getDigest());
+			}
 
-				if(!contextImpl.getAllowedMessageDigests().contains(msg.getDigest())) {
-					throw new UnexpectedMimeValueException(Utils.HDRS_DIGEST,
-							Utils.makeStringList(contextImpl.getAllowedMessageDigests(), "digests"),
-							msg.getDigest());
-				}
+			if (!contextImpl.getAllowedXmlEncodings().contains(msg.getEncoding())) {
+				throw new UnexpectedMimeValueException(Utils.HDRS_ENCODING,
+						Utils.makeStringList(contextImpl.getAllowedXmlEncodings(), "encodings"),
+						msg.getEncoding());
+			}
 
-				if(!contextImpl.getAllowedXmlEncodings().contains(msg.getEncoding())) {
-					throw new UnexpectedMimeValueException(Utils.HDRS_ENCODING,
-							Utils.makeStringList(contextImpl.getAllowedXmlEncodings(), "encodings"),
-							msg.getEncoding());
-				}
+			if (Role.Subscriber.equals(this.role)) {
 
 				final Subscriber subscriber = contextImpl.getSubscriber();
-				final SubscriberSessionImpl sessionImpl = new SubscriberSessionImpl(this.address, this.recordType,
-						subscriber, msg.getDigest(), msg.getEncoding(),
-						contextImpl.getDefaultDigestTimeout(), contextImpl.getDefaultPendingDigestMax(),
-						message.getChannel().getNumber(), message.getChannel().getSession());
+				final SubscriberSessionImpl sessionImpl = new SubscriberSessionImpl(
+						this.address, this.recordType, subscriber, msg.getDigest(),
+						msg.getEncoding(), contextImpl.getDefaultDigestTimeout(),
+						contextImpl.getDefaultPendingDigestMax(), message.getChannel().getNumber(),
+						message.getChannel().getSession());
 
 				this.contextImpl.addSession(message.getChannel().getSession(), sessionImpl);
 
@@ -122,27 +126,37 @@ public class InitListener implements ReplyListener {
 
 				new Thread(sessionImpl, "digestThread").start();
 
-			} else if(Role.Publisher.equals(this.role)) {
-				//TODO: bug-16718 augment InitListener to work for publishers
+			} else if (Role.Publisher.equals(this.role)) {
+
+				final Publisher publisher = contextImpl.getPublisher();
+				final PublisherSessionImpl sessionImpl = new PublisherSessionImpl(
+						this.address, this.recordType, publisher, msg.getDigest(),
+						msg.getEncoding(), message.getChannel().getNumber(),
+						message.getChannel().getSession(), this.contextImpl);
+
+				this.contextImpl.addSession(message.getChannel().getSession(),
+						sessionImpl);
+
+				new Thread(sessionImpl, "digestThread").start();
 			}
 
 		} catch (final BEEPException e) {
-			if(log.isEnabledFor(Level.ERROR)) {
+			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error receiving reply: " + e.getMessage());
 			}
 			throw new AbortChannelException(e.getMessage());
 		} catch (final MissingMimeHeaderException e) {
-			if(log.isEnabledFor(Level.ERROR)) {
+			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error - Missing Mime Header: " + e.getMessage());
 			}
 			throw new AbortChannelException(e.getMessage());
 		} catch (final UnexpectedMimeValueException e) {
-			if(log.isEnabledFor(Level.ERROR)) {
+			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error - Unexpected value: " + e.getMessage());
 			}
 			throw new AbortChannelException(e.getMessage());
 		} catch (final JNLException e) {
-			if(log.isEnabledFor(Level.ERROR)) {
+			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error adding the Session: " + e.getMessage());
 			}
 			throw new AbortChannelException(e.getMessage());
@@ -154,7 +168,7 @@ public class InitListener implements ReplyListener {
 	public void receiveERR(final Message message)
 			throws AbortChannelException {
 
-		if(log.isEnabledFor(Level.ERROR)) {
+		if (log.isEnabledFor(Level.ERROR)) {
 			log.error("InitListener received an error. Closing the channel.");
 		}
 
@@ -166,19 +180,19 @@ public class InitListener implements ReplyListener {
 			connectErrors = msg.getErrorList();
 
 		} catch (final BEEPException e) {
-			if(log.isEnabledFor(Level.ERROR)) {
+			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error receiving ERR: " + e.getMessage());
 			}
 			throw new AbortChannelException(e.getMessage());
 
 		} catch (final MissingMimeHeaderException e) {
-			if(log.isEnabledFor(Level.ERROR)) {
+			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error - Missing Mime Header: " + e.getMessage());
 			}
 			throw new AbortChannelException(e.getMessage());
 
 		} catch (final UnexpectedMimeValueException e) {
-			if(log.isEnabledFor(Level.ERROR)) {
+			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error - Unexpected value: " + e.getMessage());
 			}
 			throw new AbortChannelException(e.getMessage());
@@ -186,8 +200,8 @@ public class InitListener implements ReplyListener {
 
 		final StringBuilder sb = new StringBuilder();
 
-		for(final ConnectError ce : connectErrors) {
-			if(sb.length() != 0) {
+		for (final ConnectError ce : connectErrors) {
+			if (sb.length() != 0) {
 				sb.append(", ");
 			}
 			sb.append(ce);
@@ -200,7 +214,7 @@ public class InitListener implements ReplyListener {
 	public void receiveANS(final Message message)
 			throws AbortChannelException {
 
-		if(log.isEnabledFor(Level.ERROR)) {
+		if (log.isEnabledFor(Level.ERROR)) {
 			log.error("InitListener received ANS which shouldn't happen.");
 		}
 		throw new AbortChannelException("InitListener should not receive ANS");
@@ -210,7 +224,7 @@ public class InitListener implements ReplyListener {
 	public void receiveNUL(final Message message)
 			throws AbortChannelException {
 
-		if(log.isEnabledFor(Level.ERROR)) {
+		if (log.isEnabledFor(Level.ERROR)) {
 			log.error("InitListener received NUL which shouldn't happen.");
 		}
 		throw new AbortChannelException("InitListener should not receive NUL");
