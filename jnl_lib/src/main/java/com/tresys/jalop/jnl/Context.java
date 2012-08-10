@@ -82,11 +82,13 @@ public interface Context {
 	 * @throws IllegalArgumentException
 	 *             if the address <tt>addr</tt> is not supported. Currently,
 	 *             only IPv4 addresses are supported.
+	 * @throws JNLException
+	 * @throws BEEPException
 	 * @see Context#registerSubscriber(Subscriber)
 	 * @see Subscriber
 	 */
 	void publish(InetAddress addr, int port, RecordType... types)
-			throws IllegalArgumentException;
+			throws IllegalArgumentException, JNLException, BEEPException;
 
 	/**
 	 * Initiate a connection to a remote JALoP Network Store and subscribe to

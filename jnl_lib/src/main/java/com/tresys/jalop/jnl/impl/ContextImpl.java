@@ -53,12 +53,13 @@ import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.ConnectionException;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.messages.Utils;
+import com.tresys.jalop.jnl.impl.publisher.PublisherRequestHandler;
 import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 /**
- * The {@link ContextImpl} is the implementation of the {@link Context} class. It
- * is responsible for initiating connections to, or listening for connections
+ * The {@link ContextImpl} is the implementation of the {@link Context} class.
+ * It is responsible for initiating connections to, or listening for connections
  * from, remote JALoP Network Stores.
  */
 public final class ContextImpl implements Context {
@@ -83,9 +84,9 @@ public final class ContextImpl implements Context {
 
 	/**
 	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
-	 * {@link ConnectionState#DISCONNECTED} state. If none are provided, the context
-	 * will be configured to use the default required options for message digests
-	 * (i.e. sha256) and for XML Encoding (i.e. none).
+	 * {@link ConnectionState#DISCONNECTED} state. If none are provided, the
+	 * context will be configured to use the default required options for
+	 * message digests (i.e. sha256) and for XML Encoding (i.e. none).
 	 *
 	 * @param publisher
 	 *            The Publisher to register. Can be null. At least one of
@@ -96,50 +97,59 @@ public final class ContextImpl implements Context {
 	 * @param connectionHandler
 	 *            The ConnectionHandler to register.
 	 * @param defaultDigestTimeout
-	 *            The default number of seconds to wait in between the sending of
-	 *            digest messages.
+	 *            The default number of seconds to wait in between the sending
+	 *            of digest messages.
 	 * @param defaultPendingDigestMax
 	 *            The maximum number of records to receive before sending a
 	 *            'digest-message'.
 	 * @param tlsRequired
-	 *            <code>true</code> to force the use of TLS. <code>false</code> if TLS is not
-	 *            required or requested.
+	 *            <code>true</code> to force the use of TLS. <code>false</code>
+	 *            if TLS is not required or requested.
 	 * @param allowedMessageDigests
-	 *            A List of digest algorithms to allow. The order of this list is important;
-	 *            The first element in the list is considered to have the highest priority,
-	 *            and the last element in the list is considered to have the lowest priority.
+	 *            A List of digest algorithms to allow. The order of this list
+	 *            is important; The first element in the list is considered to
+	 *            have the highest priority, and the last element in the list is
+	 *            considered to have the lowest priority.
 	 * @param allowedXmlEncodings
-	 *            A List of xml encodings to allow. The order of this list is important;
-	 *            The first element in the list is considered to have the highest priority,
-	 *            and the last element in the list is considered to have the lowest priority.
+	 *            A List of xml encodings to allow. The order of this list is
+	 *            important; The first element in the list is considered to have
+	 *            the highest priority, and the last element in the list is
+	 *            considered to have the lowest priority.
 	 */
 	public ContextImpl(final Publisher publisher, final Subscriber subscriber,
-			final ConnectionHandler connectionHandler, final int defaultDigestTimeout,
-			final int defaultPendingDigestMax, final boolean tlsRequired, final String agent,
-			final List<String> allowedMessageDigests, final List<String> allowedXmlEncodings) {
+			final ConnectionHandler connectionHandler,
+			final int defaultDigestTimeout, final int defaultPendingDigestMax,
+			final boolean tlsRequired, final String agent,
+			final List<String> allowedMessageDigests,
+			final List<String> allowedXmlEncodings) {
 
-		if(publisher == null && subscriber == null) {
-			throw new IllegalArgumentException("Either a Publisher or a Subscriber must be provided.");
+		if (publisher == null && subscriber == null) {
+			throw new IllegalArgumentException(
+					"Either a Publisher or a Subscriber must be provided.");
 		}
 
-		if(defaultDigestTimeout <= 0) {
-			throw new IllegalArgumentException("defaultDigestTimeout must be a positive integer.");
-		}
+		if (subscriber != null) {
+			if (defaultDigestTimeout <= 0) {
+				throw new IllegalArgumentException(
+						"defaultDigestTimeout must be a positive integer.");
+			}
 
-		if(defaultPendingDigestMax <= 0) {
-			throw new IllegalArgumentException("defaultPendingDigestMax must be a positive integer.");
+			if (defaultPendingDigestMax <= 0) {
+				throw new IllegalArgumentException(
+						"defaultPendingDigestMax must be a positive integer.");
+			}
 		}
 
 		this.connectionState = ConnectionState.DISCONNECTED;
 		this.jalSessions = Collections.synchronizedList(new ArrayList<Session>());
 
-		if(allowedMessageDigests != null && !allowedMessageDigests.isEmpty()) {
+		if (allowedMessageDigests != null && !allowedMessageDigests.isEmpty()) {
 			this.allowedMessageDigests = allowedMessageDigests;
 		} else {
 			this.allowedMessageDigests = Arrays.asList(DigestMethod.SHA256);
 		}
 
-		if(allowedXmlEncodings != null && !allowedXmlEncodings.isEmpty()) {
+		if (allowedXmlEncodings != null && !allowedXmlEncodings.isEmpty()) {
 			this.allowedXmlEncodings = allowedXmlEncodings;
 		} else {
 			this.allowedXmlEncodings = Arrays.asList(Utils.ENC_XML);
@@ -165,47 +175,88 @@ public final class ContextImpl implements Context {
 	}
 
 	@Override
-	public void publish(final InetAddress addr, final int port, final RecordType... types)
-			throws IllegalArgumentException {
-		// TODO Auto-generated method stub
+	public void publish(final InetAddress addr, final int port,
+			final RecordType... types) throws IllegalArgumentException,
+			JNLException, BEEPException {
 
-	}
-
-	@Override
-	public void subscribe(final InetAddress addr, final int port, final RecordType... types)
-			throws JNLException, BEEPException {
-
-		if(addr == null) {
+		if (addr == null) {
 			throw new IllegalArgumentException("addr must be a valid InetAddress");
 		}
 
-		synchronized(this.connectionState) {
-			if(this.connectionState == ConnectionState.DISCONNECTED) {
+		synchronized (this.connectionState) {
+			if (this.connectionState == ConnectionState.DISCONNECTED) {
 				this.connectionState = ConnectionState.CONNECTED;
 			} else {
 				throw new ConnectionException();
 			}
 		}
 
-		if(this.subscriber == null) {
+		if (this.publisher == null) {
+			throw new JNLException("A publisher must be set on ContextImpl if calling publish.");
+		}
+
+		final Set<RecordType> recordTypeSet = new HashSet<RecordType>(
+				Arrays.asList(types));
+		if (recordTypeSet.contains(RecordType.Unset)) {
+			throw new JNLException("Cannot publish with a RecordType of 'Unset'");
+		}
+
+		for (final RecordType rt : recordTypeSet) {
+
+			final org.beepcore.beep.core.Session session = TCPSessionCreator.initiate(addr, port);
+
+			final Channel channel = session.startChannel(URI, new PublisherRequestHandler(rt, this));
+
+			if (channel.getState() == Channel.STATE_ACTIVE) {
+
+				final ReplyListener listener = new InitListener(addr, Role.Publisher, rt, this);
+
+				final OutputDataStream ods = Utils.createInitMessage(
+						Role.Publisher, rt, this.allowedXmlEncodings,
+						this.allowedMessageDigests, this.agent);
+
+				channel.sendMSG(ods, listener);
+			}
+		}
+	}
+
+	@Override
+	public void subscribe(final InetAddress addr, final int port,
+			final RecordType... types) throws JNLException, BEEPException {
+
+		if (addr == null) {
+			throw new IllegalArgumentException("addr must be a valid InetAddress");
+		}
+
+		synchronized (this.connectionState) {
+			if (this.connectionState == ConnectionState.DISCONNECTED) {
+				this.connectionState = ConnectionState.CONNECTED;
+			} else {
+				throw new ConnectionException();
+			}
+		}
+
+		if (this.subscriber == null) {
 			throw new JNLException("A subscriber must be set on ContextImpl if calling subscribe.");
 		}
 
-		final Set<RecordType> recordTypeSet = new HashSet<RecordType>(Arrays.asList(types));
-		if(recordTypeSet.contains(RecordType.Unset)) {
+		final Set<RecordType> recordTypeSet = new HashSet<RecordType>(
+				Arrays.asList(types));
+		if (recordTypeSet.contains(RecordType.Unset)) {
 			throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
 		}
 
-		for(final RecordType rt : recordTypeSet) {
+		for (final RecordType rt : recordTypeSet) {
 
 			final org.beepcore.beep.core.Session session = TCPSessionCreator.initiate(addr, port);
 			final Channel channel = session.startChannel(URI);
 
-			if(channel.getState() == Channel.STATE_ACTIVE) {
+			if (channel.getState() == Channel.STATE_ACTIVE) {
 
 				final ReplyListener listener = new InitListener(addr, Role.Subscriber, rt, this);
 
-				final OutputDataStream ods = Utils.createInitMessage(Role.Subscriber, rt, this.allowedXmlEncodings,
+				final OutputDataStream ods = Utils.createInitMessage(
+						Role.Subscriber, rt, this.allowedXmlEncodings,
 						this.allowedMessageDigests, this.agent);
 
 				channel.sendMSG(ods, listener);
