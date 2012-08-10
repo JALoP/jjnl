@@ -314,6 +314,7 @@ public final class ContextImpl implements Context {
 			return this.publisherMap.get(sess).get(recordType);
 		}
 	}
+
 	@Override
 	public void close() {
 		// TODO Auto-generated method stub
