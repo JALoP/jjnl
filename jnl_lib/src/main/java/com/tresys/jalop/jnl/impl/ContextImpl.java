@@ -53,6 +53,7 @@ import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.ConnectionException;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.messages.Utils;
+import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 /**
@@ -77,6 +78,7 @@ public final class ContextImpl implements Context {
 	private final boolean tlsRequired;
 	private ConnectionState connectionState;
 	private final Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>> subscriberMap;
+	private final Map<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>> publisherMap;
 	private final String agent;
 
 	/**
@@ -150,8 +152,8 @@ public final class ContextImpl implements Context {
 		this.defaultDigestTimeout = defaultDigestTimeout;
 		this.defaultPendingDigestMax = defaultPendingDigestMax;
 		this.tlsRequired = tlsRequired;
-		this.subscriberMap = new HashMap<org.beepcore.beep.core.Session,
-		                            Map<RecordType,SubscriberSessionImpl>>();
+		this.subscriberMap = new HashMap<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>>();
+		this.publisherMap = new HashMap<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>>();
 		this.agent = agent;
 	}
 
@@ -213,31 +215,104 @@ public final class ContextImpl implements Context {
 
 	/**
 	 * Add a session to the set of tracked JALoP Sessions.
-	 * @param sess The {@link org.beepcore.beep.core.Session} that owns
-	 * the <code>subSess;
-	 * @param subSess The {@link SubscriberSessionImpl} that should be tracked by
-	 * this {@link ContextImpl}.
-	 * @throws JNLException If a {@link SubscriberSessionImpl} already exists
-	 * in the given {@link org.beepcore.beep.core.Session} for the same
-	 * {@link RecordType} as <code>subSess</code>
+	 *
+	 * @param sess
+	 *            The {@link org.beepcore.beep.core.Session} that owns the
+	 *            <code>subSess</code>;
+	 * @param subSess
+	 *            The {@link SubscriberSessionImpl} that should be tracked by
+	 *            this {@link ContextImpl}.
+	 * @throws JNLException
+	 *             If a {@link SubscriberSessionImpl} already exists in the
+	 *             given {@link org.beepcore.beep.core.Session} for the same
+	 *             {@link RecordType} as <code>subSess</code>
 	 */
-	public void addSession(final org.beepcore.beep.core.Session sess, final SubscriberSessionImpl subSess) throws JNLException {
-	    if (subSess.getRecordType() == RecordType.Unset) {
-	        throw new IllegalArgumentException();
-	    }
-	    Map<RecordType, SubscriberSessionImpl> map;
-	    synchronized (this.subscriberMap) {
-	        map = this.subscriberMap.get(sess);
-	        if (map == null) {
-	            map = new HashMap<RecordType, SubscriberSessionImpl>();
-	            this.subscriberMap.put(sess, map);
-	        }
-	        final RecordType rtype = subSess.getRecordType();
-	        if (map.containsKey(rtype)) {
-	            throw new JNLException("Attempting to add multiple sessions for the same rtype");
-	        }
-	        map.put(rtype, subSess);
-        }
+	public void addSession(final org.beepcore.beep.core.Session sess,
+			final SubscriberSessionImpl subSess) throws JNLException {
+		if (subSess.getRecordType() == RecordType.Unset) {
+			throw new IllegalArgumentException();
+		}
+
+		Map<RecordType, SubscriberSessionImpl> map;
+		synchronized (this.subscriberMap) {
+			map = this.subscriberMap.get(sess);
+			if (map == null) {
+				map = new HashMap<RecordType, SubscriberSessionImpl>();
+				this.subscriberMap.put(sess, map);
+			}
+			final RecordType rtype = subSess.getRecordType();
+			if (map.containsKey(rtype)) {
+				throw new JNLException(
+						"Attempting to add multiple sessions for the same rtype");
+			}
+			map.put(rtype, subSess);
+		}
+	}
+
+	/**
+	 * Add a session to the set of tracked JALoP Sessions.
+	 *
+	 * @param sess
+	 *            The {@link org.beepcore.beep.core.Session} that owns the
+	 *            <code>pubSess</code>;
+	 * @param pubSess
+	 *            The {@link PublisherSessionImpl} that should be tracked by
+	 *            this {@link ContextImpl}.
+	 * @throws JNLException
+	 *             If a {@link PublisherSessionImpl} already exists in the
+	 *             given {@link org.beepcore.beep.core.Session} for the same
+	 *             {@link RecordType} as <code>subSess</code>
+	 */
+	public void addSession(final org.beepcore.beep.core.Session sess,
+			final PublisherSessionImpl pubSess) throws JNLException {
+		if (pubSess.getRecordType() == RecordType.Unset) {
+			throw new IllegalArgumentException();
+		}
+		Map<RecordType, PublisherSessionImpl> map;
+		synchronized (this.publisherMap) {
+			map = this.publisherMap.get(sess);
+			if (map == null) {
+				map = new HashMap<RecordType, PublisherSessionImpl>();
+				this.publisherMap.put(sess, map);
+			}
+			final RecordType rtype = pubSess.getRecordType();
+			if (map.containsKey(rtype)) {
+				throw new JNLException(
+						"Attempting to add multiple sessions for the same rtype");
+			}
+			map.put(rtype, pubSess);
+		}
+	}
+
+	/**
+	 * Find the {@link PublisherSessionImpl} that is mapped to the given
+	 *            {@link org.beepcore.beep.core.Session} and {@link RecordType}.
+	 *
+	 * @param sess
+	 *            The {@link org.beepcore.beep.core.Session} that owns the
+	 *            {@link PublisherSessionImpl};
+	 * @param recordType
+	 *            The {@link RecordType} associated with the {@link PublisherSessionImpl}.
+	 * @return
+	 *            The {@link PublisherSessionImpl} that is mapped to the given
+	 *            {@link org.beepcore.beep.core.Session} and {@link RecordType}.
+	 * @throws JNLException
+	 *            If a {@link PublisherSessionImpl} does not exist for the
+	 *            {@link org.beepcore.beep.core.Session} and {@link RecordType}
+	 */
+	public PublisherSessionImpl getPublisherSession(final org.beepcore.beep.core.Session sess,
+			final RecordType recordType) throws JNLException {
+
+		synchronized(this.publisherMap) {
+			if(!this.publisherMap.containsKey(sess)) {
+				throw new JNLException("The publisherMap does not contain this Session.");
+			}
+			final Map<RecordType, PublisherSessionImpl> map = this.publisherMap.get(sess);
+			if(!map.containsKey(recordType)) {
+				throw new JNLException("The publisherMap does not contain a session for the RecordType: " + recordType);
+			}
+			return this.publisherMap.get(sess).get(recordType);
+		}
 	}
 	@Override
 	public void close() {

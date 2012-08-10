@@ -63,6 +63,7 @@ import com.tresys.jalop.jnl.exceptions.ConnectionException;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl.ConnectionState;
 import com.tresys.jalop.jnl.impl.messages.Utils;
+import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 public class ContextImplTest {
@@ -76,7 +77,8 @@ public class ContextImplTest {
     private static Field       tlsField;
     private static Field       jalSessionsField;
     private static Field       connectionStateField;
-    private static Field subscriberMapField;
+    private static Field       subscriberMapField;
+    private static Field       publisherMapField;
 
     @BeforeClass
     public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
@@ -91,6 +93,9 @@ public class ContextImplTest {
 
         subscriberMapField = ContextImpl.class.getDeclaredField("subscriberMap");
         subscriberMapField.setAccessible(true);
+
+        publisherMapField = ContextImpl.class.getDeclaredField("publisherMap");
+        publisherMapField.setAccessible(true);
     }
 
     @Before
@@ -113,6 +118,12 @@ public class ContextImplTest {
     private static Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>> getSubscriberMap(final ContextImpl c)
             throws IllegalArgumentException, IllegalAccessException {
         return (Map<org.beepcore.beep.core.Session, Map<RecordType, SubscriberSessionImpl>>) subscriberMapField.get(c);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>> getPublisherMap(final ContextImpl c)
+            throws IllegalArgumentException, IllegalAccessException {
+        return (Map<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>>) publisherMapField.get(c);
     }
 
     @Test
@@ -331,7 +342,7 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testAddSessionsWorks(final org.beepcore.beep.core.Session sess,
+    public final void testAddSessionsWorksForSubscriber(final org.beepcore.beep.core.Session sess,
             final SubscriberSessionImpl subSess, final Subscriber subscriber,
             final ConnectionHandler connectionHandler) throws JNLException, IllegalAccessException {
 
@@ -343,6 +354,21 @@ public class ContextImplTest {
         final Map<RecordType, SubscriberSessionImpl> subSessionMap = map.get(sess);
         assertTrue(subSessionMap.containsKey(subSess.getRecordType()));
         assertEquals(subSess, subSessionMap.get(subSess.getRecordType()));
+    }
+
+    @Test
+    public final void testAddSessionsWorksForPublisher(final org.beepcore.beep.core.Session sess,
+            final PublisherSessionImpl pubSess, final Publisher publisher,
+            final ConnectionHandler connectionHandler) throws JNLException, IllegalAccessException {
+
+        final ContextImpl c = new ContextImpl(publisher, null, connectionHandler, 100, 10, false, null, digests, encodings);
+        c.addSession(sess, pubSess);
+        final Map<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>> map = getPublisherMap(c);
+        assertTrue(map.containsKey(sess));
+
+        final Map<RecordType, PublisherSessionImpl> pubSessionMap = map.get(sess);
+        assertTrue(pubSessionMap.containsKey(pubSess.getRecordType()));
+        assertEquals(pubSess, pubSessionMap.get(pubSess.getRecordType()));
     }
 
     @Test
