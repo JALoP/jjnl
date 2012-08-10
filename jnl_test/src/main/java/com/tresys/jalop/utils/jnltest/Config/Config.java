@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -85,10 +84,10 @@ public class Config {
 		final Config config = new Config(cfgFile);
 		config.handleCommon(parsedConfig);
 
-		Object subscriber = parsedConfig.get(SUBSCRIBER);
-		Object publisher = parsedConfig.get(PUBLISHER);
-	    Object listener = parsedConfig.get(LISTENER);
-	    String exceptionMsg = new StringBuilder().append("Must specify one of '")
+		final Object subscriber = parsedConfig.get(SUBSCRIBER);
+		final Object publisher = parsedConfig.get(PUBLISHER);
+	    final Object listener = parsedConfig.get(LISTENER);
+	    final String exceptionMsg = new StringBuilder().append("Must specify one of '")
 	        .append(SUBSCRIBER).append("', '")
 	        .append(PUBLISHER).append("', ")
 	        .append(LISTENER).append('\'').toString();
@@ -140,7 +139,7 @@ public class Config {
 	private int pendingDigestMax;
 	private int pendingDigestTimeout;
 	private int port;
-	private Set<RecordType> recordTypes;
+	private final Set<RecordType> recordTypes;
 	private Role role;
 	private Date sessionTimeout;
 	private final String source;
@@ -261,7 +260,7 @@ public class Config {
 	 * @return A Date that represents the amount of time to wait. This is the
 	 *         amount of time to wait, not a future date.
 	 */
-	
+
 	public Date getSessionTimeout() {
 		return this.sessionTimeout;
 	}
@@ -301,7 +300,7 @@ public class Config {
 	 */
 	void handleCommon(final JSONObject obj) throws ConfigurationException {
 		handleAddress(obj);
-		setPort(itemAsNumber(PORT, obj).shortValue());
+		setPort(itemAsNumber(PORT, obj).intValue());
 	}
 
 	/**
@@ -529,7 +528,7 @@ public class Config {
 	 */
 	String itemAsString(final String key, final JSONObject obj,
 			final boolean required) throws ConfigurationException {
-		Object o = obj.get(key);
+		final Object o = obj.get(key);
 		if (!required && (o == null)) {
 			return (String) o;
 		}
@@ -538,7 +537,7 @@ public class Config {
 
 	/**
 	 * Helper utility to create a {@link RecordType} from a JSON Object.
-	 * 
+	 *
 	 * @param o
 	 *            The object to convert to a {@link RecordType}. This is
 	 *            expected to be a value from a {@link JSONObject} or
@@ -548,7 +547,7 @@ public class Config {
 	 *             If there is a problem converting to a {@link RecordType}
 	 */
 	RecordType objectToRecordType(final Object o) throws ConfigurationException {
-		String dataClass = asStringValue(this.source, null, o);
+		final String dataClass = asStringValue(this.source, null, o);
 		if (JOURNAL.equals(dataClass)) {
 			return RecordType.Journal;
 		} else if (AUDIT.equals(dataClass)) {
@@ -596,7 +595,7 @@ public class Config {
 
 	/**
 	 * Configure this to initiate a connection, or listen for connections.
-	 * 
+	 *
 	 * @param connect
 	 *            if set to true, specifies that a connection should be
 	 *            initiated. If set to false, specifies to listen for
@@ -738,7 +737,7 @@ public class Config {
 	 *             if <code>o</code> is <code>null</code> or not a
 	 *             {@link String}.
 	 */
-	static String asStringValue(String path, String key, Object o)
+	static String asStringValue(final String path, final String key, final Object o)
 			throws ConfigurationException {
 		if (o instanceof String) {
 			return (String) o;
@@ -766,7 +765,7 @@ public class Config {
 	 *             if <code>o</code> is <code>null</code> or not a
 	 *             {@link Number}.
 	 */
-	static Number asNumberValue(String path, String key, Object o)
+	static Number asNumberValue(final String path, final String key, final Object o)
 			throws ConfigurationException {
 		if (o instanceof Number) {
 			return (Number) o;
@@ -794,7 +793,7 @@ public class Config {
 	 *             if <code>o</code> is <code>null</code> or not a
 	 *             {@link JSONObject}.
 	 */
-	static JSONObject asJsonObject(String path, String key, Object o)
+	static JSONObject asJsonObject(final String path, final String key, final Object o)
 			throws ConfigurationException {
 		if (o instanceof JSONObject) {
 			return (JSONObject) o;
@@ -822,7 +821,7 @@ public class Config {
 	 *             if <code>o</code> is <code>null</code> or not a
 	 *             {@link JSONArray}.
 	 */
-	static JSONArray asJsonArray(String path, String key, Object o)
+	static JSONArray asJsonArray(final String path, final String key, final Object o)
 			throws ConfigurationException {
 		if (o instanceof JSONArray) {
 			return (JSONArray) o;
