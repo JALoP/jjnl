@@ -51,6 +51,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
+import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.SubscribeRequest;
@@ -62,6 +63,7 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.jnl.impl.messages.InitAckMessage;
 import com.tresys.jalop.jnl.impl.messages.InitNackMessage;
 import com.tresys.jalop.jnl.impl.messages.Utils;
+import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 public class InitListenerTest {
@@ -196,6 +198,54 @@ public class InitListenerTest {
         final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveERR(msg);
     }
+
+	@Test
+	public void testReceiveRpyWorksForPublisher(final ContextImpl contextImpl,
+			final InputDataStream ids, final InputDataStreamAdapter isa,
+			final Message msg, final Publisher publisher, final Session sess,
+			final SubscribeRequest subRequest, final OutputDataStream ods,
+			final Channel channel, final PublisherSessionImpl pubSess,
+			final ReplyListener rpyListener, final InetAddress address)
+			throws BEEPException, JNLException {
+
+		final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
+		final LinkedList<String> allowedDigests = new LinkedList<String>();
+		allowedDigests.add(DigestMethod.SHA256);
+		final LinkedList<String> allowedEncs = new LinkedList<String>();
+		allowedEncs.add("foo");
+
+		// mock up thread since this function is supposed to spawn a new thread, but
+        // don't actually want it to do that.
+        new MockUp<Thread>() {
+            @Mock
+            public void start() {
+                // do nothing
+            }
+        };
+
+		new NonStrictExpectations() {
+			{
+				msg.getDataStream(); result = ids;
+				ids.getInputStream(); result = isa;
+				Utils.processInitAck(isa); result = iam;
+				contextImpl.getAllowedMessageDigests(); result = allowedDigests;
+				contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
+				contextImpl.getPublisher(); result = publisher;
+				msg.getChannel(); result = channel;
+				channel.getSession(); result = sess;
+
+			}
+		};
+
+		final InitListener initListener = new InitListener(address, Role.Publisher, RecordType.Audit, contextImpl);
+		initListener.receiveRPY(msg);
+
+		new VerificationsInOrder() {
+			{
+				contextImpl.addSession(sess, (PublisherSessionImpl) any);
+			}
+		};
+	}
 
 }
 
