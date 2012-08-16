@@ -46,6 +46,7 @@ import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
+import org.beepcore.beep.core.RequestHandler;
 import org.beepcore.beep.transport.tcp.TCPSession;
 import org.beepcore.beep.transport.tcp.TCPSessionCreator;
 import org.junit.Before;
@@ -480,5 +481,77 @@ public class ContextImplTest {
 		};
 
 		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Unset);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public final void testPublishWorks(final Publisher publisher,
+			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator,
+			final OutputDataStream ods)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, false, "agent", digests, encodings);
+
+		new NonStrictExpectations() {
+			{
+				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				session.startChannel(anyString, (RequestHandler) any); result = channel;
+				channel.getState(); result = Channel.STATE_ACTIVE;
+				Utils.createInitMessage((Role)any,
+						(RecordType)any,
+						(List<String>)any,
+						(List<String>)any,
+						anyString);
+					result = ods;
+			}
+		};
+
+		c.publish(InetAddress.getByName("localhost"), 0, RecordType.Log);
+		assertEquals(ConnectionState.CONNECTED, connectionStateField.get(c));
+
+		new VerificationsInOrder() {
+			{
+				channel.sendMSG(ods, (ReplyListener)any);
+			}
+		};
+	}
+
+	@Test(expected = ConnectionException.class)
+	public final void testPublishThrowsExceptionIfAlreadyConnected(final Publisher publisher)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, false, "agent", digests, encodings);
+		connectionStateField.set(c, ConnectionState.CONNECTED);
+		c.publish(InetAddress.getByName("localhost"), 1234, RecordType.Log);
+	}
+
+	@Test(expected = JNLException.class)
+	public final void testPublishThrowsExceptionWithNullPublisher(final Subscriber subscriber)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, false, "agent", digests, encodings);
+		c.publish(InetAddress.getByName("localhost"), 0, RecordType.Log);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public final void testPublishThrowsExceptionWithNullAddress(final Publisher publisher)
+			throws IllegalAccessException, JNLException, BEEPException {
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, false, "agent", digests, encodings);
+		c.publish(null, 0, RecordType.Log);
+	}
+
+	@Test(expected = JNLException.class)
+	public final void testPublishThrowsExceptionWithUnsetRecordType(final Publisher publisher,
+			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator)
+			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, false, "agent", digests, encodings);
+
+		new NonStrictExpectations() {
+			{
+				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				session.startChannel(anyString); result = channel;
+				channel.getState(); result = Channel.STATE_ACTIVE;
+			}
+		};
+
+		c.publish(InetAddress.getByName("localhost"), 0, RecordType.Unset);
 	}
 }
