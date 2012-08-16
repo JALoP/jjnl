@@ -25,6 +25,8 @@
 package com.tresys.jalop.jnl.impl;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -33,8 +35,10 @@ import org.apache.log4j.Logger;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.MessageMSG;
+import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.RequestHandler;
 
+import com.tresys.jalop.jnl.DigestPair;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
@@ -86,10 +90,12 @@ public class DigestRequestHandler implements RequestHandler {
 
 			final DigestMessage msg = Utils.processDigestMessage(data);
 			final Publisher publisher = this.contextImpl.getPublisher();
+			final Map<String, DigestStatus> digestStatusMap = new HashMap<String, DigestStatus>();
+			final Map<String, DigestPair> digestPairMap = new HashMap<String, DigestPair>();
 
 			for(final String serialId : msg.getMap().keySet()) {
 
-				final byte[] localDigest = this.sess.getDigestPair(serialId).getLocalDigest();
+				final byte[] localDigest = this.sess.fetchAndRemoveDigest(serialId);
 				final byte[] peerDigest =  DatatypeConverter.parseHexBinary(msg.getMap().get(serialId));
 
 				DigestStatus ds;
@@ -99,10 +105,15 @@ public class DigestRequestHandler implements RequestHandler {
 					ds = DigestStatus.Invalid;
 				}
 
-				this.sess.updateDigestPair(serialId, peerDigest, ds);
+				final DigestPair dp = new DigestPairImpl(serialId, localDigest, peerDigest, ds);
+				digestPairMap.put(serialId, dp);
+				digestStatusMap.put(serialId, ds);
 			}
 
-			publisher.notifyPeerDigest(this.sess, this.sess.getDigestPairsMap());
+			publisher.notifyPeerDigest(this.sess, digestPairMap);
+
+			final OutputDataStream ods = Utils.createDigestResponse(digestStatusMap);
+			message.sendRPY(ods);
 
 		} catch (final BEEPException e) {
 			if (log.isEnabledFor(Level.ERROR)) {

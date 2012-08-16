@@ -146,7 +146,7 @@ public class PublisherRequestHandler implements RequestHandler {
 
 					final byte[] digest = md.digest();
 
-					sess.addDigestPair(currSerialId, digest);
+					sess.addDigest(currSerialId, digest);
 					publisher.notifyDigest(sess, currSerialId, digest);
 
 					message.sendANS(ods);

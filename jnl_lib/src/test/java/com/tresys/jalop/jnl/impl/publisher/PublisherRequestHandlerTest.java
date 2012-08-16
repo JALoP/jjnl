@@ -121,7 +121,7 @@ public class PublisherRequestHandlerTest {
 				sourceRecord.getSysMetaLength(); result = (long)10;
 				sourceRecord.getAppMetaLength(); result = (long)10;
 				sourceRecord.getPayloadLength(); result = (long)10;
-				publisherSess.addDigestPair(anyString, (byte[]) any);
+				publisherSess.addDigest(anyString, (byte[]) any);
 				publisher.notifyDigest(publisherSess, anyString, (byte[]) any);
 				message.sendANS((OutputDataStream) any);
 				publisher.getNextRecord(publisherSess, anyString); result = null;

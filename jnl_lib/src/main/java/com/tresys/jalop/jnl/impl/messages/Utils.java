@@ -894,9 +894,9 @@ public class Utils {
 		final Iterator<String> sIDs = statusMap.keySet().iterator();
 		while (sIDs.hasNext()) {
 			final String id = sIDs.next();
-			message.append(checkForEmptyString(id, SERIAL_ID));
-			message.append("=");
 			message.append(checkForEmptyString(statusMap.get(id).toString(), STATUS));
+			message.append("=");
+			message.append(checkForEmptyString(id, SERIAL_ID));
 			message.append("\r\n");
 		}
 

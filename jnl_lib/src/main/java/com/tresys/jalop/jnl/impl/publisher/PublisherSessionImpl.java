@@ -36,8 +36,6 @@ import org.beepcore.beep.core.BEEPError;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
 
-import com.tresys.jalop.jnl.DigestPair;
-import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.PublisherSession;
 import com.tresys.jalop.jnl.RecordType;
@@ -45,7 +43,6 @@ import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
-import com.tresys.jalop.jnl.impl.DigestPairImpl;
 import com.tresys.jalop.jnl.impl.DigestRequestHandler;
 import com.tresys.jalop.jnl.impl.SessionImpl;
 import com.tresys.jalop.jnl.impl.messages.Utils;
@@ -63,7 +60,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 
 	private final Publisher publisher;
 	private final ContextImpl contextImpl;
-	private final Map<String, DigestPairImpl> digestPairsMap;
+	private final Map<String, byte[]> digestMap;
 
 	/**
 	 * The MessageDigest to use for calculating the JALoP digest.
@@ -104,7 +101,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 
 		this.publisher = publisher;
 		this.contextImpl = contextImpl;
-		this.digestPairsMap = new HashMap<String, DigestPairImpl>();
+		this.digestMap = new HashMap<String, byte[]>();
 
 		try {
 			final MessageDigest md = MessageDigest.getInstance(getDigestType(digestMethod.trim()));
@@ -163,75 +160,40 @@ public class PublisherSessionImpl extends SessionImpl implements
 	}
 
 	/**
-	 * Add a digestPair to the set of tracked digests.
+	 * Get the locally calculated digest associated with the given serialId and
+	 * then remove it from the map.
 	 *
 	 * @param serialId
-	 * 				A String which is the serial id for the calculated digests
+	 * 				A String which is the serial id for the calculated digest
+	 * @return
+	 * 				The local digest associated with the serialId.
+	 */
+	public byte[] fetchAndRemoveDigest(final String serialId) {
+		synchronized(this.digestMap) {
+			final byte[] localDigest = this.digestMap.get(serialId);
+			this.digestMap.remove(serialId);
+			return localDigest;
+		}
+	}
+
+	/**
+	 * Add a locally calculated digest to the set of tracked digests.
+	 *
+	 * @param serialId
+	 * 				A String which is the serial id for the calculated digest
 	 * @param localDigest
 	 * 				A byte[] which is the digest calculated locally by the publisher
-	 */
-	public void addDigestPair(final String serialId,
-			final byte[] localDigest) throws JNLException {
-
-		synchronized (this.digestPairsMap) {
-			if (this.digestPairsMap.containsKey(serialId)) {
-				throw new JNLException(
-						"Attempting to add multiple DigestPairs for the same serialId");
-			}
-			final DigestPairImpl dp = new DigestPairImpl(serialId, localDigest);
-			this.digestPairsMap.put(serialId, dp);
-		}
-	}
-
-	/**
-	 * Update the DigestPair for the given serialId with the digest calculated
-	 * by the peer and the status.
-	 *
-	 * @param serialId
-	 * 				A String which is the serial id for the calculated digests
-	 * @param peerDigest
-	 * 				A byte[] which is the digest calculated remotely by the subscriber
-	 * @param digestStatus
-	 * 				The DigestStatus for this pair
 	 * @throws JNLException
-	 * 				If attempting to update a digestPair that doesn't exist in the map.
+	 * 				If attempting to add a serialId that already exists in the map.
 	 */
-	public void updateDigestPair(final String serialId, final byte[] peerDigest,
-			final DigestStatus digestStatus) throws JNLException {
-
-		synchronized (this.digestPairsMap) {
-			if (!this.digestPairsMap.containsKey(serialId)) {
+	public void addDigest(final String serialId, final byte[] localDigest)
+			throws JNLException {
+		synchronized(this.digestMap) {
+			if (this.digestMap.containsKey(serialId)) {
 				throw new JNLException(
-						"Attempting to update a DigestPair that doesn't exist in the map.");
+						"Attempting to add multiple digests for the same serialId");
 			}
-			final DigestPairImpl dp = this.digestPairsMap.get(serialId);
-			dp.setDigestStatus(digestStatus);
-			dp.setPeerDigest(peerDigest);
-		}
-	}
-
-	/**
-	 * @return the digestPairsMap
-	 */
-	public Map<String, DigestPair> getDigestPairsMap() {
-		final Map<String, DigestPair> map = new HashMap<String, DigestPair>();
-		synchronized (this.digestPairsMap) {
-			map.putAll(this.digestPairsMap);
-		}
-		return map;
-	}
-
-	/**
-	 * Returns the DigestPair for the given serialId
-	 *
-	 * @param serialId
-	 * 				The serialId to find the DigestPair for.
-	 * @return
-	 * 				The DigestPair that is mapped to the give serialId.
-	 */
-	public DigestPair getDigestPair(final String serialId) {
-		synchronized(this.digestPairsMap) {
-			return this.digestPairsMap.get(serialId);
+			this.digestMap.put(serialId, localDigest);
 		}
 	}
 

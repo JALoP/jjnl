@@ -35,8 +35,8 @@ public class DigestPairImpl implements DigestPair {
 
 	final String serialId;
 	final byte[] localDigest;
-	byte[] peerDigest;
-	DigestStatus digestStatus;
+	final byte[] peerDigest;
+	final DigestStatus digestStatus;
 
 	/**
 	 * Create a {@link DigestPairImpl} object. The object is created with a
@@ -46,11 +46,17 @@ public class DigestPairImpl implements DigestPair {
 	 * 				A String which is the serial id for the calculated digests
 	 * @param localDigest
 	 * 				A byte[] which is the digest calculated locally by the publisher
+	 * @param peerDigest
+	 * 				A byte[] which is the digest calculated remotely by the subscriber
+	 * @param digestStatus
+	 * 				The {@link DigestStatus} indicating whether the two digests matched.
 	 */
-	public DigestPairImpl(final String serialId, final byte[] localDigest) {
+	public DigestPairImpl(final String serialId, final byte[] localDigest, final byte[] peerDigest,
+			final DigestStatus digestStatus) {
 		this.serialId = serialId;
 		this.localDigest = localDigest;
-		this.digestStatus = DigestStatus.Unknown;
+		this.peerDigest = peerDigest;
+		this.digestStatus = digestStatus;
 	}
 
 	@Override
@@ -71,20 +77,6 @@ public class DigestPairImpl implements DigestPair {
 	@Override
 	public DigestStatus getDigestStatus() {
 		return this.digestStatus;
-	}
-
-	/**
-	 * @param peerDigest the peerDigest to set
-	 */
-	public void setPeerDigest(final byte[] peerDigest) {
-		this.peerDigest = peerDigest;
-	}
-
-	/**
-	 * @param digestStatus the digestStatus to set
-	 */
-	public void setDigestStatus(final DigestStatus digestStatus) {
-		this.digestStatus = digestStatus;
 	}
 
 }

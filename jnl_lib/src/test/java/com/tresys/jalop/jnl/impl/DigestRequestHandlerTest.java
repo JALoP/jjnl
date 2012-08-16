@@ -77,6 +77,7 @@ public class DigestRequestHandlerTest {
 		assertEquals(sess, drh.sess);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testReceiveMSGWorks(final ContextImpl contextImpl, final MessageMSG msg,
 			final Publisher publisher, final DigestMessage digestMessage,
@@ -89,9 +90,6 @@ public class DigestRequestHandlerTest {
 		final Constructor<DigestMessage> constructor = DigestMessage.class.getDeclaredConstructor(Map.class, MimeHeaders.class);
 		constructor.setAccessible(true);
 		final DigestMessage dm = constructor.newInstance(new HashMap<String, String>(), new MimeHeaders());
-		final Map<String, DigestPair> digestPairsMap = new HashMap<String, DigestPair>();
-		final DigestPairImpl dp = new DigestPairImpl("serial1", "123456".getBytes());
-		digestPairsMap.put("serial1", dp);
 		final Map<String, String> map = new HashMap<String, String>();
 		map.put("serial1", "313233343536");
 
@@ -103,9 +101,8 @@ public class DigestRequestHandlerTest {
 				msg.getChannel(); result = channel;
                 channel.getSession(); result = sess;
                 dm.getMap(); result = map;
-                publisherSessionImpl.getDigestPair(anyString); result = dp;
+                publisherSessionImpl.fetchAndRemoveDigest(anyString); result = "123456".getBytes();
                 contextImpl.getPublisher(); result = publisher;
-                publisherSessionImpl.getDigestPairsMap(); result = digestPairsMap;
 			}
 		};
 
@@ -113,12 +110,12 @@ public class DigestRequestHandlerTest {
 
 		new VerificationsInOrder() {
 			{
-				publisherSessionImpl.updateDigestPair("serial1", (byte[])any, DigestStatus.Confirmed);
-				publisher.notifyPeerDigest(publisherSessionImpl, digestPairsMap);
+				publisher.notifyPeerDigest(publisherSessionImpl, (Map<String, DigestPair>) any);
 			}
 		};
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testReceiveMSGSetsInvalid(final ContextImpl contextImpl, final MessageMSG msg,
 			final Publisher publisher, final DigestMessage digestMessage,
@@ -131,9 +128,6 @@ public class DigestRequestHandlerTest {
 		final Constructor<DigestMessage> constructor = DigestMessage.class.getDeclaredConstructor(Map.class, MimeHeaders.class);
 		constructor.setAccessible(true);
 		final DigestMessage dm = constructor.newInstance(new HashMap<String, String>(), new MimeHeaders());
-		final Map<String, DigestPair> digestPairsMap = new HashMap<String, DigestPair>();
-		final DigestPairImpl dp = new DigestPairImpl("serial1", "123456".getBytes());
-		digestPairsMap.put("serial1", dp);
 		final Map<String, String> map = new HashMap<String, String>();
 		map.put("serial1", "9876543210");
 
@@ -145,9 +139,8 @@ public class DigestRequestHandlerTest {
 				msg.getChannel(); result = channel;
                 channel.getSession(); result = sess;
                 dm.getMap(); result = map;
-                publisherSessionImpl.getDigestPair(anyString); result = dp;
+                publisherSessionImpl.fetchAndRemoveDigest(anyString); result = "123456".getBytes();
                 contextImpl.getPublisher(); result = publisher;
-                publisherSessionImpl.getDigestPairsMap(); result = digestPairsMap;
 			}
 		};
 
@@ -155,8 +148,8 @@ public class DigestRequestHandlerTest {
 
 		new VerificationsInOrder() {
 			{
-				publisherSessionImpl.updateDigestPair("serial1", (byte[])any, DigestStatus.Invalid);
-				publisher.notifyPeerDigest(publisherSessionImpl, digestPairsMap);
+				new DigestPairImpl(anyString, (byte[])any, (byte[])any, DigestStatus.Invalid);
+				publisher.notifyPeerDigest(publisherSessionImpl, (Map<String, DigestPair>) any);
 			}
 		};
 	}

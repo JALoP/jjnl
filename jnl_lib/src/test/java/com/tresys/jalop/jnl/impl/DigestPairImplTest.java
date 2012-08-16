@@ -38,15 +38,10 @@ public class DigestPairImplTest {
 		final String serialId = "serialId";
 		final byte[] localDigest = "digest".getBytes();
 		final byte[] peerDigest = "peer".getBytes();
-		final DigestPairImpl dp = new DigestPairImpl(serialId, localDigest);
+		final DigestPairImpl dp = new DigestPairImpl(serialId, localDigest, peerDigest, DigestStatus.Confirmed);
 		assertEquals(serialId, dp.getSerialId());
 		assertEquals(localDigest, dp.getLocalDigest());
-		assertEquals(DigestStatus.Unknown, dp.getDigestStatus());
-
-		dp.setDigestStatus(DigestStatus.Confirmed);
 		assertEquals(DigestStatus.Confirmed, dp.getDigestStatus());
-
-		dp.setPeerDigest(peerDigest);
 		assertEquals(peerDigest, dp.getPeerDigest());
 	}
 }

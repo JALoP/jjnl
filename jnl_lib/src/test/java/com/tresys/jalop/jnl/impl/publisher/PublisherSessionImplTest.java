@@ -46,14 +46,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.tresys.jalop.jnl.DigestPair;
-import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
-import com.tresys.jalop.jnl.impl.DigestPairImpl;
 import com.tresys.jalop.jnl.impl.SessionImpl;
 
 public class PublisherSessionImplTest {
@@ -67,14 +64,14 @@ public class PublisherSessionImplTest {
 		errored = SessionImpl.class.getDeclaredField("errored");
 		errored.setAccessible(true);
 
-		digestMapField = PublisherSessionImpl.class.getDeclaredField("digestPairsMap");
+		digestMapField = PublisherSessionImpl.class.getDeclaredField("digestMap");
         digestMapField.setAccessible(true);
 	}
 
 	@SuppressWarnings("unchecked")
-	private static Map<String, DigestPairImpl> getDigestMap(final PublisherSessionImpl p)
+	private static Map<String, byte[]> getDigestMap(final PublisherSessionImpl p)
 			throws IllegalArgumentException, IllegalAccessException {
-		return (Map<String, DigestPairImpl>) digestMapField.get(p);
+		return (Map<String,  byte[]>) digestMapField.get(p);
 	}
 
 	@Before
@@ -133,80 +130,47 @@ public class PublisherSessionImplTest {
 	}
 
 	@Test
-	public final void testAddDigestPairWorks(final ContextImpl contextImpl, final Publisher publisher,
+	public final void testAddDigestWorks(final ContextImpl contextImpl, final Publisher publisher,
 			final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws JNLException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
 				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
-		p.addDigestPair("serialId", local);
-		final Map<String, DigestPairImpl> map = getDigestMap(p);
-		assertTrue(map.containsKey("serialId"));
-		assertEquals(local, map.get("serialId").getLocalDigest());
+		final String serialId = "serialId";
+		p.addDigest(serialId, local);
+		final Map<String, byte[]> map = getDigestMap(p);
+		assertTrue(map.containsKey(serialId));
+		assertEquals(local, map.get(serialId));
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testAddDigestPairThrowsExceptionWithDuplicate(final ContextImpl contextImpl, final Publisher publisher,
-			final org.beepcore.beep.core.Session sess, final InetAddress address)
-			throws JNLException {
+	public final void testAddDigestThrowsExceptionWithDuplicate(final ContextImpl contextImpl,
+			final Publisher publisher, final org.beepcore.beep.core.Session sess, final InetAddress address)
+			throws JNLException, IllegalAccessException {
+
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
 				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
-		p.addDigestPair("serialId", "local".getBytes());
-		p.addDigestPair("serialId", "local".getBytes());
+		final byte[] local = "local".getBytes();
+		final String serialId = "serialId";
+		p.addDigest(serialId, local);
+		p.addDigest(serialId, local);
 	}
 
 	@Test
-	public final void testUpdateDigestPairWorks(final ContextImpl contextImpl, final Publisher publisher,
+	public final void testFetchAndRemoveWorks(final ContextImpl contextImpl,final Publisher publisher,
 			final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws JNLException, IllegalAccessException {
+
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
 				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
-		final byte[] peer = "peer".getBytes();
-		p.addDigestPair("serialId", local);
-		final Map<String, DigestPairImpl> map = getDigestMap(p);
-
-		p.updateDigestPair("serialId", peer, DigestStatus.Confirmed);
-		assertEquals(DigestStatus.Confirmed, map.get("serialId").getDigestStatus());
-		assertEquals(peer, map.get("serialId").getPeerDigest());
+		final String serialId = "serialId";
+		p.addDigest(serialId, local);
+		final byte[] fetched = p.fetchAndRemoveDigest(serialId);
+		assertEquals(local, fetched);
+		final Map<String, byte[]> map = getDigestMap(p);
+		assertFalse(map.containsKey(serialId));
 	}
 
-	@Test(expected = JNLException.class)
-	public final void testUpdateDigestPairFailsWithInvalidSerialId(final ContextImpl contextImpl, final Publisher publisher,
-			final org.beepcore.beep.core.Session sess, final InetAddress address)
-			throws JNLException, IllegalAccessException {
-		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
-		final byte[] local = "local".getBytes();
-		final byte[] peer = "peer".getBytes();
-		p.addDigestPair("serialId", local);
-		p.updateDigestPair("invalid", peer, DigestStatus.Confirmed);
-	}
-
-	@Test
-	public void testGetDigestPairsMapWorks(final ContextImpl contextImpl, final Publisher publisher,
-			final org.beepcore.beep.core.Session sess, final InetAddress address)
-			throws JNLException {
-		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
-		final byte[] local = "local".getBytes();
-		p.addDigestPair("serialId", local);
-		final Map<String, DigestPair> map = p.getDigestPairsMap();
-		assertTrue(map.containsKey("serialId"));
-	}
-
-	@Test
-	public final void testGetDigestPairWorks(final ContextImpl contextImpl, final Publisher publisher,
-			final org.beepcore.beep.core.Session sess, final InetAddress address)
-			throws JNLException, IllegalAccessException {
-		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
-		final byte[] local = "local".getBytes();
-		p.addDigestPair("serialId", local);
-
-		final DigestPair dp = p.getDigestPair("serialId");
-		assertEquals("serialId", dp.getSerialId());
-		assertEquals(local, dp.getLocalDigest());
-	}
 }

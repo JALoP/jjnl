@@ -1232,7 +1232,7 @@ public class TestUtils {
 			assertEquals(Utils.CT_JALOP, mh.getContentType());
 			assertEquals(Utils.MSG_DIGEST_RESP, mh.getHeaderValue(Utils.HDRS_MESSAGE));
 			assertEquals("3", mh.getHeaderValue(Utils.HDRS_COUNT));
-			final String digests = "12346=Invalid\r\n12347=Unknown\r\n12345=Confirmed\r\n";
+			final String digests = "Invalid=12346\r\nUnknown=12347\r\nConfirmed=12345\r\n";
 			assertEquals(digests, new String(bs.getData()));
 		}
 	}
