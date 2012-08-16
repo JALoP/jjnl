@@ -44,6 +44,7 @@ import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.MessageMSG;
+import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.Session;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +83,8 @@ public class DigestRequestHandlerTest {
 	public void testReceiveMSGWorks(final ContextImpl contextImpl, final MessageMSG msg,
 			final Publisher publisher, final DigestMessage digestMessage,
 			final PublisherSessionImpl publisherSessionImpl, final Session sess,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel)
+			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel,
+			final OutputDataStream ods)
 			throws JNLException, SecurityException, NoSuchMethodException, InstantiationException,
 			IllegalAccessException, InvocationTargetException, BEEPException {
 
@@ -103,6 +105,7 @@ public class DigestRequestHandlerTest {
                 dm.getMap(); result = map;
                 publisherSessionImpl.fetchAndRemoveDigest(anyString); result = "123456".getBytes();
                 contextImpl.getPublisher(); result = publisher;
+                Utils.createDigestResponse((Map<String, DigestStatus>) any); result = ods;
 			}
 		};
 
@@ -111,6 +114,7 @@ public class DigestRequestHandlerTest {
 		new VerificationsInOrder() {
 			{
 				publisher.notifyPeerDigest(publisherSessionImpl, (Map<String, DigestPair>) any);
+				msg.sendRPY(ods);
 			}
 		};
 	}
