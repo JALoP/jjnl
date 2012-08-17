@@ -26,15 +26,18 @@ package com.tresys.jalop.utils.jnltest;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +49,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestPair;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.PublisherSession;
@@ -86,6 +90,34 @@ public class PublisherImpl implements Publisher {
     private static final String PEERDGST = "peer_digest";
 
     /**
+     * Regular expression used for filtering directories, i.e. only directories
+     * which have exactly ten digits as a filename.
+     */
+    private static final String SID_REGEX = "^\\d{10}$";
+
+    /**
+     * Filter used for searching an existing file system tree for previously
+     * downloaded records.
+     */
+    static final FilenameFilter FILENAME_FILTER =
+        new PatternFilenameFilter(SID_REGEX);
+
+    /**
+     * FileFilter to get all sub-directories that match the serial ID
+     * pattern.
+     */
+    private static final FileFilter FILE_FILTER = new FileFilter() {
+        @Override
+        public boolean accept(final File pathname) {
+            if (pathname.isDirectory()) {
+                return FILENAME_FILTER.accept(pathname.getParentFile(),
+                                              pathname.getName());
+            }
+            return false;
+        }
+    };
+
+    /**
      * Root of the input directories. Each record has its own
      * sub-directory.
      */
@@ -122,7 +154,37 @@ public class PublisherImpl implements Publisher {
 	@Override
 	public SourceRecord getNextRecord(final PublisherSession sess, final String lastSerialId) {
 
-		final long nextSerialId = Long.valueOf(lastSerialId) + 1;
+		final long nextSerialId;
+		if(Long.valueOf(lastSerialId) == 0) {
+
+			if(LOGGER.isInfoEnabled()) {
+				LOGGER.info("SerialId of 0 sent. Finding the oldest file.");
+			}
+
+			final File[] recordDirs =
+				this.inputRoot.listFiles(PublisherImpl.FILE_FILTER);
+
+			Arrays.sort(recordDirs);
+
+			final File firstFile = recordDirs[0];
+			final String fileName = firstFile.getName();
+
+			nextSerialId = Long.valueOf(fileName);
+
+			if(nextSerialId == 0) {
+				if(LOGGER.isEnabledFor(Level.ERROR)) {
+					LOGGER.error("Found a record with the invalid serialId of 0.");
+				}
+				throw new RuntimeException("SerialId of 0 is reserved and cannot be associated with a record.");
+			}
+
+			if(LOGGER.isInfoEnabled()) {
+				LOGGER.info("Oldest file found with serialId: " + nextSerialId);
+			}
+
+		} else {
+			nextSerialId = Long.valueOf(lastSerialId) + 1;
+		}
 
 		final File serialDir =
 			new File(this.inputRoot,
