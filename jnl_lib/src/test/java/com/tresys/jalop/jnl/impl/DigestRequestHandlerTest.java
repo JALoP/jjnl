@@ -99,6 +99,7 @@ public class DigestRequestHandlerTest {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
+                isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST;
                 Utils.processDigestMessage(isa); result = dm;
 				msg.getChannel(); result = channel;
                 channel.getSession(); result = sess;
@@ -139,6 +140,7 @@ public class DigestRequestHandlerTest {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
+                isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST;
                 Utils.processDigestMessage(isa); result = dm;
 				msg.getChannel(); result = channel;
                 channel.getSession(); result = sess;

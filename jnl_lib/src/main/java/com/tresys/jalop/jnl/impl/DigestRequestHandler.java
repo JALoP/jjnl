@@ -42,10 +42,10 @@ import com.tresys.jalop.jnl.DigestPair;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
-import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.jnl.impl.messages.DigestMessage;
+import com.tresys.jalop.jnl.impl.messages.SyncMessage;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 
@@ -87,33 +87,50 @@ public class DigestRequestHandler implements RequestHandler {
 			.getInputStream();
 
 		try {
-
-			final DigestMessage msg = Utils.processDigestMessage(data);
 			final Publisher publisher = this.contextImpl.getPublisher();
-			final Map<String, DigestStatus> digestStatusMap = new HashMap<String, DigestStatus>();
-			final Map<String, DigestPair> digestPairMap = new HashMap<String, DigestPair>();
 
-			for(final String serialId : msg.getMap().keySet()) {
+			if(Utils.MSG_DIGEST.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
 
-				final byte[] localDigest = this.sess.fetchAndRemoveDigest(serialId);
-				final byte[] peerDigest =  DatatypeConverter.parseHexBinary(msg.getMap().get(serialId));
-
-				DigestStatus ds;
-				if(Arrays.equals(localDigest, peerDigest)) {
-					ds = DigestStatus.Confirmed;
-				} else {
-					ds = DigestStatus.Invalid;
+				if (log.isDebugEnabled()) {
+					log.debug("Received digest message.");
 				}
 
-				final DigestPair dp = new DigestPairImpl(serialId, localDigest, peerDigest, ds);
-				digestPairMap.put(serialId, dp);
-				digestStatusMap.put(serialId, ds);
+				final DigestMessage msg = Utils.processDigestMessage(data);
+				final Map<String, DigestStatus> digestStatusMap = new HashMap<String, DigestStatus>();
+				final Map<String, DigestPair> digestPairMap = new HashMap<String, DigestPair>();
+
+				for(final String serialId : msg.getMap().keySet()) {
+
+					final byte[] localDigest = this.sess.fetchAndRemoveDigest(serialId);
+					final byte[] peerDigest =  DatatypeConverter.parseHexBinary(msg.getMap().get(serialId));
+
+					DigestStatus ds;
+					if(Arrays.equals(localDigest, peerDigest)) {
+						ds = DigestStatus.Confirmed;
+					} else {
+						ds = DigestStatus.Invalid;
+					}
+
+					final DigestPair dp = new DigestPairImpl(serialId, localDigest, peerDigest, ds);
+					digestPairMap.put(serialId, dp);
+					digestStatusMap.put(serialId, ds);
+				}
+
+				publisher.notifyPeerDigest(this.sess, digestPairMap);
+
+				final OutputDataStream ods = Utils.createDigestResponse(digestStatusMap);
+				message.sendRPY(ods);
+
+			} else {
+
+				if (log.isDebugEnabled()) {
+					log.debug("Received sync message.");
+				}
+
+				final SyncMessage msg = Utils.processSyncMessage(data);
+				publisher.sync(sess, msg.getSerialId(), msg.getOtherHeaders());
+				message.sendNUL();
 			}
-
-			publisher.notifyPeerDigest(this.sess, digestPairMap);
-
-			final OutputDataStream ods = Utils.createDigestResponse(digestStatusMap);
-			message.sendRPY(ods);
 
 		} catch (final BEEPException e) {
 			if (log.isEnabledFor(Level.ERROR)) {
@@ -126,10 +143,6 @@ public class DigestRequestHandler implements RequestHandler {
 		} catch (final UnexpectedMimeValueException e) {
 			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error - Unexpected value: " + e.getMessage());
-			}
-		} catch (final JNLException e) {
-			if (log.isEnabledFor(Level.ERROR)) {
-				log.error("Error getting the PublisherSession: " + e.getMessage());
 			}
 		}
 	}
