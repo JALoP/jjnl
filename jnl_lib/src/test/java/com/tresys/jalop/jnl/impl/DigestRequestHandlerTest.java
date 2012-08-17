@@ -55,6 +55,7 @@ import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.messages.DigestMessage;
+import com.tresys.jalop.jnl.impl.messages.SyncMessage;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 
@@ -156,6 +157,38 @@ public class DigestRequestHandlerTest {
 			{
 				new DigestPairImpl(anyString, (byte[])any, (byte[])any, DigestStatus.Invalid);
 				publisher.notifyPeerDigest(publisherSessionImpl, (Map<String, DigestPair>) any);
+			}
+		};
+	}
+
+	@Test
+	public void testReceiveMSGWorksForSync(final ContextImpl contextImpl, final MessageMSG msg,
+			final Publisher publisher, final PublisherSessionImpl publisherSessionImpl,
+			final InputDataStream ids, final InputDataStreamAdapter isa)
+			throws JNLException, SecurityException, NoSuchMethodException, InstantiationException,
+			IllegalAccessException, InvocationTargetException, BEEPException {
+
+		final DigestRequestHandler drh = new DigestRequestHandler(RecordType.Audit, contextImpl, publisherSessionImpl);
+		final Constructor<SyncMessage> constructor = SyncMessage.class.getDeclaredConstructor(String.class, MimeHeaders.class);
+		constructor.setAccessible(true);
+		final SyncMessage sm = constructor.newInstance("serialId", new MimeHeaders());
+
+		new NonStrictExpectations() {
+			{
+				msg.getDataStream(); result = ids;
+                ids.getInputStream(); result = isa;
+                isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_SYNC;
+                Utils.processSyncMessage(isa); result = sm;
+                contextImpl.getPublisher(); result = publisher;
+			}
+		};
+
+		drh.receiveMSG(msg);
+
+		new VerificationsInOrder() {
+			{
+				publisher.sync(publisherSessionImpl, anyString, (MimeHeaders) any);
+				msg.sendNUL();
 			}
 		};
 	}
