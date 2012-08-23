@@ -26,6 +26,8 @@ package com.tresys.jalop.jnl.impl.publisher;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -34,6 +36,8 @@ import java.security.MessageDigest;
 import javax.xml.soap.MimeHeaders;
 
 import mockit.Expectations;
+import mockit.Mock;
+import mockit.MockUp;
 import mockit.Mocked;
 import mockit.VerificationsInOrder;
 
@@ -44,8 +48,8 @@ import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
+import org.beepcore.beep.core.JNLOutputDataStream;
 import org.beepcore.beep.core.MessageMSG;
-import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.Session;
 import org.junit.Before;
 import org.junit.Test;
@@ -87,10 +91,10 @@ public class PublisherRequestHandlerTest {
 			final PublisherSessionImpl publisherSess, final Publisher publisher,
 			final Channel channel, final Session sess, final SourceRecord sourceRecord,
 			final InputStream sysMeta, final InputStream appMeta, final InputStream payload,
-			final MessageDigest md)
+			final MessageDigest md, final ByteArrayInputStream breakStream)
 			throws BEEPException,
 			SecurityException, NoSuchMethodException, InstantiationException,
-			IllegalAccessException, InvocationTargetException, JNLException {
+			IllegalAccessException, InvocationTargetException, JNLException, IOException {
 
 		final PublisherRequestHandler prh =
 			new PublisherRequestHandler(RecordType.Log, contextImpl);
@@ -98,6 +102,14 @@ public class PublisherRequestHandlerTest {
 		final Constructor<SubscribeMessage> constructor = SubscribeMessage.class.getDeclaredConstructor(String.class, MimeHeaders.class);
 		constructor.setAccessible(true);
 		final SubscribeMessage sm = constructor.newInstance("serialId", new MimeHeaders());
+
+		new MockUp<JNLOutputDataStream>() {
+
+			@Mock
+			public boolean addMoreBuffers() {
+				return true;
+			}
+		};
 
 		new Expectations() {
 			{
@@ -111,19 +123,28 @@ public class PublisherRequestHandlerTest {
 				publisher.onSubscribe(publisherSess, anyString, (MimeHeaders) any); result = true;
 				publisherSess.getMd(); result = md;
 				publisher.getNextRecord(publisherSess, anyString); result = sourceRecord;
-				sourceRecord.getSysMetadata(); result = sysMeta;
-				sourceRecord.getAppMetadata(); result = appMeta;
-				sourceRecord.getPayload(); result = payload;
 				sourceRecord.getSerialId(); result = "serialId2";
 				sourceRecord.getPayloadLength(); result = (long)10;
 				sourceRecord.getSysMetaLength(); result = (long)10;
 				sourceRecord.getAppMetaLength(); result = (long)10;
-				sourceRecord.getSysMetaLength(); result = (long)10;
-				sourceRecord.getAppMetaLength(); result = (long)10;
-				sourceRecord.getPayloadLength(); result = (long)10;
+				message.sendANS((JNLOutputDataStream) any);
+				sourceRecord.getSysMetadata(); result = sysMeta;
+				sourceRecord.getAppMetadata(); result = appMeta;
+				sourceRecord.getPayload(); result = payload;
+				sysMeta.read((byte[])any); result = 1;
+				sysMeta.read((byte[])any); result = -1;
+				breakStream.read((byte[])any); result = 5;
+				breakStream.read((byte[])any); result = -1;
+				appMeta.read((byte[])any); result = 1;
+				appMeta.read((byte[])any); result = -1;
+				breakStream.read((byte[])any); result = 5;
+				breakStream.read((byte[])any); result = -1;
+				payload.read((byte[])any); result = 1;
+				payload.read((byte[])any); result = -1;
+				breakStream.read((byte[])any); result = 5;
+				breakStream.read((byte[])any); result = -1;
 				publisherSess.addDigest(anyString, (byte[]) any);
 				publisher.notifyDigest(publisherSess, anyString, (byte[]) any);
-				message.sendANS((OutputDataStream) any);
 				publisher.getNextRecord(publisherSess, anyString); result = null;
 				message.sendNUL();
 			}

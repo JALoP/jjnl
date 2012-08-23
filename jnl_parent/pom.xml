@@ -8,7 +8,7 @@
   <url>http://maven.apache.org</url>
   <properties>
     <third.party.root>${user.home}/jalop-3rdparty</third.party.root>
-    <beepcore.version>0.9.10</beepcore.version>
+    <beepcore.version>0.9.11</beepcore.version>
     <oswego.concurrent.version>1.3.4</oswego.concurrent.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
