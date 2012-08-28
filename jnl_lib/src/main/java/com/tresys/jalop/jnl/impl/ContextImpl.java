@@ -117,8 +117,8 @@ public final class ContextImpl implements Context {
 	 * @param defaultPendingDigestMax
 	 *            The maximum number of records to receive before sending a
 	 *            'digest-message'.
-	 * @param agent The agent string to send to the remote, this may be 
-	 *             <code>null</code>. 
+	 * @param agent The agent string to send to the remote, this may be
+	 *             <code>null</code>.
 	 * @param allowedMessageDigests
 	 *            A List of digest algorithms to allow. The order of this list
 	 *            is important; The first element in the list is considered to
@@ -133,8 +133,8 @@ public final class ContextImpl implements Context {
      *            This object is <code>null</code> then TLS negotiations will
      *            not occur. If this is <code>non-null</code> then all
      *            connections made with this {@link ContextImpl} will require
-     *            TSL negotiations before any data is sent over the network. 
-     * @throws BEEPException 
+     *            TSL negotiations before any data is sent over the network.
+     * @throws BEEPException
      */
 	public ContextImpl(final Publisher publisher, final Subscriber subscriber,
 			final ConnectionHandler connectionHandler,
@@ -192,7 +192,7 @@ public final class ContextImpl implements Context {
 			this.sslProperties.setProperty(SSL_ALGORITHMS, "TLSv1");
 			this.sslProfile = TLSProfile.getDefaultInstance();
 			this.sslListener = this.sslProfile.init(TLSProfile.URI, this.sslProperties);
-            
+
 		} else {
 			this.sslProfile = null;
 			this.sslListener = null;
@@ -234,9 +234,13 @@ public final class ContextImpl implements Context {
 			throw new JNLException("Cannot publish with a RecordType of 'Unset'");
 		}
 
-		for (final RecordType rt : recordTypeSet) {
+		TCPSession session = TCPSessionCreator.initiate(addr, port);
 
-			final org.beepcore.beep.core.Session session = TCPSessionCreator.initiate(addr, port);
+		if (this.sslProfile != null) {
+		    session = this.sslProfile.startTLS(session);
+		}
+
+		for (final RecordType rt : recordTypeSet) {
 
 			final Channel channel = session.startChannel(URI, new PublisherRequestHandler(rt, this));
 
@@ -280,7 +284,7 @@ public final class ContextImpl implements Context {
 		}
 
 		TCPSession session = TCPSessionCreator.initiate(addr, port);
-		
+
         if (this.sslProfile != null) {
 		    session = this.sslProfile.startTLS(session);
 		}
