@@ -25,8 +25,10 @@ package com.tresys.jalop.utils.jnltest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.soap.MimeHeaders;
 
@@ -34,6 +36,11 @@ import org.apache.log4j.Logger;
 import org.beepcore.beep.core.BEEPException;
 import org.json.simple.parser.ParseException;
 
+import com.tresys.jalop.jnl.ConnectAck;
+import com.tresys.jalop.jnl.ConnectNack;
+import com.tresys.jalop.jnl.Connection;
+import com.tresys.jalop.jnl.ConnectionHandler;
+import com.tresys.jalop.jnl.ConnectionRequest;
 import com.tresys.jalop.jnl.DigestPair;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Publisher;
@@ -50,11 +57,12 @@ import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
+import com.tresys.jalop.utils.jnltest.Config.PeerConfig;
 
 /**
  * Main class for JNLTest
  */
-public class JNLTest implements Subscriber, Publisher {
+public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(JNLTest.class);
 	/**
@@ -69,6 +77,10 @@ public class JNLTest implements Subscriber, Publisher {
 	 * From Sessions to associated {@link PublisherImpl}
 	 */
 	private final Map<Session, Map<RecordType, PublisherImpl>> pubSessMap = new HashMap<Session, Map<RecordType,PublisherImpl>>();
+	/**
+	 * ConnectionHandler implementation
+	 */
+	private ConnectionHandler connectionHandler;
 	/**
 	 * Create a JNLTest object based on the specified configuration.
 	 *
@@ -141,8 +153,23 @@ public class JNLTest implements Subscriber, Publisher {
                 }
             }
         } else {
-            // TODO: do things as a listener
-            this.logger.error("Acting as listener not currently supported");
+        	 this.connectionHandler = new ConnectionHandlerImpl(this.config.getPeerConfigs());
+
+        	Publisher publisher = null;
+        	Subscriber subscriber =  null;
+
+        	for(final InetAddress add : this.config.getPeerConfigs().keySet()) {
+        		final PeerConfig pc = this.config.getPeerConfigs().get(add);
+				if(!pc.getPublishAllow().isEmpty()) {
+					publisher = this;
+				}
+				if(!pc.getSubscribeAllow().isEmpty()) {
+					subscriber = this;
+				}
+        	}
+
+        	final ContextImpl contextImpl = new ContextImpl(publisher, subscriber, this, this.config.getPendingDigestTimeout(), this.config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
+        	contextImpl.listen(this.config.getAddress(), this.config.getPort());
         }
     }
 
@@ -259,5 +286,31 @@ public class JNLTest implements Subscriber, Publisher {
 	public void notifyPeerDigest(final PublisherSession sess,
 			final Map<String, DigestPair> digestPairs) {
 		this.pubSessMap.get(sess).get(sess.getRecordType()).notifyPeerDigest(sess, digestPairs);
+	}
+
+	@Override
+	public Set<ConnectError> handleConnectionRequest(final boolean rejecting,
+			final ConnectionRequest connRequest) {
+		return this.connectionHandler.handleConnectionRequest(rejecting, connRequest);
+	}
+
+	@Override
+	public void sessionClosed(final Session sess) {
+		this.connectionHandler.sessionClosed(sess);
+	}
+
+	@Override
+	public void connectionClosed(final Connection conn) {
+		this.connectionHandler.connectionClosed(conn);
+	}
+
+	@Override
+	public void connectAck(final Session sess, final ConnectAck ack) {
+		this.connectionHandler.connectAck(sess, ack);
+	}
+
+	@Override
+	public void connectNack(final Session sess, final ConnectNack nack) {
+		this.connectionHandler.connectNack(sess, nack);
 	}
 }
