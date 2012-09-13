@@ -343,6 +343,78 @@ public final class ContextImpl implements Context {
 	}
 
 	/**
+	 * Find the {@link SubscriberSessionImpl} that is mapped to the given
+	 *            {@link org.beepcore.beep.core.Session} with the given channel number.
+	 *
+	 * @param sess
+	 *            The {@link org.beepcore.beep.core.Session} that owns the
+	 *            {@link SubscriberSessionImpl};
+	 * @param channelNum
+	 *            The channel number associated with the {@link SubscriberSessionImpl}.
+	 * @return
+	 *            The {@link SubscriberSessionImpl} that is mapped to the given
+	 *            {@link org.beepcore.beep.core.Session} with the given channel number.
+	 * @throws JNLException
+	 *            If a {@link SubscriberSessionImpl} does not exist for the
+	 *            {@link org.beepcore.beep.core.Session} and channel number
+	 */
+	public SubscriberSessionImpl findSubscriberSession(final org.beepcore.beep.core.Session sess,
+			final int channelNum) throws JNLException {
+
+		synchronized(this.subscriberMap) {
+			if(!this.subscriberMap.containsKey(sess)) {
+				throw new JNLException("The subscriberMap does not contain this Session.");
+			}
+			final Map<RecordType, SubscriberSessionImpl> map = this.subscriberMap.get(sess);
+
+			for(final RecordType rt : map.keySet()) {
+				final SubscriberSessionImpl subSess = map.get(rt);
+				if(subSess.getChannelNum() == channelNum) {
+					return subSess;
+				}
+			}
+
+			throw new JNLException("The subscriberMap does not contain a session for the channel number: " + channelNum);
+		}
+	}
+
+	/**
+	 * Find the {@link PublisherSessionImpl} that is mapped to the given
+	 *            {@link org.beepcore.beep.core.Session} with the given channel number.
+	 *
+	 * @param sess
+	 *            The {@link org.beepcore.beep.core.Session} that owns the
+	 *            {@link PublisherSessionImpl};
+	 * @param channelNum
+	 *            The channel number associated with the {@link SubscriberSessionImpl}.
+	 * @return
+	 *            The {@link PublisherSessionImpl} that is mapped to the given
+	 *            {@link org.beepcore.beep.core.Session} with the given channel number.
+	 * @throws JNLException
+	 *            If a {@link PublisherSessionImpl} does not exist for the
+	 *            {@link org.beepcore.beep.core.Session} and channel number
+	 */
+	public PublisherSessionImpl findPublisherSession(final org.beepcore.beep.core.Session sess,
+			final int channelNum) throws JNLException {
+
+		synchronized(this.publisherMap) {
+			if(!this.publisherMap.containsKey(sess)) {
+				throw new JNLException("The publisherMap does not contain this Session.");
+			}
+			final Map<RecordType, PublisherSessionImpl> map = this.publisherMap.get(sess);
+
+			for(final RecordType rt : map.keySet()) {
+				final PublisherSessionImpl pubSess = map.get(rt);
+				if(pubSess.getChannelNum() == channelNum) {
+					return pubSess;
+				}
+			}
+
+			throw new JNLException("The publisherMap does not contain a session for the channel number: " + channelNum);
+		}
+	}
+
+	/**
 	 * Add a session to the set of tracked JALoP Sessions.
 	 *
 	 * @param sess
