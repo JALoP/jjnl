@@ -45,7 +45,6 @@ import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.jnl.impl.DigestRequestHandler;
 import com.tresys.jalop.jnl.impl.SessionImpl;
-import com.tresys.jalop.jnl.impl.messages.Utils;
 
 /**
  * Implementation of a {@link PublisherSession}. This represents a
@@ -140,10 +139,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 		}
 
 		try {
-			final Channel digestChannel = this.session.startChannel(
-					ContextImpl.URI, false, Utils.DGST_CHAN_FORMAT_STR
-							+ this.channelNum);
-
+			final Channel digestChannel = createDigestChannel();
 			digestChannel.setRequestHandler(new DigestRequestHandler(this.getRecordType(), this.contextImpl, this));
 
 		} catch (final BEEPError e) {

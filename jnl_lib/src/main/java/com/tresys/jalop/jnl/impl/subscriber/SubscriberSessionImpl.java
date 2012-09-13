@@ -43,7 +43,6 @@ import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
-import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.jnl.impl.DigestListener;
 import com.tresys.jalop.jnl.impl.SessionImpl;
 import com.tresys.jalop.jnl.impl.SubscriberANSHandler;
@@ -231,9 +230,8 @@ public class SubscriberSessionImpl extends SessionImpl implements
 		}
 
 		try {
-			final Channel digestChannel = this.session.startChannel(
-					ContextImpl.URI, false, Utils.DGST_CHAN_FORMAT_STR
-							+ this.channelNum);
+
+			final Channel digestChannel = createDigestChannel();
 
 			while (this.isOk()) {
 
@@ -256,6 +254,7 @@ public class SubscriberSessionImpl extends SessionImpl implements
 
 				final OutputDataStream digestOds = Utils
 						.createDigestMessage(digestsToSend);
+
 				digestChannel.sendMSG(digestOds, new DigestListener(this,
 						digestsToSend));
 			}

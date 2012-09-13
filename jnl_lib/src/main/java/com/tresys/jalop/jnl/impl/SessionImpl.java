@@ -30,10 +30,19 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.log4j.Logger;
+import org.beepcore.beep.core.BEEPError;
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
+
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
+import com.tresys.jalop.jnl.impl.messages.Utils;
 
 public abstract class SessionImpl implements Session {
+
+	private static final Logger log = Logger
+			.getLogger(SessionImpl.class);
 
 	private final RecordType recordType;
 	private final String digestMethod;
@@ -42,6 +51,7 @@ public abstract class SessionImpl implements Session {
 	private volatile boolean errored;
 	protected final int channelNum;
 	protected final org.beepcore.beep.core.Session session;
+	protected Channel digestChannel;
 
 	/**
 	 * Create a {@link SessionImpl} object.
@@ -148,6 +158,45 @@ public abstract class SessionImpl implements Session {
 			return "SHA-384";
 		}
 		return "";
+	}
+
+	/**
+	 * @return the digestChannel
+	 */
+	public Channel getDigestChannel() {
+		return digestChannel;
+	}
+
+	/**
+	 * @param digestChannel the digestChannel to set
+	 */
+	public void setDigestChannel(final Channel digestChannel) {
+		this.digestChannel = digestChannel;
+	}
+
+	/**
+	 * Creates a digest channel if one hasn't been set yet.
+	 *
+	 * @return
+	 *            the {@link Channel} which is the digest channel
+	 * @throws BEEPError
+	 * @throws BEEPException
+	 */
+	protected Channel createDigestChannel()
+			throws BEEPError, BEEPException {
+		Channel digestChannel = this.getDigestChannel();
+		if(digestChannel == null) {
+
+			if(log.isDebugEnabled()) {
+				log.debug("creating new digest channel");
+			}
+
+			digestChannel = this.session.startChannel(
+					ContextImpl.URI, false, Utils.DGST_CHAN_FORMAT_STR
+							+ this.channelNum);
+			this.setDigestChannel(digestChannel);
+		}
+		return digestChannel;
 	}
 
 }
