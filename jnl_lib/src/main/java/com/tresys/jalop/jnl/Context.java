@@ -54,6 +54,8 @@ public interface Context {
 	 *            The port to listen on.
 	 * @throws IllegalArgumentException
 	 *             If the address <tt>addr</tt> is not supported.
+	 * @throws BEEPException
+	 * @throws JNLException
 	 * @see Context#registerSubscriber(Subscriber)
 	 * @see Context#registerPublisher(Publisher)
 	 * @see Context#registerConnectionHandler(ConnectionHandler)
@@ -62,7 +64,7 @@ public interface Context {
 	 * @see ConnectionHandler
 	 */
 	void listen(InetAddress addr, int port)
-			throws IllegalArgumentException;
+			throws IllegalArgumentException, BEEPException, JNLException;
 
 	/**
 	 * Initiate a connection to a remote JALoP Network Store and publish the

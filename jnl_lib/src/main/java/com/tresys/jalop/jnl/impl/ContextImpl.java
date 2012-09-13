@@ -43,6 +43,7 @@ import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ProfileRegistry;
 import org.beepcore.beep.core.ReplyListener;
 import org.beepcore.beep.core.StartChannelListener;
+import org.beepcore.beep.profile.Profile;
 import org.beepcore.beep.profile.ProfileConfiguration;
 import org.beepcore.beep.profile.tls.TLSProfile;
 import org.beepcore.beep.transport.tcp.TCPSession;
@@ -203,8 +204,36 @@ public final class ContextImpl implements Context {
 
 	@Override
 	public void listen(final InetAddress addr, final int port)
-			throws IllegalArgumentException {
-		// TODO Auto-generated method stub
+			throws IllegalArgumentException, BEEPException, JNLException {
+
+		if (addr == null) {
+			throw new IllegalArgumentException("addr must be a valid InetAddress");
+		}
+
+		synchronized (this.connectionState) {
+			if (this.connectionState == ConnectionState.DISCONNECTED) {
+				this.connectionState = ConnectionState.CONNECTED;
+			} else {
+				throw new ConnectionException();
+			}
+		}
+
+		if(this.connectionHandler == null) {
+			throw new JNLException("A connectionHandler must be set on ContextImpl if calling listen.");
+		}
+
+		final Profile profile = new ListenerProfile(this, addr);
+
+		final ProfileRegistry profileRegistry = new ProfileRegistry();
+		profileRegistry.addStartChannelListener(URI, profile.init(URI, this.sslProperties), null);
+
+		if(log.isDebugEnabled()) {
+			log.debug("Listening on " + addr.toString() + ":" + port);
+		}
+
+		while(true) {
+			final TCPSession session = TCPSessionCreator.listen(addr, port, profileRegistry);
+		}
 
 	}
 
