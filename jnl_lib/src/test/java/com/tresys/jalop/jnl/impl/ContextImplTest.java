@@ -508,6 +508,58 @@ public class ContextImplTest {
 		c.findPublisherSession(sess, 1);
     }
 
+    public final void testListenWorks(final ConnectionHandler connectionHandler, final Subscriber subscriber,
+			final TCPSession session, final TCPSessionCreator tcpSessionCreator)
+			throws BEEPException, UnknownHostException, JNLException, InterruptedException, IllegalAccessException {
+
+		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
+
+		new NonStrictExpectations() {
+			{
+				TCPSessionCreator.listen(anyInt, (ProfileRegistry) any); result = session;
+			}
+		};
+
+		final Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					c.listen(InetAddress.getByName("localhost"), 0);
+				} catch (final Exception e) {
+					return;
+				}
+			}
+		});
+
+		t.start();
+		t.join(5000);
+		assertTrue(t.isAlive());
+		assertEquals(ConnectionState.CONNECTED, connectionStateField.get(c));
+		t.interrupt();
+	}
+
+	@Test(expected = JNLException.class)
+	public final void testListenThrowsExceptionWithNoConnectionHandler(final Subscriber subscriber)
+			throws BEEPException, IllegalArgumentException, UnknownHostException, JNLException {
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
+		c.listen(InetAddress.getByName("localhost"), 0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public final void testListenThrowsExceptionWithNullInetAddress(final ConnectionHandler connectionHandler, final Subscriber subscriber)
+			throws BEEPException, IllegalArgumentException, UnknownHostException, JNLException {
+		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
+		c.listen(null, 0);
+	}
+
+	@Test(expected = ConnectionException.class)
+	public final void testListenThrowsExceptionWhenConnected(final ConnectionHandler connectionHandler, final Subscriber subscriber)
+			throws BEEPException, UnknownHostException, JNLException, IllegalAccessException {
+		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
+		connectionStateField.set(c, ConnectionState.CONNECTED);
+		c.listen(InetAddress.getByName("localhost"), 0);
+	}
+
 	@SuppressWarnings({ "unchecked" })
 	@Test
 	public final void testSubscribeWorks(final Subscriber subscriber,
