@@ -26,6 +26,8 @@ package com.tresys.jalop.jnl.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
@@ -39,6 +41,9 @@ import mockit.NonStrictExpectations;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.beepcore.beep.core.BEEPError;
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.Session;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -160,4 +165,39 @@ public class SessionImplTest {
 		assertEquals("", invalid);
 	}
 
+	@Test
+	public void testCreateDigestChannelWorks(final Subscriber subscriber,
+			final org.beepcore.beep.core.Session sess, final InetAddress address,
+			final Channel channel)
+			throws BEEPError, BEEPException {
+
+		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
+				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				2, 0, sess);
+
+		assertNull(s.getDigestChannel());
+
+		new NonStrictExpectations() {
+			{
+				sess.startChannel(anyString, false, anyString); result = channel;
+			}
+		};
+		s.createDigestChannel();
+		assertNotNull(s.getDigestChannel());
+	}
+
+	@Test
+	public void testCreateDigestChannelOnlyCreatesIfNull(final Subscriber subscriber,
+			final org.beepcore.beep.core.Session sess, final InetAddress address,
+			final Channel channel)
+			throws BEEPError, BEEPException {
+
+		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
+				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				2, 0, sess);
+
+		s.setDigestChannel(channel);
+		s.createDigestChannel();
+		assertEquals(channel, s.getDigestChannel());
+	}
 }
