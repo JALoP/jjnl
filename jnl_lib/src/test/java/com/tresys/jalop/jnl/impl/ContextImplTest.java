@@ -211,7 +211,7 @@ public class ContextImplTest {
 
     @Test
     public final void testContextImplConstructorWorksWithTlsRequired(final Publisher publisher, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler, ProfileConfiguration sslProfile) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+            final ConnectionHandler connectionHandler, final ProfileConfiguration sslProfile) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, digests, encodings, sslProfile);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
@@ -437,6 +437,74 @@ public class ContextImplTest {
         c.addSession(sess, subSess);
         final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
+    }
+
+    @Test
+	public final void testFindSubscriberSessionWorks(final InetAddress address, final org.beepcore.beep.core.Session sess,
+            final Subscriber subscriber) throws BEEPException, JNLException {
+
+		final int channelNum = 5;
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
+	    final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256,
+				"bar", 1, 1, channelNum, sess);
+	    c.addSession(sess, subSess);
+
+	    final SubscriberSessionImpl foundSubSess = c.findSubscriberSession(sess, channelNum);
+	    assertEquals(subSess, foundSubSess);
+    }
+
+	@Test(expected = JNLException.class)
+	public final void testFindSubscriberSessionThrowsExceptionIfNoSessInMap(final InetAddress address, final org.beepcore.beep.core.Session sess,
+	        final Subscriber subscriber) throws BEEPException, JNLException {
+
+		final int channelNum = 5;
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
+	    c.findSubscriberSession(sess, channelNum);
+	}
+
+	@Test(expected = JNLException.class)
+	public final void testFindSubscriberSessionThrowsExceptionIfNoneFound(final InetAddress address, final org.beepcore.beep.core.Session sess,
+	        final Subscriber subscriber) throws BEEPException, JNLException {
+
+		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
+		final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256,
+				"bar", 1, 1, 5, sess);
+		c.addSession(sess, subSess);
+		c.findSubscriberSession(sess, 1);
+    }
+
+	@Test
+	public final void testFindPublisherSessionWorks(final InetAddress address, final org.beepcore.beep.core.Session sess,
+	        final Publisher publisher) throws BEEPException, JNLException {
+
+		final int channelNum = 5;
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
+		final PublisherSessionImpl pubSess = new PublisherSessionImpl(address, RecordType.Log, publisher, DigestMethod.SHA256, "bar",
+				channelNum, sess, c);
+		c.addSession(sess, pubSess);
+
+		final PublisherSessionImpl foundPubSess = c.findPublisherSession(sess, channelNum);
+		assertEquals(pubSess, foundPubSess);
+    }
+
+	@Test(expected = JNLException.class)
+	public final void testFindPublisherSessionThrowsExceptionIfNoSessInMap(final InetAddress address, final org.beepcore.beep.core.Session sess,
+	        final Publisher publisher) throws BEEPException, JNLException {
+
+		final int channelNum = 5;
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
+		c.findPublisherSession(sess, channelNum);
+    }
+
+    @Test(expected = JNLException.class)
+    public final void testFindPublisherSessionThrowsExceptionIfNoneFound(final InetAddress address, final org.beepcore.beep.core.Session sess,
+            final Publisher publisher) throws BEEPException, JNLException {
+
+		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
+		final PublisherSessionImpl pubSess = new PublisherSessionImpl(address, RecordType.Log, publisher, DigestMethod.SHA256, "bar",
+				5, sess, c);
+		c.addSession(sess, pubSess);
+		c.findPublisherSession(sess, 1);
     }
 
 	@SuppressWarnings({ "unchecked" })
