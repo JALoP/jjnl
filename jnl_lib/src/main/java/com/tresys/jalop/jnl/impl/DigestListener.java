@@ -32,6 +32,7 @@ import org.beepcore.beep.core.AbortChannelException;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
+import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
 
 import com.tresys.jalop.jnl.DigestStatus;
@@ -60,7 +61,7 @@ public class DigestListener implements ReplyListener {
 	 * @param digestsSent
 	 *            A Map of serialIds to digests that have been sent to the publisher.
 	 */
-	public DigestListener(final SubscriberSessionImpl subscriberSession, Map<String, String> digestsSent) {
+	public DigestListener(final SubscriberSessionImpl subscriberSession, final Map<String, String> digestsSent) {
 		this.subscriberSession = subscriberSession;
 		this.digestsSent = digestsSent;
 	}
@@ -77,11 +78,16 @@ public class DigestListener implements ReplyListener {
 		try {
 
 			final DigestResponse msg = Utils.processDigestResponse(data);
-			Map<String, DigestStatus> statusMap = msg.getMap();
+			final Map<String, DigestStatus> statusMap = msg.getMap();
 
-			Set<String> serialIds = statusMap.keySet();
-			for(String serialId : serialIds) {
+			final Set<String> serialIds = statusMap.keySet();
+			String maxSerial = "";
+
+			for(final String serialId : serialIds) {
 				if(this.digestsSent.containsKey(serialId)) {
+					if(serialId.compareTo(maxSerial) > 0) {
+						maxSerial = serialId;
+					}
 					this.digestsSent.remove(serialId);
 				}
 			}
@@ -91,6 +97,9 @@ public class DigestListener implements ReplyListener {
 			}
 
 			this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, statusMap);
+
+			final OutputDataStream ods = Utils.createSyncMessage(maxSerial);
+			message.getChannel().sendMSG(ods, this);
 
 		} catch (final BEEPException e) {
 			if(log.isEnabledFor(Level.ERROR)) {

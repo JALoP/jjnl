@@ -43,9 +43,11 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.AbortChannelException;
 import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
+import org.beepcore.beep.core.OutputDataStream;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -108,16 +110,16 @@ public class DigestListenerTest {
     }
 
     @Test
-    public void testDigestListenerReceiveRpy(final SubscriberSessionImpl subSess, final Message message,
+    public void testDigestListenerReceiveRpy(final SubscriberSessionImpl subSess, final Message message, final Channel channel,
 			final InputDataStream ids, final InputDataStreamAdapter isa, final Subscriber subscriber)
 			throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
 
 		final Map<String, DigestStatus> statusMap = new HashMap<String, DigestStatus>();
-		statusMap.put("serialId", DigestStatus.Confirmed);
+		statusMap.put("1", DigestStatus.Confirmed);
 		final DigestResponse dr = new DigestResponse(statusMap, new MimeHeaders());
 
 		final Map<String, String> digestsSent = new HashMap<String, String>();
-		digestsSent.put("serialId", "digest");
+		digestsSent.put("1", "digest");
 
 	    new NonStrictExpectations() {
 	        {
@@ -126,6 +128,7 @@ public class DigestListenerTest {
 				Utils.processDigestResponse(isa); result = dr;
 				dr.getMap(); result = statusMap;
 				subSess.getSubscriber(); result = subscriber;
+				message.getChannel(); result = channel;
 	        }
 	    };
 
@@ -135,23 +138,25 @@ public class DigestListenerTest {
 	    new Verifications() {
 	        {
 				subscriber.notifyDigestResponse(subSess, dr.getMap());
+				Utils.createSyncMessage("1");
+				channel.sendMSG((OutputDataStream) any, null);
 	        }
 	    };
     }
 
     @Test
-    public void testDigestListenerAddsDigestsBackInReceiveRpy(final Message message, final InputDataStream ids,
+    public void testDigestListenerAddsDigestsBackInReceiveRpy(final Message message, final InputDataStream ids, final Channel channel,
 			final InputDataStreamAdapter isa, final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalAccessException, MissingMimeHeaderException, UnexpectedMimeValueException,
 			BEEPException {
 
 		final Map<String, DigestStatus> statusMap = new HashMap<String, DigestStatus>();
-		statusMap.put("serialId", DigestStatus.Confirmed);
+		statusMap.put("1", DigestStatus.Confirmed);
 		final DigestResponse dr = new DigestResponse(statusMap, new MimeHeaders());
 
 		final Map<String, String> digestsSent = new HashMap<String, String>();
-		digestsSent.put("serialId", "digest");
-		digestsSent.put("serialNotReturned", "anotherDigest");
+		digestsSent.put("1", "digest");
+		digestsSent.put("2", "anotherDigest");
 
 		final SubscriberSessionImpl subSess =
             new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
@@ -163,6 +168,7 @@ public class DigestListenerTest {
 				ids.getInputStream(); result = isa;
 				Utils.processDigestResponse(isa); result = dr;
 				dr.getMap(); result = statusMap;
+				message.getChannel(); result = channel;
 	        }
 	    };
 
@@ -173,6 +179,8 @@ public class DigestListenerTest {
 	        {
 				subSess.addAllDigests(digestsSent);
 				subscriber.notifyDigestResponse(subSess, dr.getMap());
+				Utils.createSyncMessage("1");
+				channel.sendMSG((OutputDataStream) any, null);
 	        }
 	    };
 
