@@ -430,10 +430,13 @@ public class SubscriberANSHandler implements ReplyListener {
 
 	@Override
 	public void receiveNUL(final Message message) throws AbortChannelException {
-		if (log.isEnabledFor(Level.ERROR)) {
-			log.error("SubscriberANSHandler received NUL");
+		if (log.isDebugEnabled()) {
+			log.debug("SubscriberANSHandler received NUL");
 		}
-		throw new AbortChannelException(
-				"SubscriberANSHandler should not receive NUL");
+		try {
+			message.getChannel().close();
+		} catch (final BEEPException e) {
+			throw new AbortChannelException(e.getMessage());
+		}
 	}
 }

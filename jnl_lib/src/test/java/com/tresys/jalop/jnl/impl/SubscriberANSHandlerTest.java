@@ -45,10 +45,13 @@ import mockit.Mock;
 import mockit.MockUp;
 import mockit.NonStrictExpectations;
 import mockit.Verifications;
+import mockit.VerificationsInOrder;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.AbortChannelException;
+import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
@@ -579,13 +582,26 @@ public class SubscriberANSHandlerTest {
 		sh.receiveERR(msg);
 	}
 
-	@Test(expected = AbortChannelException.class)
-	public void testReceiveNULThrowsException(final MessageDigest md,
+	@Test
+	public void testReceiveNULWorks(final MessageDigest md, final Channel channel,
 			final SubscriberSessionImpl subsess, final Message msg)
-			throws Exception {
+			throws BEEPException {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
+
+		new NonStrictExpectations() {
+			{
+				msg.getChannel(); result = channel;
+			}
+		};
+
 		sh.receiveNUL(msg);
+
+		new VerificationsInOrder() {
+			{
+				channel.close();
+			}
+		};
 	}
 
 	@Test
