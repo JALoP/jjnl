@@ -40,6 +40,7 @@ import org.apache.log4j.Logger;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.OutputDataStream;
+import org.beepcore.beep.core.ProfileRegistry;
 import org.beepcore.beep.core.ReplyListener;
 import org.beepcore.beep.core.StartChannelListener;
 import org.beepcore.beep.profile.ProfileConfiguration;
@@ -234,7 +235,10 @@ public final class ContextImpl implements Context {
 			throw new JNLException("Cannot publish with a RecordType of 'Unset'");
 		}
 
-		TCPSession session = TCPSessionCreator.initiate(addr, port);
+		final ProfileRegistry profileRegistry = new ProfileRegistry();
+		profileRegistry.addStartChannelListener(URI, new JNLStartChannelListener(), null);
+
+		TCPSession session = TCPSessionCreator.initiate(addr, port, profileRegistry);
 
 		if (this.sslProfile != null) {
 		    session = this.sslProfile.startTLS(session);
@@ -283,7 +287,10 @@ public final class ContextImpl implements Context {
 			throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
 		}
 
-		TCPSession session = TCPSessionCreator.initiate(addr, port);
+		final ProfileRegistry profileRegistry = new ProfileRegistry();
+		profileRegistry.addStartChannelListener(URI, new JNLStartChannelListener(), null);
+
+		TCPSession session = TCPSessionCreator.initiate(addr, port, profileRegistry);
 
         if (this.sslProfile != null) {
 		    session = this.sslProfile.startTLS(session);

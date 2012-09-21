@@ -45,6 +45,7 @@ import mockit.VerificationsInOrder;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.OutputDataStream;
+import org.beepcore.beep.core.ProfileRegistry;
 import org.beepcore.beep.core.ReplyListener;
 import org.beepcore.beep.core.RequestHandler;
 import org.beepcore.beep.profile.ProfileConfiguration;
@@ -518,7 +519,7 @@ public class ContextImplTest {
 
 		new NonStrictExpectations() {
 			{
-				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
 				session.startChannel(anyString); result = channel;
 				channel.getState(); result = Channel.STATE_ACTIVE;
 				Utils.createInitMessage((Role)any,
@@ -570,7 +571,7 @@ public class ContextImplTest {
 
 		new NonStrictExpectations() {
 			{
-				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
 				session.startChannel(anyString); result = channel;
 				channel.getState(); result = Channel.STATE_ACTIVE;
 			}
@@ -590,7 +591,7 @@ public class ContextImplTest {
 
 		new NonStrictExpectations() {
 			{
-				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
 				session.startChannel(anyString, (RequestHandler) any); result = channel;
 				channel.getState(); result = Channel.STATE_ACTIVE;
 				Utils.createInitMessage((Role)any,
@@ -642,7 +643,7 @@ public class ContextImplTest {
 
 		new NonStrictExpectations() {
 			{
-				TCPSessionCreator.initiate((InetAddress) any, anyInt); result = session;
+				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
 				session.startChannel(anyString); result = channel;
 				channel.getState(); result = Channel.STATE_ACTIVE;
 			}
