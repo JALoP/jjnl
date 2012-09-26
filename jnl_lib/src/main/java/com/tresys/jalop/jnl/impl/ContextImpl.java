@@ -226,13 +226,14 @@ public final class ContextImpl implements Context {
 
 		final ProfileRegistry profileRegistry = new ProfileRegistry();
 		profileRegistry.addStartChannelListener(URI, profile.init(URI, this.sslProperties), null);
+		profileRegistry.addStartChannelListener(TLSProfile.URI, this.sslListener, null);
 
 		if(log.isDebugEnabled()) {
 			log.debug("Listening on " + addr.toString() + ":" + port);
 		}
 
 		while(true) {
-			final TCPSession session = TCPSessionCreator.listen(addr, port, profileRegistry);
+			TCPSessionCreator.listen(addr, port, profileRegistry);
 		}
 
 	}

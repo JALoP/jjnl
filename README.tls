@@ -30,6 +30,22 @@ certificate you intended to import. If you answer 'no', then the keytool
 program will not add the certificate to the truststore. If you answer 'yes',
 then the keytool program will add the certificate to the trust store.
 
+When adding multiple certificates to the trust store an alias must be assigned
+to the additional certificates.
+
+$> keytool -importcert -keystore remotes.jks -file remote.pem -alias remoteCert
+
+The default alias is "mykey". This will be used if an alias is not specified
+but then subsequent attempts to add a certificate without an alias will be
+denied.
+
+You can see what certificates are currently in the trust store and their
+aliases with:
+
+$> keytool -list -v -keystore remotes.jks -storepass changeit
+
+Where 'changeit' is the password for the keystore specified.
+
 3) Now that you have a keystore containing the private key material and
 certificate for your JALoP Network Store (i.e. the server.jks file) and a
 truststore that contains the public certificate for a remote (i.e. the
