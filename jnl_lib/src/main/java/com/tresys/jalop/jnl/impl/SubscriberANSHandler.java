@@ -278,7 +278,6 @@ public class SubscriberANSHandler implements ReplyListener {
 				}
 				final String hexDgst = (new BigInteger(1, digest)).toString(16);
 
-
 				subsess.addDigest(recInfo.getSerialId(), hexDgst);
 			} catch (final BEEPException e) {
 				if(log.isEnabledFor(Level.ERROR)) {
@@ -433,10 +432,6 @@ public class SubscriberANSHandler implements ReplyListener {
 		if (log.isDebugEnabled()) {
 			log.debug("SubscriberANSHandler received NUL");
 		}
-		try {
-			message.getChannel().close();
-		} catch (final BEEPException e) {
-			throw new AbortChannelException(e.getMessage());
-		}
+		//do nothing/
 	}
 }
