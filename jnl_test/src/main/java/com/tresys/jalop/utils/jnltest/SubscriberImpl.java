@@ -170,7 +170,7 @@ public class SubscriberImpl implements Subscriber {
         new DecimalFormat(SID_FORMAT_STRING);
 
     /** Local serial ID counter. */
-    private long sid = 0;
+    private long sid = 1;
 
     /** Maps remote SID to {@link LocalRecordInfo}. */
     private final Map<String, LocalRecordInfo> sidMap =
