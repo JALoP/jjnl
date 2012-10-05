@@ -55,6 +55,7 @@ import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 public class DigestRequestHandler implements RequestHandler {
 
 	static Logger log = Logger.getLogger(DigestRequestHandler.class);
+	static final String LEADING_ZERO = "0";
 
 	RecordType recordType;
 	ContextImpl contextImpl;
@@ -102,7 +103,14 @@ public class DigestRequestHandler implements RequestHandler {
 				for(final String serialId : msg.getMap().keySet()) {
 
 					final byte[] localDigest = this.sess.fetchAndRemoveDigest(serialId);
-					final byte[] peerDigest =  DatatypeConverter.parseHexBinary(msg.getMap().get(serialId));
+
+					String digest = msg.getMap().get(serialId);
+					// Digest must be an even length to be converted to byte[]
+					if(digest.length() % 2 == 1) {
+						digest = LEADING_ZERO + digest;
+					}
+
+					final byte[] peerDigest =  DatatypeConverter.parseHexBinary(digest);
 
 					DigestStatus ds;
 					if(Arrays.equals(localDigest, peerDigest)) {
