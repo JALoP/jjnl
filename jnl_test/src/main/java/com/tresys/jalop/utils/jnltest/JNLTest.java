@@ -82,6 +82,18 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	 */
 	private ConnectionHandler connectionHandler;
 	/**
+	 * Counter to keep track of the last used serial Id for log records
+	 */
+	private long latestLogSID;
+	/**
+	 * Counter to keep track of the last used serial Id for audit records
+	 */
+	private long latestAuditSID;
+	/**
+	 * Counter to keep track of the last used serial Id for journal records
+	 */
+	private long latestJournalSID;
+	/**
 	 * Create a JNLTest object based on the specified configuration.
 	 *
 	 * @param config
@@ -89,6 +101,48 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	 */
 	public JNLTest(final Config config) {
 		this.config = config;
+	}
+
+	/**
+	 * @return the latestLogSID
+	 */
+	public long getLatestLogSID() {
+		return latestLogSID;
+	}
+
+	/**
+	 * @param latestLogSID the latestLogSID to set
+	 */
+	public void setLatestLogSID(final long latestLogSID) {
+		this.latestLogSID = latestLogSID;
+	}
+
+	/**
+	 * @return the latestAuditSID
+	 */
+	public long getLatestAuditSID() {
+		return latestAuditSID;
+	}
+
+	/**
+	 * @param latestAuditSID the latestAuditSID to set
+	 */
+	public void setLatestAuditSID(final long latestAuditSID) {
+		this.latestAuditSID = latestAuditSID;
+	}
+
+	/**
+	 * @return the latestJournalSID
+	 */
+	public long getLatestJournalSID() {
+		return latestJournalSID;
+	}
+
+	/**
+	 * @param latestJournalSID the latestJournalSID to set
+	 */
+	public void setLatestJournalSID(final long latestJournalSID) {
+		this.latestJournalSID = latestJournalSID;
 	}
 
 	/**
@@ -190,7 +244,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
         synchronized(map) {
             sub = map.get(sess.getRecordType());
             if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), this.config.getOutputPath(), sess.getAddress());
+                sub = new SubscriberImpl(sess.getRecordType(), this.config.getOutputPath(), sess.getAddress(), this);
                 map.put(sess.getRecordType(), sub);
             }
         }

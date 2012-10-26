@@ -37,9 +37,11 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -78,6 +80,9 @@ public class SubscriberImpl implements Subscriber {
     /** Filename where status information is written to. */
     private static final String STATUS_FILENAME = "status.js";
 
+    /** Filename where last sid with a confirmed digest is written to. */
+    private static final String LAST_CONFIRMED_FILENAME = "lastConfirmedSid.js";
+
     /**
      * Key in the status file for the expected size of the application
      * meta-data.
@@ -114,6 +119,18 @@ public class SubscriberImpl implements Subscriber {
      */
     private static final String REMOTE_SID = "remote_sid";
 
+    /** Key in the status file for the remote IP address for this record */
+    private static final String REMOTE_IP = "remote_ip";
+
+    /**
+     * Key in the status file for the serial ID used locally to identify
+     * this record after it has been synced.
+     */
+    private static final String LOCAL_SID = "local_sid";
+
+    /** Key in the lastConfirmed file for the last sid with a confirmed digest */
+    private static final String LAST_CONFIRMED_SID = "last_confirmed_sid";
+
     /** Key in the status file for the calculated digest. */
     private static final Object DGST = "digest";
 
@@ -142,9 +159,17 @@ public class SubscriberImpl implements Subscriber {
 
     /**
      * Root of the output directories. Each record gets it's own
-     * sub-directory.
+     * sub-directory. Records that have been confirmed are
+     * transfered here.
      */
     final File outputRoot;
+
+    /**
+     * Root of the output directories at the ip level. Each record
+     * type contains its own sub-directory. Records are transfered here
+     * before they are confirmed.
+     */
+    final File outputIpRoot;
 
     /** A logger for this class. */
     private static final Logger LOGGER = Logger.getLogger(SubscriberImpl.class);
@@ -177,10 +202,16 @@ public class SubscriberImpl implements Subscriber {
         new HashMap<String, SubscriberImpl.LocalRecordInfo>();
 
     /** Buffer size for read data from the network and writing to disk. */
-    private int bufferSize = 4096;
+    private final int bufferSize = 4096;
 
     /** The type of records to transfer. */
     private final RecordType recordType;
+
+    /** The ip address of the remote. */
+    private final String remoteIp;
+
+    /** The file to write the last confirmed serial id to. */
+    private final File lastConfirmedFile;
 
     /** The serial ID to send in a subscribe message. */
     String lastSerialFromRemote = null;
@@ -190,6 +221,9 @@ public class SubscriberImpl implements Subscriber {
 
     /** The input stream to use for a journal resume. */
     InputStream journalInputStream = null;
+
+    /** The JNLTest associated with this SubscriberImpl. */
+    private final JNLTest jnlTest;
 
     /**
      * FileFilter to get all sub-directories that match the serial ID
@@ -248,8 +282,9 @@ public class SubscriberImpl implements Subscriber {
         public LocalRecordInfo(final String remoteSid, final long appMetaLen,
                 final long sysMetaLen, final long payloadLen,
                 final long localSid) {
+
             this.recordDir =
-                new File(SubscriberImpl.this.outputRoot,
+                new File(SubscriberImpl.this.outputIpRoot,
                          SubscriberImpl.SID_FORMATER.format(localSid));
             this.statusFile = new File(this.recordDir, STATUS_FILENAME);
             this.status = new JSONObject();
@@ -257,12 +292,13 @@ public class SubscriberImpl implements Subscriber {
             this.status.put(SYS_META_SZ, sysMetaLen);
             this.status.put(PAYLOAD_SZ, payloadLen);
             this.status.put(REMOTE_SID, remoteSid);
+            this.status.put(REMOTE_IP, SubscriberImpl.this.remoteIp);
         }
     }
 
     /**
      * Create a {@link SubscriberImpl} object. Instances of this class will
-     * create sub-directories under <code>outputRoot</code> for each downloaded
+     * create sub-directories under <code>outputIpRoot</code> for each downloaded
      * record.
      *
      * @param recordType
@@ -273,9 +309,11 @@ public class SubscriberImpl implements Subscriber {
      *          The {@link InetAddress} of the remote.
      */
     public SubscriberImpl(final RecordType recordType, final File outputRoot,
-            final InetAddress remoteAddr) {
+            final InetAddress remoteAddr, final JNLTest jnlTest) {
         this.recordType = recordType;
-        File tmp = new File(outputRoot, remoteAddr.getHostAddress());
+        this.remoteIp = remoteAddr.getHostAddress();
+        this.jnlTest = jnlTest;
+        final File tmp = new File(outputRoot, remoteAddr.getHostAddress());
         final String type;
         switch (recordType) {
         case Audit:
@@ -290,16 +328,35 @@ public class SubscriberImpl implements Subscriber {
         default:
             throw new IllegalArgumentException("illegal record type");
         }
-        this.outputRoot = new File(tmp, type);
-        this.outputRoot.mkdirs();
-        if (!(this.outputRoot.exists() && this.outputRoot.isDirectory())) {
+
+		this.outputRoot = new File(outputRoot, type);
+		if(!this.outputRoot.exists()) {
+			this.outputRoot.mkdirs();
+		}
+		if (!(this.outputRoot.exists() && this.outputRoot.isDirectory())) {
+            throw new RuntimeException("Failed to create subdirs for " + type);
+        }
+
+        this.outputIpRoot = new File(tmp, type);
+        this.outputIpRoot.mkdirs();
+        if (!(this.outputIpRoot.exists() && this.outputIpRoot.isDirectory())) {
             throw new RuntimeException("Failed to create subdirs for "
                                        + remoteAddr.getHostAddress() + "/"
                                        + type);
         }
+        this.lastConfirmedFile = new File(this.outputIpRoot, LAST_CONFIRMED_FILENAME);
+        if(!lastConfirmedFile.exists()) {
+			try {
+				this.lastConfirmedFile.createNewFile();
+			} catch (final IOException e) {
+				LOGGER.fatal("Failed to create file: " + LAST_CONFIRMED_FILENAME);
+				throw new RuntimeException(e);
+			}
+        }
+
         try {
             prepareForSubscribe();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.fatal("Failed to clean existing directories: ");
             LOGGER.fatal(e);
             throw new RuntimeException(e);
@@ -308,7 +365,7 @@ public class SubscriberImpl implements Subscriber {
 
     /**
      * Helper utility to run through all records that have been transferred,
-     * but not yet synced. For journal & audit records, this will remove all
+     * but not yet synced. For log & audit records, this will remove all
      * records that are not synced (even if they are completely downloaded).
      * For journal records, this finds the record after the most recently
      * synced record record, and deletes all the other unsynced records. For
@@ -325,81 +382,93 @@ public class SubscriberImpl implements Subscriber {
      */
     final void prepareForSubscribe() throws IOException, ParseException,
                                                 java.text.ParseException {
+
+        final File[] outputRecordDirs = this.outputRoot.listFiles(SubscriberImpl.FILE_FILTER);
+        long lastSerial = 0;
+        if(outputRecordDirs.length >= 1) {
+            Arrays.sort(outputRecordDirs);
+	        final List<File> sortedOutputRecords = java.util.Arrays.asList(outputRecordDirs);
+	        final File lastRecord = sortedOutputRecords.get(sortedOutputRecords.size() - 1);
+	        lastSerial = Long.valueOf(lastRecord.getName());
+        }
+
+        switch (this.recordType) {
+        case Audit:
+            this.jnlTest.setLatestAuditSID(lastSerial++);
+            break;
+        case Journal:
+            this.jnlTest.setLatestJournalSID(lastSerial++);
+            break;
+        case Log:
+            this.jnlTest.setLatestLogSID(lastSerial++);
+            break;
+        }
+
         this.lastSerialFromRemote = SubscribeRequest.EPOC;
         this.journalOffset = 0;
-        JSONParser p  = new JSONParser();
-        File[] recordDirs =
-            this.outputRoot.listFiles(SubscriberImpl.FILE_FILTER);
+        final JSONParser p  = new JSONParser();
+        final File[] recordDirs =
+            this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
 
-        Arrays.sort(recordDirs);
-        int idx = recordDirs.length - 1;
-        File lastDir = null;
-        Set<File> deleteDirs = new HashSet<File>();
-        long lastPayloadBytesTransferred = 0;
-        JSONObject lastStatus = null;
-        while (idx >= 0) {
-            JSONObject status;
+        if(this.lastConfirmedFile.length() > 0) {
+			final JSONObject lastConfirmedJson = (JSONObject) p.parse(new FileReader(
+		        this.lastConfirmedFile));
+
+			this.lastSerialFromRemote = (String) lastConfirmedJson.get(LAST_CONFIRMED_SID);
+		}
+
+        final Set<File> deleteDirs = new HashSet<File>();
+
+        if(this.recordType == RecordType.Journal && recordDirs.length > 0) {
+			// Checking the first record to see if it can be resumed, the rest will be deleted
+			Arrays.sort(recordDirs);
+			final List<File> sortedRecords = new ArrayList<File>(java.util.Arrays.asList(recordDirs));
+
+			final File firstRecord = sortedRecords.remove(0);
+			deleteDirs.addAll(sortedRecords);
+
+			JSONObject status;
             try {
                 status = (JSONObject) p.parse(new FileReader(
-                                                   new File(recordDirs[idx],
+                                                   new File(firstRecord,
                                                              STATUS_FILENAME)));
-            } catch (FileNotFoundException e) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Deleting " + recordDirs[idx] + ", because it is missing the '" + STATUS_FILENAME + "' file");
-                }
-                deleteDirs.add(recordDirs[idx]);
-                idx--;
-                continue;
-            } catch (ParseException e ) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Deleting " + recordDirs[idx] + ", because failed to parse '" + STATUS_FILENAME + "' file");
-                }
-                deleteDirs.add(recordDirs[idx]);
-                idx--;
-                continue;
-            }
-            String dgstStatus = (String) status.get(DGST_CONF);
-            if (CONFIRMED.equals(dgstStatus)) {
-                // found a successfully sent record.
-                if ((this.recordType == RecordType.Journal)
-                        && (lastDir != null)
-                        && (lastPayloadBytesTransferred > 0)) {
+
+                final Number progress = (Number) status.get(PAYLOAD_PROGRESS);
+                if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null) {
+					// journal record can be resumed
                     this.lastSerialFromRemote =
-                        (String) lastStatus.get(REMOTE_SID);
-                    this.journalOffset =
-                        ((Number) lastStatus.get(PAYLOAD_PROGRESS)).longValue();
-                    FileUtils.forceDelete(new File(lastDir, APP_META_FILENAME));
-                    FileUtils.forceDelete(new File(lastDir, SYS_META_FILENAME));
+                        (String) status.get(REMOTE_SID);
+                    this.journalOffset = progress.longValue();
+                    FileUtils.forceDelete(new File(firstRecord, APP_META_FILENAME));
+                    FileUtils.forceDelete(new File(firstRecord, SYS_META_FILENAME));
                     status.remove(APP_META_PROGRESS);
                     status.remove(SYS_META_PROGRESS);
                     this.sid =
-                        SID_FORMATER.parse(lastDir.getName()).longValue();
+                        SID_FORMATER.parse(firstRecord.getName()).longValue();
                     this.journalInputStream = new FileInputStream(
-                                       new File(lastDir, PAYLOAD_FILENAME));
+                                       new File(firstRecord, PAYLOAD_FILENAME));
                 } else {
-                   // all records synced (or for journal, either no un-synced
-                   // or no bytes downloaded.
-                   this.lastSerialFromRemote = (String) status.get(REMOTE_SID);
-                   if (lastDir != null) {
-                       deleteDirs.add(lastDir);
-                   }
+                    deleteDirs.add(firstRecord);
                 }
-                break;
+
+            } catch (final FileNotFoundException e) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Deleting " + firstRecord + ", because it is missing the '" + STATUS_FILENAME + "' file");
+                }
+                deleteDirs.add(firstRecord);
+            } catch (final ParseException e ) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Deleting " + firstRecord + ", because failed to parse '" + STATUS_FILENAME + "' file");
+                }
+                deleteDirs.add(firstRecord);
             }
-            if (lastDir != null) {
-                deleteDirs.add(lastDir);
-            }
-            lastDir = recordDirs[idx];
-            lastStatus = status;
-            Number progress = (Number) lastStatus.get(PAYLOAD_PROGRESS);
-            if (progress != null) {
-                lastPayloadBytesTransferred = progress.longValue();
-            } else {
-                lastPayloadBytesTransferred = 0;
-            }
-            idx--;
+
+        } else {
+			// Any confirmed record should have been moved so deleting all that are left
+			deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
         }
-        for (File f: deleteDirs) {
+
+        for (final File f: deleteDirs) {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Removing directory for unsynced record: "
                             + f.getAbsolutePath());
@@ -453,7 +522,7 @@ public class SubscriberImpl implements Subscriber {
             this.sidMap.put(recordInfo.getSerialId(), lri);
         }
         lri.statusFile.getParentFile().mkdirs();
-        if (!dumpStatus(lri)) {
+        if (!dumpStatus(lri.statusFile, lri.status)) {
             return false;
         }
         return handleRecordData(lri, recordInfo.getSysMetaLength(),
@@ -463,25 +532,26 @@ public class SubscriberImpl implements Subscriber {
 
     /**
      * Write status information about a record out to disk.
-     * @param lri The {@link LocalRecordInfo} object output stats for.
+     * @param file The {@link File} object to write to
+     * @param toWrite The {@link JSONObject} that will be written to the file
      * @return <code>true</code> If the data was successfully written out.
      *         <code>false</code> otherwise.
      */
-    final boolean dumpStatus(final LocalRecordInfo lri) {
+    final boolean dumpStatus(final File file, final JSONObject toWrite) {
         BufferedOutputStream w;
         try {
-            w = new BufferedOutputStream(new FileOutputStream(lri.statusFile));
-            w.write(lri.status.toJSONString().getBytes("utf-8"));
+            w = new BufferedOutputStream(new FileOutputStream(file));
+            w.write(toWrite.toJSONString().getBytes("utf-8"));
             w.close();
-        } catch (FileNotFoundException e) {
-            LOGGER.error("Failed to open status file for writing:"
+        } catch (final FileNotFoundException e) {
+            LOGGER.error("Failed to open file (" + file.getPath() + ") for writing:"
                               + e.getMessage());
             return false;
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             SubscriberImpl.LOGGER.error("cannot find UTF-8 encoder?");
             return false;
-        } catch (IOException e) {
-            LOGGER.error("failed to write to the status file, aborting");
+        } catch (final IOException e) {
+            LOGGER.error("failed to write to the file (" + file.getPath() + "), aborting");
             return false;
         }
         return true;
@@ -511,7 +581,7 @@ public class SubscriberImpl implements Subscriber {
                                    final String outputFilename,
                                    final String statusKey,
             final InputStream incomingData) {
-        byte[] buffer = new byte[this.bufferSize];
+        final byte[] buffer = new byte[this.bufferSize];
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
         long total = 0;
@@ -525,18 +595,18 @@ public class SubscriberImpl implements Subscriber {
                 cnt = incomingData.read(buffer);
             }
             w.close();
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             LOGGER.error("Failed to open '" + outputFile.getAbsolutePath()
                               + "' for writing");
             return false;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Error while trying to write to '"
                          + outputFile.getAbsolutePath() + "' for writing: "
                          + e.getMessage());
             return false;
         } finally {
             lri.status.put(statusKey, total);
-            ret = dumpStatus(lri);
+            ret = dumpStatus(lri.statusFile, lri.status);
         }
         if (total != dataSize) {
             LOGGER.error("System metadata reported to be: " + dataSize
@@ -598,7 +668,7 @@ public class SubscriberImpl implements Subscriber {
     public final boolean notifyDigest(final SubscriberSession sess,
                                       final RecordInfo recordInfo,
                                       final byte[] digest) {
-		String hexString = (new BigInteger(1, digest)).toString(16);
+		final String hexString = (new BigInteger(1, digest)).toString(16);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Calculated digest for " + recordInfo.getSerialId()
                         + ": " + hexString);
@@ -614,7 +684,7 @@ public class SubscriberImpl implements Subscriber {
         }
 
         lri.status.put(DGST, hexString);
-        dumpStatus(lri);
+        dumpStatus(lri.statusFile, lri.status);
         return true;
     }
 
@@ -624,7 +694,7 @@ public class SubscriberImpl implements Subscriber {
                                     final Map<String, DigestStatus> statuses) {
         boolean ret = true;
         LocalRecordInfo lri;
-        for (Entry<String, DigestStatus> entry : statuses.entrySet()) {
+        for (final Entry<String, DigestStatus> entry : statuses.entrySet()) {
             synchronized (this.sidMap) {
                 lri = this.sidMap.remove(entry.getKey());
             }
@@ -645,11 +715,67 @@ public class SubscriberImpl implements Subscriber {
                 default:
                     return false;
                 }
-                if (!dumpStatus(lri)) {
+                if (!dumpStatus(lri.statusFile, lri.status)) {
                     ret = false;
+                }
+                if(DigestStatus.Confirmed.equals(entry.getValue())) {
+					if(!moveConfirmedRecord(lri)) {
+						ret = false;
+					}
                 }
             }
         }
         return ret;
     }
+
+    @SuppressWarnings("unchecked")
+	private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
+
+		final JSONObject lastConfirmedStatus = new JSONObject();
+		final String remoteSid = (String) lri.status.get(REMOTE_SID);
+		lastConfirmedStatus.put(LAST_CONFIRMED_SID, remoteSid);
+		dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
+		final long latestSid = retrieveLatestSid();
+		final File dest = new File(this.outputRoot, SubscriberImpl.SID_FORMATER.format(latestSid));
+
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Renaming directory from: " +lri.recordDir.getAbsolutePath() + " to: "+
+					dest.getAbsolutePath());
+		}
+
+		if(!lri.recordDir.renameTo(dest)) {
+			LOGGER.error("Error trying to move confirmed file.");
+			return false;
+		}
+
+		return true;
+    }
+
+    /**
+     * Retrieve the next available serial id for the record type.
+     *
+     * @return the next unused serial id for the record type
+     */
+    private long retrieveLatestSid() {
+        long latestSid = 1;
+
+        synchronized(this.jnlTest) {
+	        switch (this.recordType) {
+	        case Audit:
+	            latestSid = this.jnlTest.getLatestAuditSID();
+	            this.jnlTest.setLatestAuditSID(latestSid++);
+	            break;
+	        case Journal:
+	            latestSid = this.jnlTest.getLatestJournalSID();
+	            this.jnlTest.setLatestJournalSID(latestSid++);
+	            break;
+	        case Log:
+	            latestSid = this.jnlTest.getLatestLogSID();
+	            this.jnlTest.setLatestLogSID(latestSid++);
+	            break;
+	        }
+        }
+        return latestSid;
+    }
+
 }
