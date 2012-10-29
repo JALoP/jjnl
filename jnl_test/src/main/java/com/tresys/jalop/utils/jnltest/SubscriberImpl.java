@@ -580,14 +580,17 @@ public class SubscriberImpl implements Subscriber {
                                    final long dataSize,
                                    final String outputFilename,
                                    final String statusKey,
-            final InputStream incomingData) {
+                                   final InputStream incomingData) {
         final byte[] buffer = new byte[this.bufferSize];
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
         long total = 0;
+        if(this.journalOffset > 0 && PAYLOAD_FILENAME.equals(outputFilename)) {
+            total = this.journalOffset;
+        }
         boolean ret = true;
         try {
-            w = new BufferedOutputStream(new FileOutputStream(outputFile));
+            w = new BufferedOutputStream(new FileOutputStream(outputFile, true));
             int cnt = incomingData.read(buffer);
             while (cnt != -1) {
                 w.write(buffer, 0, cnt);
@@ -655,9 +658,12 @@ public class SubscriberImpl implements Subscriber {
                 return false;
             }
 
-            return handleRecordData(lri, recordInfo.getPayloadLength(),
+            final boolean retVal = handleRecordData(lri, recordInfo.getPayloadLength(),
                                     PAYLOAD_FILENAME, PAYLOAD_PROGRESS,
                                     payload);
+            // resetting journalOffset to 0 since only the first payload can ever have an offset
+            this.journalOffset = 0;
+            return retVal;
         }
         return true;
     }

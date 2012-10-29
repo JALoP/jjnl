@@ -371,11 +371,11 @@ public class PublisherImpl implements Publisher {
 
 			this.appFile = new File(this.serialDir, APP_META_FILENAME);
 
+			this.payloadFile = new File(this.serialDir, PAYLOAD_FILENAME);
 			if(offset > 0 && PublisherImpl.this.recordType == RecordType.Journal
 					&& !this.payloadFile.exists()) {
 				throw new RuntimeException("Payload file doesn't exist");
 			}
-			this.payloadFile = new File(this.serialDir, PAYLOAD_FILENAME);
 
 		}
 

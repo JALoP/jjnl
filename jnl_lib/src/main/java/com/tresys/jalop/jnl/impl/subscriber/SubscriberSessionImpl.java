@@ -24,6 +24,7 @@
 
 package com.tresys.jalop.jnl.impl.subscriber;
 
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -64,6 +65,8 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	protected volatile int pendingDigestTimeoutSeconds;
 	protected volatile int pendingDigestMax;
 	protected Map<String, String> digestMap;
+	private long journalResumeOffset;
+	private InputStream journalResumeIS;
 
 	/**
 	 * Create a {@link SubscriberSessionImpl} object.
@@ -121,6 +124,7 @@ public class SubscriberSessionImpl extends SessionImpl implements
 		this.pendingDigestMax = pendingDigestMax;
 		this.pendingDigestTimeoutSeconds = pendingDigestTimeoutSeconds;
 		this.digestMap = new HashMap<String, String>();
+		this.journalResumeOffset = 0;
 	}
 
 	/**
@@ -135,6 +139,34 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	 */
 	public int getPendingDigestMax() {
 		return this.pendingDigestMax;
+	}
+
+	/**
+	 * @return the journalResumeOffset
+	 */
+	public long getJournalResumeOffset() {
+		return this.journalResumeOffset;
+	}
+
+	/**
+	 * @param journalResumeOffset the journalResumeOffset to set
+	 */
+	public void setJournalResumeOffset(final long journalResumeOffset) {
+		this.journalResumeOffset = journalResumeOffset;
+	}
+
+	/**
+	 * @return the journalResumeIS
+	 */
+	public InputStream getJournalResumeIS() {
+		return journalResumeIS;
+	}
+
+	/**
+	 * @param journalResumeIS the {@link InputStream} to set
+	 */
+	public void setJournalResumeIS(final InputStream journalResumeIS) {
+		this.journalResumeIS = journalResumeIS;
 	}
 
 	@Override

@@ -36,8 +36,6 @@ import java.security.MessageDigest;
 import javax.xml.soap.MimeHeaders;
 
 import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
 import mockit.Mocked;
 import mockit.VerificationsInOrder;
 
@@ -48,7 +46,6 @@ import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
-import org.beepcore.beep.core.JNLOutputDataStream;
 import org.beepcore.beep.core.MessageMSG;
 import org.beepcore.beep.core.Session;
 import org.junit.Before;
@@ -59,6 +56,8 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SourceRecord;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
+import com.tresys.jalop.jnl.impl.JNLOutputDataStream;
+import com.tresys.jalop.jnl.impl.messages.JournalResumeMessage;
 import com.tresys.jalop.jnl.impl.messages.SubscribeMessage;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 
@@ -103,30 +102,23 @@ public class PublisherRequestHandlerTest {
 		constructor.setAccessible(true);
 		final SubscribeMessage sm = constructor.newInstance("serialId", new MimeHeaders());
 
-		new MockUp<JNLOutputDataStream>() {
-
-			@Mock
-			public boolean addMoreBuffers() {
-				return true;
-			}
-		};
-
 		new Expectations() {
 			{
 				message.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;
-				Utils.processSubscribe(isa); result = sm;
 				contextImpl.getPublisher(); result = publisher;
 				message.getChannel(); result = channel;
                 channel.getSession(); result = sess;
 				contextImpl.getPublisherSession(sess, (RecordType)any); result = publisherSess;
+				isa.getHeaderValue(anyString); result = Utils.MSG_SUBSCRIBE;
+				Utils.processSubscribe(isa); result = sm;
 				publisher.onSubscribe(publisherSess, anyString, (MimeHeaders) any); result = true;
-				publisherSess.getMd(); result = md;
 				publisher.getNextRecord(publisherSess, anyString); result = sourceRecord;
+				publisherSess.getMd(); result = md;
 				sourceRecord.getSerialId(); result = "serialId2";
-				sourceRecord.getPayloadLength(); result = (long)10;
-				sourceRecord.getSysMetaLength(); result = (long)10;
-				sourceRecord.getAppMetaLength(); result = (long)10;
+				sourceRecord.getPayloadLength(); result = (long) 10;
+				sourceRecord.getSysMetaLength(); result = (long) 10;
+				sourceRecord.getAppMetaLength(); result = (long) 10;
 				message.sendANS((JNLOutputDataStream) any);
 				sourceRecord.getSysMetadata(); result = sysMeta;
 				sourceRecord.getAppMetadata(); result = appMeta;
@@ -139,6 +131,68 @@ public class PublisherRequestHandlerTest {
 				appMeta.read((byte[])any); result = -1;
 				breakStream.read((byte[])any); result = 5;
 				breakStream.read((byte[])any); result = -1;
+				payload.read((byte[])any); result = 1;
+				payload.read((byte[])any); result = -1;
+				breakStream.read((byte[])any); result = 5;
+				breakStream.read((byte[])any); result = -1;
+				publisherSess.addDigest(anyString, (byte[]) any);
+				publisher.notifyDigest(publisherSess, anyString, (byte[]) any);
+				publisher.getNextRecord(publisherSess, anyString); result = null;
+				message.sendNUL();
+			}
+		};
+
+		prh.receiveMSG(message);
+	}
+
+	@Test
+	public void testReceiveMSGWorksForJournalResume(final ContextImpl contextImpl, final MessageMSG message,
+			final InputDataStream ids, final InputDataStreamAdapter isa,
+			final PublisherSessionImpl publisherSess, final Publisher publisher,
+			final Channel channel, final Session sess, final SourceRecord sourceRecord,
+			final InputStream sysMeta, final InputStream appMeta, final InputStream payload,
+			final MessageDigest md, final ByteArrayInputStream breakStream)
+			throws BEEPException,
+			SecurityException, NoSuchMethodException, InstantiationException,
+			IllegalAccessException, InvocationTargetException, JNLException, IOException {
+
+		final PublisherRequestHandler prh =
+			new PublisherRequestHandler(RecordType.Journal, contextImpl);
+
+		final Constructor<JournalResumeMessage> constructor = JournalResumeMessage.class.getDeclaredConstructor(String.class, long.class, MimeHeaders.class);
+		constructor.setAccessible(true);
+		final JournalResumeMessage jrm = constructor.newInstance("serialId", (long) 25, new MimeHeaders());
+
+		new Expectations() {
+			{
+				message.getDataStream(); result = ids;
+				ids.getInputStream(); result = isa;
+				contextImpl.getPublisher(); result = publisher;
+				message.getChannel(); result = channel;
+                channel.getSession(); result = sess;
+				contextImpl.getPublisherSession(sess, (RecordType)any); result = publisherSess;
+				isa.getHeaderValue(anyString); result = Utils.MSG_JOURNAL_RESUME;
+				isa.getHeaderValue(anyString); result = Utils.MSG_JOURNAL_RESUME;
+				Utils.processJournalResume(isa); result = jrm;
+				publisher.onJournalResume(publisherSess, anyString, 25, (MimeHeaders) any); result = sourceRecord;
+				publisherSess.getMd(); result = md;
+				sourceRecord.getSerialId(); result = "serialId2";
+				sourceRecord.getPayloadLength(); result = (long) 50;
+				sourceRecord.getSysMetaLength(); result = (long) 10;
+				sourceRecord.getAppMetaLength(); result = (long) 10;
+				message.sendANS((JNLOutputDataStream) any);
+				sourceRecord.getSysMetadata(); result = sysMeta;
+				sourceRecord.getAppMetadata(); result = appMeta;
+				sourceRecord.getPayload(); result = payload;
+				sysMeta.read((byte[])any); result = 1;
+				sysMeta.read((byte[])any); result = -1;
+				breakStream.read((byte[])any); result = 5;
+				breakStream.read((byte[])any); result = -1;
+				appMeta.read((byte[])any); result = 1;
+				appMeta.read((byte[])any); result = -1;
+				breakStream.read((byte[])any); result = 5;
+				breakStream.read((byte[])any); result = -1;
+				payload.read((byte[])any, 0, 25); result = 25;
 				payload.read((byte[])any); result = 1;
 				payload.read((byte[])any); result = -1;
 				breakStream.read((byte[])any); result = 5;

@@ -28,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -293,6 +294,58 @@ public class ListenerProfileTest {
 		new VerificationsInOrder() {
 			{
 				contextImpl.addSession(sess, (SubscriberSessionImpl) any);
+				msg.sendRPY((OutputDataStream) any);
+				channel.sendMSG((OutputDataStream) any, (ReplyListener) any);
+			}
+		};
+	}
+
+	@Test
+	public void testReceiveMsgSendsJournalResume(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg,
+			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel, final TCPSession sess,
+			final OutputDataStream ods, final Socket socket, final ConnectionHandler connectionHandler, final Subscriber subscriber,
+			final SubscribeRequest request, final InputStream is)
+			throws BEEPException, JNLException {
+
+		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
+		final String[] encodings = new String[]{Utils.BINARY};
+		final String[] digests = new String[]{DigestMethod.SHA256};
+		final MimeHeaders otherHeaders = new MimeHeaders();
+		final InitMessage im = new InitMessage(RecordType.Journal, Role.Publisher, encodings,
+				digests, "agent", otherHeaders);
+		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
+
+		new NonStrictExpectations() {
+			{
+				msg.getDataStream(); result = ids;
+                ids.getInputStream(); result = isa;
+                Utils.processInitMessage(isa); result = im;
+				msg.getChannel(); result = channel;
+                channel.getSession(); result = sess;
+                sess.getSocket(); result = socket;
+                socket.getInetAddress(); result = address;
+                contextImpl.getConnectionHandler(); result = connectionHandler;
+                connectionHandler.handleConnectionRequest(false, (ConnectionRequest) any); result = connectErrors;
+                contextImpl.getAllowedXmlEncodings(); result = Arrays.asList(encodings);
+                contextImpl.getAllowedMessageDigests(); result = Arrays.asList(digests);
+                contextImpl.getSubscriber(); result = subscriber;
+                contextImpl.getDefaultDigestTimeout(); result = 1;
+                contextImpl.getDefaultPendingDigestMax(); result = 1;
+                channel.getNumber(); result = 5;
+                subscriber.getSubscribeRequest((SubscriberSession) any); result = request;
+                request.getResumeOffset(); result = (long) 25;
+                request.getResumeInputStream(); result = is;
+                request.getSerialId(); result = "1";
+                Utils.createInitAckMessage(anyString, anyString); result = ods;
+			}
+		};
+
+		profile.receiveMSG(msg);
+
+		new VerificationsInOrder() {
+			{
+				contextImpl.addSession(sess, (SubscriberSessionImpl) any);
+				Utils.createJournalResumeMessage(anyString, 25);
 				msg.sendRPY((OutputDataStream) any);
 				channel.sendMSG((OutputDataStream) any, (ReplyListener) any);
 			}

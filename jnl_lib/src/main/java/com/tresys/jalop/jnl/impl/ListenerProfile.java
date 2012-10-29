@@ -24,6 +24,7 @@
 
 package com.tresys.jalop.jnl.impl;
 
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,6 +51,7 @@ import org.beepcore.beep.transport.tcp.TCPSession;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.Publisher;
+import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
@@ -207,7 +209,18 @@ public class ListenerProfile implements Profile, StartChannelListener, RequestHa
 					final SubscribeRequest request = subscriber.getSubscribeRequest(sessionImpl);
 
 					subscriberListener = sessionImpl.getListener();
-					subscriberOds = Utils.createSubscribeMessage(request.getSerialId());
+
+					if(request.getResumeOffset() > 0 && RecordType.Journal.equals(msg.getRecordType())) {
+						if(log.isDebugEnabled()) {
+							log.debug("Sending a journal resume message.");
+						}
+						final InputStream resumeInputStream = request.getResumeInputStream();
+						sessionImpl.setJournalResumeIS(resumeInputStream);
+						sessionImpl.setJournalResumeOffset(request.getResumeOffset());
+						subscriberOds = Utils.createJournalResumeMessage(request.getSerialId(), request.getResumeOffset());
+					} else {
+						subscriberOds = Utils.createSubscribeMessage(request.getSerialId());
+					}
 
 				} else if(msg.getRole() == Role.Subscriber) {
 

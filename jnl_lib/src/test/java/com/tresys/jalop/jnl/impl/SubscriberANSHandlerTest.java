@@ -64,6 +64,7 @@ import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.SubscriberANSHandler.Dispatcher;
+import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 /**
@@ -388,6 +389,61 @@ public class SubscriberANSHandlerTest {
 				dsa.read(new byte[5], 0, 5);
 				dsa.read();
 				result = -1;
+			}
+		};
+
+		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
+		assertNotNull(sh);
+
+		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		((Dispatcher) dispatcher).run();
+	}
+
+	@Test
+	public void testDispatcherRunJournalWithResumeWorks(final MessageDigest md,
+			final SubscriberSessionImpl subsess, final InputDataStream ds,
+			final Message msg, final InputDataStreamAdapter dsa, final InputStream is)
+			throws Exception {
+
+		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
+
+		new MockUp<InputDataStreamAdapter>() {
+
+			@Mock
+			int read(final byte[] b, final int off, final int len) throws Exception {
+				final byte[] b2 = "BREAK".getBytes("utf-8");
+				System.arraycopy(b2, 0, b, 0, b2.length);
+				return len;
+			}
+		};
+
+		new NonStrictExpectations() {
+			{
+				msg.getDataStream(); result = ds;
+				ds.getInputStream(); result = dsa;
+				dsa.getHeaderValue(Utils.HDRS_SYS_META_LEN); result = "1";
+				dsa.getHeaderValue(Utils.HDRS_APP_META_LEN); result = "1";
+				dsa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_JOURNAL;
+				dsa.getHeaderValue(Utils.HDRS_JOURNAL_LEN); result = "10";
+				subsess.getSubscriber(); result = sub;
+				dsa.getHeaderValue(Utils.HDRS_SERIAL_ID); result = "1";
+				ds.getInputStream(); result = dsa;
+				subsess.getJournalResumeOffset(); result = (long) 5;
+				subsess.getJournalResumeIS(); result = is;
+			}
+		};
+
+		new Expectations() {
+			{
+				dsa.read(); result = 1;
+				dsa.read(new byte[5], 0, 5);
+				dsa.read(); result = 1;
+				dsa.read(new byte[5], 0, 5);
+				is.read((byte[])any); result = 5;
+				is.read((byte[])any); result = -1;
+				dsa.read(); result = 1;
+				dsa.read(new byte[5], 0, 5);
+				dsa.read(); result = -1;
 			}
 		};
 

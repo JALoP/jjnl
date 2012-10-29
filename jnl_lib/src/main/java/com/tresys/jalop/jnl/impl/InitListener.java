@@ -23,6 +23,7 @@
  */
 package com.tresys.jalop.jnl.impl;
 
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,8 +121,20 @@ public class InitListener implements ReplyListener {
 				this.contextImpl.addSession(message.getChannel().getSession(), sessionImpl);
 
 				final SubscribeRequest request = subscriber.getSubscribeRequest(sessionImpl);
+				final OutputDataStream ods;
 
-				final OutputDataStream ods = Utils.createSubscribeMessage(request.getSerialId());
+				if(request.getResumeOffset() > 0 && RecordType.Journal.equals(this.recordType)) {
+					if(log.isDebugEnabled()) {
+						log.debug("Sending a journal resume message.");
+					}
+					final InputStream resumeInputStream = request.getResumeInputStream();
+					sessionImpl.setJournalResumeIS(resumeInputStream);
+					sessionImpl.setJournalResumeOffset(request.getResumeOffset());
+					ods = Utils.createJournalResumeMessage(request.getSerialId(), request.getResumeOffset());
+				} else {
+					ods = Utils.createSubscribeMessage(request.getSerialId());
+				}
+
 				message.getChannel().sendMSG(ods, sessionImpl.getListener());
 
 				new Thread(sessionImpl, "digestThread").start();

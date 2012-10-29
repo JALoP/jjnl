@@ -48,6 +48,7 @@ import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.jnl.impl.JNLOutputDataStream;
+import com.tresys.jalop.jnl.impl.messages.JournalResumeMessage;
 import com.tresys.jalop.jnl.impl.messages.SubscribeMessage;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 
@@ -88,97 +89,130 @@ public class PublisherRequestHandler implements RequestHandler {
 		final InputDataStreamAdapter data = message.getDataStream().getInputStream();
 
 		try {
-			final SubscribeMessage msg = Utils.processSubscribe(data);
 
 			final Publisher publisher = this.contextImpl.getPublisher();
 
 			final PublisherSessionImpl sess =
 				contextImpl.getPublisherSession(message.getChannel().getSession(), this.recordType);
-			final String serialId = msg.getSerialId();
 
-			if(publisher.onSubscribe(sess, serialId, msg.getOtherHeaders())) {
+			String serialId = null;
+			SourceRecord sourceRecord = null;
+			long offset = 0;
 
-				String messageType = null;
-				String payloadLengthHeader = null;
-				switch(this.recordType) {
-				case Log:
-					messageType = Utils.MSG_LOG;
-					payloadLengthHeader = Utils.HDRS_LOG_LEN;
-					break;
-				case Audit:
-					messageType = Utils.MSG_AUDIT;
-					payloadLengthHeader = Utils.HDRS_AUDIT_LEN;
-					break;
-				case Journal:
-					messageType = Utils.MSG_JOURNAL;
-					payloadLengthHeader = Utils.HDRS_JOURNAL_LEN;
-					break;
+			if(Utils.MSG_SUBSCRIBE.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
+				if(log.isDebugEnabled()) {
+					log.debug("Received a subscribe message.");
 				}
+				final SubscribeMessage msg = Utils.processSubscribe(data);
+				serialId = msg.getSerialId();
+				if(!publisher.onSubscribe(sess, serialId, msg.getOtherHeaders())) {
+					if(log.isEnabledFor(Level.ERROR)) {
+						log.error("Problem with subscribe - not sending any records.");
+					}
+					return;
+				}
+				sourceRecord = publisher.getNextRecord(sess, serialId);
+			} else if(Utils.MSG_JOURNAL_RESUME.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
+				if(log.isDebugEnabled()) {
+					log.debug("Received a journal resume message.");
+				}
+				final JournalResumeMessage msg = Utils.processJournalResume(data);
+				serialId = msg.getSerialId();
+				offset = msg.getOffset();
+				sourceRecord = publisher.onJournalResume(sess, serialId, msg.getOffset(), msg.getOtherHeaders());
+			}
 
-				final MessageDigest md = sess.getMd();
-				SourceRecord sourceRecord = publisher.getNextRecord(sess, serialId);
-				while(sourceRecord != null) {
+			String messageType = null;
+			String payloadLengthHeader = null;
+			switch(this.recordType) {
+			case Log:
+				messageType = Utils.MSG_LOG;
+				payloadLengthHeader = Utils.HDRS_LOG_LEN;
+				break;
+			case Audit:
+				messageType = Utils.MSG_AUDIT;
+				payloadLengthHeader = Utils.HDRS_AUDIT_LEN;
+				break;
+			case Journal:
+				messageType = Utils.MSG_JOURNAL;
+				payloadLengthHeader = Utils.HDRS_JOURNAL_LEN;
+				break;
+			}
 
-					md.reset();
+			final MessageDigest md = sess.getMd();
 
-					final String currSerialId = sourceRecord.getSerialId();
+			while(sourceRecord != null) {
 
-					final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
-					mh.setContentType(Utils.CT_JALOP);
-					mh.setHeader(Utils.HDRS_SERIAL_ID, currSerialId);
-					mh.setHeader(Utils.HDRS_MESSAGE, messageType);
-					mh.setHeader(payloadLengthHeader, String.valueOf(sourceRecord.getPayloadLength()));
-					mh.setHeader(Utils.HDRS_SYS_META_LEN, String.valueOf(sourceRecord.getSysMetaLength()));
-					mh.setHeader(Utils.HDRS_APP_META_LEN, String.valueOf(sourceRecord.getAppMetaLength()));
+				md.reset();
 
-					final JNLOutputDataStream ods = new JNLOutputDataStream(mh, MAX_BUFFERS);
-					message.sendANS(ods);
+				final String currSerialId = sourceRecord.getSerialId();
 
-					byte[] buffer =  new byte[BUFFER_SIZE];
-					int bytesRead = 0;
+				final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
+				mh.setContentType(Utils.CT_JALOP);
+				mh.setHeader(Utils.HDRS_SERIAL_ID, currSerialId);
+				mh.setHeader(Utils.HDRS_MESSAGE, messageType);
+				mh.setHeader(payloadLengthHeader, String.valueOf(sourceRecord.getPayloadLength()));
+				mh.setHeader(Utils.HDRS_SYS_META_LEN, String.valueOf(sourceRecord.getSysMetaLength()));
+				mh.setHeader(Utils.HDRS_APP_META_LEN, String.valueOf(sourceRecord.getAppMetaLength()));
 
-					final List<InputStream> inputStreamList = new ArrayList<InputStream>();
-					inputStreamList.add(sourceRecord.getSysMetadata());
-					inputStreamList.add(new ByteArrayInputStream(Utils.BREAK.getBytes("utf-8")));
-					inputStreamList.add(sourceRecord.getAppMetadata());
-					inputStreamList.add(new ByteArrayInputStream(Utils.BREAK.getBytes("utf-8")));
-					inputStreamList.add(sourceRecord.getPayload());
-					inputStreamList.add(new ByteArrayInputStream(Utils.BREAK.getBytes("utf-8")));
+				final JNLOutputDataStream ods = new JNLOutputDataStream(mh, MAX_BUFFERS);
+				message.sendANS(ods);
 
-					InputStream inStream = null;
-					boolean shouldDigest = false;
+				byte[] buffer =  new byte[BUFFER_SIZE];
+				int bytesRead = 0;
 
-					while(!inputStreamList.isEmpty()) {
-						inStream = inputStreamList.remove(0);
-						//every other stream is a break and shouldn't be included in the digest
-						shouldDigest = !shouldDigest;
+				final List<InputStream> inputStreamList = new ArrayList<InputStream>();
+				inputStreamList.add(sourceRecord.getSysMetadata());
+				inputStreamList.add(new ByteArrayInputStream(Utils.BREAK.getBytes("utf-8")));
+				inputStreamList.add(sourceRecord.getAppMetadata());
+				inputStreamList.add(new ByteArrayInputStream(Utils.BREAK.getBytes("utf-8")));
+				inputStreamList.add(sourceRecord.getPayload());
+				inputStreamList.add(new ByteArrayInputStream(Utils.BREAK.getBytes("utf-8")));
 
-						if(inStream == null) {
-							continue;
-						}
+				InputStream inStream = null;
+				boolean shouldDigest = false;
 
-						while((bytesRead = inStream.read(buffer)) > -1) {
+				while(!inputStreamList.isEmpty()) {
+					inStream = inputStreamList.remove(0);
+					//every other stream is a break and shouldn't be included in the digest
+					shouldDigest = !shouldDigest;
 
-							if(shouldDigest) {
-								md.update(buffer, 0, bytesRead);
-							}
+					if(inStream == null) {
+						continue;
+					}
 
-							ods.add(new BufferSegment(buffer, 0, bytesRead));
+					if(inputStreamList.size() == 1 && shouldDigest && offset > 0) {
+						// need to digest payload up to offset but not send that part
+						int toRead;
+						while((toRead = (int) (offset > BUFFER_SIZE ? BUFFER_SIZE : offset)) > 0) {
+							bytesRead = inStream.read(buffer, 0, toRead);
+							md.update(buffer, 0, bytesRead);
+							offset -= bytesRead;
 							buffer = new byte[BUFFER_SIZE];
 						}
 					}
 
-					ods.setComplete();
+					while((bytesRead = inStream.read(buffer)) > -1) {
 
-					final byte[] digest = md.digest();
+						if(shouldDigest) {
+							md.update(buffer, 0, bytesRead);
+						}
 
-					sess.addDigest(currSerialId, digest);
-					publisher.notifyDigest(sess, currSerialId, digest);
-
-					sourceRecord = publisher.getNextRecord(sess, currSerialId);
+						ods.add(new BufferSegment(buffer, 0, bytesRead));
+						buffer = new byte[BUFFER_SIZE];
+					}
 				}
-				message.sendNUL();
+
+				ods.setComplete();
+
+				final byte[] digest = md.digest();
+
+				sess.addDigest(currSerialId, digest);
+				publisher.notifyDigest(sess, currSerialId, digest);
+
+				sourceRecord = publisher.getNextRecord(sess, currSerialId);
 			}
+			message.sendNUL();
 
 		} catch (final BEEPException e) {
 			if (log.isEnabledFor(Level.ERROR)) {

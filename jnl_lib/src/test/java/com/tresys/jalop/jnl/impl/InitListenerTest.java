@@ -166,6 +166,7 @@ public class InitListenerTest {
                 contextImpl.getSubscriber(); result = subscriber;
                 subscriber.getSubscribeRequest((SubscriberSession) any); result = subRequest;
                 subRequest.getSerialId(); result = "12345";
+                subRequest.getResumeOffset(); result = (long) 0;
                 msg.getChannel(); result = channel;
                 contextImpl.getDefaultPendingDigestMax(); result = 1;
                 contextImpl.getDefaultDigestTimeout(); result = 1;
@@ -183,6 +184,59 @@ public class InitListenerTest {
             }
         };
     }
+
+    @Test
+    public void testInitListenerSendsJournalResume(final ContextImpl contextImpl,
+            final InputDataStream ids, final InputDataStreamAdapter isa,
+            final Message msg, final Subscriber subscriber,
+            final SubscribeRequest subRequest, final OutputDataStream ods,
+            final Channel channel, final Session sess,
+            final ReplyListener rpyListener, final InetAddress address) throws BEEPException, JNLException, InterruptedException {
+
+		final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
+        final LinkedList<String> allowedDigests = new LinkedList<String>();
+        allowedDigests.add(DigestMethod.SHA256);
+        final LinkedList<String> allowedEncs = new LinkedList<String>();
+        allowedEncs.add("foo");
+
+        // mock up thread since this function is supposed to spawn a new thread, but
+        // don't actually want it to do that.
+        new MockUp<Thread>() {
+            @Mock
+            public void start() {
+                // do nothing
+            }
+        };
+
+        new NonStrictExpectations() {
+            {
+                msg.getDataStream(); result = ids;
+                ids.getInputStream(); result = isa;
+                Utils.processInitAck(isa); result = iam;
+                contextImpl.getAllowedMessageDigests(); result = allowedDigests;
+                contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
+                contextImpl.getSubscriber(); result = subscriber;
+                subscriber.getSubscribeRequest((SubscriberSession) any); result = subRequest;
+                subRequest.getSerialId(); result = "12345";
+                subRequest.getResumeOffset(); result = (long) 10;
+                msg.getChannel(); result = channel;
+                contextImpl.getDefaultPendingDigestMax(); result = 1;
+                contextImpl.getDefaultDigestTimeout(); result = 1;
+                channel.getSession(); result = sess;
+                Utils.createJournalResumeMessage(anyString, 10); result = ods;
+            }
+        };
+
+        final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Journal, contextImpl);
+        initListener.receiveRPY(msg);
+        new VerificationsInOrder() {
+            {
+                contextImpl.addSession(sess, (SubscriberSessionImpl) any);
+                channel.sendMSG(ods, (ReplyListener)any);
+            }
+        };
+    }
+
     @Test (expected = AbortChannelException.class)
     public void testInitListenerThrowsException(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg, final InetAddress address) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final LinkedList<ConnectError> errors = new LinkedList<ConnectError>();

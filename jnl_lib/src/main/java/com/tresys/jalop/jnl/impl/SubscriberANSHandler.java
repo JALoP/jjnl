@@ -61,6 +61,9 @@ public class SubscriberANSHandler implements ReplyListener {
 	private static final String[] KNOWN_HEADERS = { Utils.HDRS_APP_META_LEN.toLowerCase(),
 			Utils.HDRS_SYS_META_LEN.toLowerCase(), Utils.HDRS_LOG_LEN.toLowerCase(), Utils.HDRS_AUDIT_LEN.toLowerCase(), Utils.HDRS_JOURNAL_LEN.toLowerCase(),
 			Utils.HDRS_CONTENT_TYPE.toLowerCase(), Utils.HDRS_MESSAGE.toLowerCase(), Utils.HDRS_SERIAL_ID.toLowerCase() };
+
+	static final int BUFFER_SIZE = 4096;
+
 	/**
 	 * The MessageDigest to use for calculating the JALoP digest.
 	 */
@@ -260,11 +263,31 @@ public class SubscriberANSHandler implements ReplyListener {
 				}
 				this.js.flush();
 
-				this.js = new JalopDataStream(payloadSize, this.ds);
+				long payloadSizeToRead = payloadSize;
+				if(subsess.getJournalResumeOffset() > 0) {
+
+					//calculate already received payload before resuming
+					final InputStream resumeInputStream = subsess.getJournalResumeIS();
+					final byte[] buffer =  new byte[BUFFER_SIZE];
+					int bytesRead = 0;
+
+					while((bytesRead = resumeInputStream.read(buffer)) > -1) {
+						md.update(buffer, 0, bytesRead);
+					}
+
+					if(log.isDebugEnabled()) {
+						log.debug("Updating payloadSize to account for the offset.");
+					}
+					payloadSizeToRead -= subsess.getJournalResumeOffset();
+				}
+				this.js = new JalopDataStream(payloadSizeToRead, this.ds);
 				if (!sub.notifyPayload(subsess, recInfo, js)) {
 					throw new AbortChannelException("Error in notifyPayload");
 				}
 				this.js.flush();
+				// only the first record is a journal resume, subsequent records are normal
+				subsess.setJournalResumeOffset(0);
+				subsess.setJournalResumeIS(null);
 
 				if (this.ds.getInputStream().read() != -1) {
 					throw new IOException(
@@ -432,6 +455,7 @@ public class SubscriberANSHandler implements ReplyListener {
 		if (log.isDebugEnabled()) {
 			log.debug("SubscriberANSHandler received NUL");
 		}
-		//do nothing/
+		//do nothing
 	}
+
 }

@@ -28,6 +28,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -281,6 +282,26 @@ public class SubscriberSessionImplTest {
 			final Session sess) {
 		new SubscriberSessionImpl(null, RecordType.Unset, subscriber,
 				DigestMethod.SHA256, "barfoo", 1, 1, 2, sess);
+	}
+
+	@Test
+	public void testSetJournalResumeOffset(final Subscriber subscriber,
+			final org.beepcore.beep.core.Session sess, final InetAddress address) {
+		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
+				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				2, 0, sess);
+		s.setJournalResumeOffset(10);
+		assertEquals(10, s.getJournalResumeOffset());
+	}
+
+	@Test
+	public void testSetJournalResumeIS(final Subscriber subscriber, final InputStream is,
+			final org.beepcore.beep.core.Session sess, final InetAddress address) {
+		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
+				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				2, 0, sess);
+		s.setJournalResumeIS(is);
+		assertEquals(is, s.getJournalResumeIS());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
