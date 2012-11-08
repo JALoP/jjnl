@@ -155,50 +155,60 @@ public class PublisherImpl implements Publisher {
 	public SourceRecord getNextRecord(final PublisherSession sess, final String lastSerialId) {
 
 		final long nextSerialId;
-		if(Long.valueOf(lastSerialId) == 0) {
 
-			if(LOGGER.isInfoEnabled()) {
-				LOGGER.info("SerialId of 0 sent. Finding the oldest file.");
-			}
+		try {
 
-			final File[] recordDirs =
-				this.inputRoot.listFiles(PublisherImpl.FILE_FILTER);
+			if(Long.valueOf(lastSerialId) == 0) {
 
-			Arrays.sort(recordDirs);
-
-			final File firstFile = recordDirs[0];
-			final String fileName = firstFile.getName();
-
-			nextSerialId = Long.valueOf(fileName);
-
-			if(nextSerialId == 0) {
-				if(LOGGER.isEnabledFor(Level.ERROR)) {
-					LOGGER.error("Found a record with the invalid serialId of 0.");
+				if(LOGGER.isInfoEnabled()) {
+					LOGGER.info("SerialId of 0 sent. Finding the oldest file.");
 				}
-				throw new RuntimeException("SerialId of 0 is reserved and cannot be associated with a record.");
+
+				final File[] recordDirs =
+					this.inputRoot.listFiles(PublisherImpl.FILE_FILTER);
+
+				Arrays.sort(recordDirs);
+
+				final File firstFile = recordDirs[0];
+				final String fileName = firstFile.getName();
+
+				nextSerialId = Long.valueOf(fileName);
+
+				if(nextSerialId == 0) {
+					if(LOGGER.isEnabledFor(Level.ERROR)) {
+						LOGGER.error("Found a record with the invalid serialId of 0.");
+					}
+					throw new RuntimeException("SerialId of 0 is reserved and cannot be associated with a record.");
+				}
+
+				if(LOGGER.isInfoEnabled()) {
+					LOGGER.info("Oldest file found with serialId: " + nextSerialId);
+				}
+
+			} else {
+				nextSerialId = Long.valueOf(lastSerialId) + 1;
 			}
 
-			if(LOGGER.isInfoEnabled()) {
-				LOGGER.info("Oldest file found with serialId: " + nextSerialId);
+			final File serialDir =
+				new File(this.inputRoot,
+						SID_FORMATER.format(Long.valueOf(nextSerialId)));
+
+			if(!serialDir.exists()) {
+				if(LOGGER.isInfoEnabled()) {
+					LOGGER.info("Directory structure for serialId: " + nextSerialId +
+							" does not exist. Returning null.");
+				}
+				return null;
 			}
 
-		} else {
-			nextSerialId = Long.valueOf(lastSerialId) + 1;
-		}
+			return new SourceRecordImpl(Long.toString(nextSerialId), 0);
 
-		final File serialDir =
-			new File(this.inputRoot,
-					SID_FORMATER.format(Long.valueOf(nextSerialId)));
-
-		if(!serialDir.exists()) {
-			if(LOGGER.isInfoEnabled()) {
-				LOGGER.info("Directory structure for serialId: " + nextSerialId +
-						" does not exist. Returning null.");
+		} catch (final NumberFormatException e) {
+			if(LOGGER.isEnabledFor(Level.ERROR)) {
+				LOGGER.error("SerialId is not numeric - returning null");
 			}
 			return null;
 		}
-
-		return new SourceRecordImpl(Long.toString(nextSerialId), 0);
 	}
 
 	@Override
