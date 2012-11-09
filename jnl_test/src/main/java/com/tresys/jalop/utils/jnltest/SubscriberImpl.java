@@ -731,10 +731,6 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
 	private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
 
-		final JSONObject lastConfirmedStatus = new JSONObject();
-		final String remoteSid = (String) lri.status.get(REMOTE_SID);
-		lastConfirmedStatus.put(LAST_CONFIRMED_SID, remoteSid);
-		dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
 		final long latestSid = retrieveLatestSid();
 		final File dest = new File(this.outputRoot, SubscriberImpl.SID_FORMATER.format(latestSid));
 
@@ -743,7 +739,12 @@ public class SubscriberImpl implements Subscriber {
 					dest.getAbsolutePath());
 		}
 
-		if(!lri.recordDir.renameTo(dest)) {
+		if(lri.recordDir.renameTo(dest)) {
+			final JSONObject lastConfirmedStatus = new JSONObject();
+			final String remoteSid = (String) lri.status.get(REMOTE_SID);
+			lastConfirmedStatus.put(LAST_CONFIRMED_SID, remoteSid);
+			dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
+		} else {
 			LOGGER.error("Error trying to move confirmed file.");
 			return false;
 		}
@@ -763,15 +764,15 @@ public class SubscriberImpl implements Subscriber {
 	        switch (this.recordType) {
 	        case Audit:
 	            latestSid = this.jnlTest.getLatestAuditSID();
-	            this.jnlTest.setLatestAuditSID(latestSid++);
+	            this.jnlTest.setLatestAuditSID(++latestSid);
 	            break;
 	        case Journal:
 	            latestSid = this.jnlTest.getLatestJournalSID();
-	            this.jnlTest.setLatestJournalSID(latestSid++);
+	            this.jnlTest.setLatestJournalSID(++latestSid);
 	            break;
 	        case Log:
 	            latestSid = this.jnlTest.getLatestLogSID();
-	            this.jnlTest.setLatestLogSID(latestSid++);
+	            this.jnlTest.setLatestLogSID(++latestSid);
 	            break;
 	        }
         }
