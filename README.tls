@@ -52,7 +52,7 @@ truststore that contains the public certificate for a remote (i.e. the
 remotes.jks file), the only thing left to do is propagate this information
 down to the JSSE library for use.
 
-Do do this, you must create a org.beepcore.beep.profile.ProfileConfiguration 
+To do this, you must create a org.beepcore.beep.profile.ProfileConfiguration
 object, and set the following keys:
 
 "Key Algorithm"        - In most cases, this should be "SunX509". If left empty,
