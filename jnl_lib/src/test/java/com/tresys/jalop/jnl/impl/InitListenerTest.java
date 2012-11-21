@@ -237,8 +237,8 @@ public class InitListenerTest {
         };
     }
 
-    @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsException(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg, final InetAddress address) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+    public void testReceiveErrWorks(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg,
+			final InetAddress address, final Channel channel) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final LinkedList<ConnectError> errors = new LinkedList<ConnectError>();
         errors.add(ConnectError.UnauthorizedMode);
         final InitNackMessage inm = new InitNackMessage(errors, new MimeHeaders());
@@ -247,10 +247,17 @@ public class InitListenerTest {
                 msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
                 Utils.processInitNack(isa); result = inm;
+                msg.getChannel(); result = channel;
             }
         };
         final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveERR(msg);
+
+        new VerificationsInOrder() {
+			{
+				channel.setRequestHandler((ErrorRequestHandler) any);
+			}
+		};
     }
 
 	@Test

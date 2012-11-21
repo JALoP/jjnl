@@ -32,6 +32,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.AbortChannelException;
 import org.beepcore.beep.core.BEEPException;
+import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
 import org.beepcore.beep.core.OutputDataStream;
@@ -181,10 +182,6 @@ public class InitListener implements ReplyListener {
 	public void receiveERR(final Message message)
 			throws AbortChannelException {
 
-		if (log.isEnabledFor(Level.ERROR)) {
-			log.error("InitListener received an error. Closing the channel.");
-		}
-
 		List<ConnectError> connectErrors = new ArrayList<ConnectError>();
 
 		try {
@@ -220,7 +217,14 @@ public class InitListener implements ReplyListener {
 			sb.append(ce);
 		}
 
-		throw new AbortChannelException("InitListener received ERR: " + sb.toString());
+		if (log.isEnabledFor(Level.ERROR)) {
+			log.error("InitListener received ERR: " + sb.toString());
+		}
+
+		message.getChannel().setRequestHandler(new ErrorRequestHandler());
+
+		final Thread t = new Thread(new ChannelCloser(message.getChannel()));
+		t.start();
 	}
 
 	@Override
@@ -241,6 +245,33 @@ public class InitListener implements ReplyListener {
 			log.error("InitListener received NUL which shouldn't happen.");
 		}
 		throw new AbortChannelException("InitListener should not receive NUL");
+	}
+
+	/**
+	 * Used to create a thread to close channels
+	 */
+	class ChannelCloser implements Runnable {
+
+		private final Channel channel;
+
+		public ChannelCloser(final Channel channel) {
+			this.channel = channel;
+		}
+
+		@Override
+		public void run() {
+			try {
+				if(log.isDebugEnabled()) {
+					log.debug("Closing channel number: " + channel.getNumber());
+				}
+				channel.close();
+			} catch (final BEEPException e) {
+				if (log.isEnabledFor(Level.ERROR)) {
+					log.error("Error - Received error while trying to close channel number " +
+							channel.getNumber() + ": " + e.getMessage());
+				}
+			}
+		}
 	}
 
 }

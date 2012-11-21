@@ -266,10 +266,10 @@ public class ListenerProfile implements Profile, StartChannelListener, RequestHa
 				}
 				ods = Utils.createInitNackMessage(new ArrayList<ConnectError>(connectErrors));
 
-				message.sendRPY(ods);
+				message.getChannel().setRequestHandler(new ErrorRequestHandler());
+				message.sendERR(ods);
 				return;
 			}
-
 
 		} catch (final BEEPException e) {
 			if (log.isEnabledFor(Level.ERROR)) {

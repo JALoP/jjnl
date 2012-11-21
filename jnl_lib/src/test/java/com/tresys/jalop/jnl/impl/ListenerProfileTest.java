@@ -431,7 +431,7 @@ public class ListenerProfileTest {
 
 		new VerificationsInOrder() {
 			{
-				msg.sendRPY((OutputDataStream) any);
+				msg.sendERR((OutputDataStream) any);
 			}
 		};
 	}
@@ -473,7 +473,7 @@ public class ListenerProfileTest {
 
 		new VerificationsInOrder() {
 			{
-				msg.sendRPY((OutputDataStream) any);
+				msg.sendERR((OutputDataStream) any);
 			}
 		};
 	}
@@ -515,7 +515,7 @@ public class ListenerProfileTest {
 
 		new VerificationsInOrder() {
 			{
-				msg.sendRPY((OutputDataStream) any);
+				msg.sendERR((OutputDataStream) any);
 			}
 		};
 	}
