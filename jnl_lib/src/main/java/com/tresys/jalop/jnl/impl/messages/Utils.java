@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -89,7 +89,7 @@ public class Utils {
 	public static final String HDRS_LOG_LEN = "JAL-Log-Length";
 	public static final String HDRS_MESSAGE = "JAL-Message";
 	public static final String HDRS_MODE = "JAL-Mode";
-	public static final String HDRS_SERIAL_ID = "JAL-Serial-Id";
+	public static final String HDRS_NONCE = "JAL-Id";
 	public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
 	public static final String HDRS_UNAUTHORIZED_MODE = "JAL-Unauthorized-Mode";
 	public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
@@ -109,7 +109,7 @@ public class Utils {
 	public static final String MSG_SYNC = "sync";
 	public static final String MSG_SUBSCRIBE = "subscribe";
 
-	public static final String SERIAL_ID = "serialId";
+	public static final String NONCE = "nonce";
 	public static final String STATUS = "status";
 
 	/**
@@ -311,18 +311,18 @@ public class Utils {
 	 * {@link OutputDataStream#setComplete()} called on it since a 'subscribe'
 	 * message contains no payload.
 	 *
-	 * @param serialId
-	 *            The serialId to send in the 'subscribe' message. This must be
+	 * @param nonce
+	 *            The nonce to send in the 'subscribe' message. This must be
 	 *            non-null and contain at least one non-whitespace character.
 	 * @return The {@link OutputDataStream}.
 	 */
-	static public OutputDataStream createSubscribeMessage(String serialId) {
-		serialId = checkForEmptyString(serialId, HDRS_SERIAL_ID);
+	static public OutputDataStream createSubscribeMessage(String nonce) {
+		nonce = checkForEmptyString(nonce, HDRS_NONCE);
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 		headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE);
-		headers.setHeader(HDRS_SERIAL_ID, serialId);
+		headers.setHeader(HDRS_NONCE, nonce);
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
@@ -510,21 +510,21 @@ public class Utils {
 			final InputDataStreamAdapter is) throws BEEPException,
 			MissingMimeHeaderException, UnexpectedMimeValueException {
 		final MimeHeaders[] headers = processMessageCommon(is, MSG_SUBSCRIBE,
-				HDRS_MESSAGE, HDRS_SERIAL_ID);
+				HDRS_MESSAGE, HDRS_NONCE);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
 
-		String serialId;
-		if (knownHeaders.getHeader(HDRS_SERIAL_ID) == null) {
-			throw new MissingMimeHeaderException(HDRS_SERIAL_ID);
+		String nonce;
+		if (knownHeaders.getHeader(HDRS_NONCE) == null) {
+			throw new MissingMimeHeaderException(HDRS_NONCE);
 		}
-		serialId = knownHeaders.getHeader(HDRS_SERIAL_ID)[0].trim();
-		if (serialId.length() == 0) {
-			throw new UnexpectedMimeValueException(HDRS_SERIAL_ID,
-					"non-empty-string", serialId);
+		nonce = knownHeaders.getHeader(HDRS_NONCE)[0].trim();
+		if (nonce.length() == 0) {
+			throw new UnexpectedMimeValueException(HDRS_NONCE,
+					"non-empty-string", nonce);
 		}
-		return new SubscribeMessage(serialId, unknownHeaders);
+		return new SubscribeMessage(nonce, unknownHeaders);
 	}
 
 	/**
@@ -533,8 +533,8 @@ public class Utils {
 	 * had {@link OutputDataStream#setComplete()} called on it since a
 	 * 'journal-resume' message contains no payload.
 	 *
-	 * @param serialId
-	 *            The serialId to send in the 'journal-resume' message. This
+	 * @param nonce
+	 *            The nonce to send in the 'journal-resume' message. This
 	 *            must be non-null and contain at least one non-whitespace
 	 *            character.
 	 * @param offset
@@ -542,9 +542,9 @@ public class Utils {
 	 *            journal record.
 	 * @return The {@link OutputDataStream}.
 	 */
-	static public OutputDataStream createJournalResumeMessage(final String serialId,
+	static public OutputDataStream createJournalResumeMessage(final String nonce,
 			final long offset) {
-		checkForEmptyString(serialId, HDRS_SERIAL_ID);
+		checkForEmptyString(nonce, HDRS_NONCE);
 
 		if (offset < 0) {
 			throw new IllegalArgumentException("offsset for '"
@@ -554,7 +554,7 @@ public class Utils {
 				CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 		headers.setHeader(HDRS_MESSAGE, MSG_JOURNAL_RESUME);
-		headers.setHeader(HDRS_SERIAL_ID, serialId);
+		headers.setHeader(HDRS_NONCE, nonce);
 		headers.setHeader(HDRS_JOURNAL_OFFSET, Long.toString(offset));
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
@@ -628,20 +628,20 @@ public class Utils {
 			MissingMimeHeaderException, UnexpectedMimeValueException {
 
 		final MimeHeaders[] headers = processMessageCommon(is,
-				MSG_JOURNAL_RESUME, HDRS_MESSAGE, HDRS_SERIAL_ID,
+				MSG_JOURNAL_RESUME, HDRS_MESSAGE, HDRS_NONCE,
 				HDRS_JOURNAL_OFFSET);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
 
-		String serialId;
-		if (knownHeaders.getHeader(HDRS_SERIAL_ID) == null) {
-			throw new MissingMimeHeaderException(HDRS_SERIAL_ID);
+		String nonce;
+		if (knownHeaders.getHeader(HDRS_NONCE) == null) {
+			throw new MissingMimeHeaderException(HDRS_NONCE);
 		}
-		serialId = knownHeaders.getHeader(HDRS_SERIAL_ID)[0].trim();
-		if (serialId.length() == 0) {
-			throw new UnexpectedMimeValueException(HDRS_SERIAL_ID,
-					"non-empty-string", serialId);
+		nonce = knownHeaders.getHeader(HDRS_NONCE)[0].trim();
+		if (nonce.length() == 0) {
+			throw new UnexpectedMimeValueException(HDRS_NONCE,
+					"non-empty-string", nonce);
 		}
 
 		String offsetStr;
@@ -651,7 +651,7 @@ public class Utils {
 		offsetStr = knownHeaders.getHeader(HDRS_JOURNAL_OFFSET)[0].trim();
 		if (offsetStr.length() == 0) {
 			throw new UnexpectedMimeValueException(HDRS_JOURNAL_OFFSET,
-					"non-empty-string", serialId);
+					"non-empty-string", nonce);
 		}
 		long offset = -1;
 		try {
@@ -664,7 +664,7 @@ public class Utils {
 			throw new UnexpectedMimeValueException(HDRS_JOURNAL_OFFSET,
 					"positive integer", offsetStr);
 		}
-		return new JournalResumeMessage(serialId, offset, unknownHeaders);
+		return new JournalResumeMessage(nonce, offset, unknownHeaders);
 	}
 
 	/**
@@ -673,7 +673,7 @@ public class Utils {
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the sync
 	 *            message.
-	 * @return a {@link SyncMessage} that holds the Serial ID that is being synced
+	 * @return a {@link SyncMessage} that holds the Nonce that is being synced
 	 * @throws BEEPException
 	 *             If there is an error from the underlying BEEP connection.
 	 * @throws UnexpectedMimeValueException
@@ -687,38 +687,38 @@ public class Utils {
 			BEEPException {
 
 		final MimeHeaders[] headers = processMessageCommon(is, MSG_SYNC,
-				HDRS_MESSAGE, HDRS_SERIAL_ID);
+				HDRS_MESSAGE, HDRS_NONCE);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
 
-		String serialId;
-		if (knownHeaders.getHeader(HDRS_SERIAL_ID) == null) {
-			throw new MissingMimeHeaderException(HDRS_SERIAL_ID);
+		String nonce;
+		if (knownHeaders.getHeader(HDRS_NONCE) == null) {
+			throw new MissingMimeHeaderException(HDRS_NONCE);
 		}
-		serialId = knownHeaders.getHeader(HDRS_SERIAL_ID)[0].trim();
-		if (serialId.length() == 0) {
-			throw new UnexpectedMimeValueException(HDRS_SERIAL_ID,
-					"non-empty-string", serialId);
+		nonce = knownHeaders.getHeader(HDRS_NONCE)[0].trim();
+		if (nonce.length() == 0) {
+			throw new UnexpectedMimeValueException(HDRS_NONCE,
+					"non-empty-string", nonce);
 		}
-		return new SyncMessage(serialId, unknownHeaders);
+		return new SyncMessage(nonce, unknownHeaders);
 	}
 
 	/**
-	 * Create a sync message from a String (Serial ID). Note
+	 * Create a sync message from a String (Nonce). Note
 	 * that the {@link OutputDataStream} returned by this function has already
 	 * had {@link OutputDataStream#setComplete()} called on it since a
 	 * 'sync' message contains no payload.
 	 *
-	 * @param serialId
-	 *            The String that holds the synced serialID
+	 * @param nonce
+	 *            The String that holds the synced nonce
 	 * @return an {@link OutputDataStream} that holds the sync message
 	 */
-	static public OutputDataStream createSyncMessage(final String serialId) {
+	static public OutputDataStream createSyncMessage(final String nonce) {
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(CT_JALOP);
 		mh.setHeader(HDRS_MESSAGE, MSG_SYNC);
-		mh.setHeader(HDRS_SERIAL_ID, checkForEmptyString(serialId, SERIAL_ID));
+		mh.setHeader(HDRS_NONCE, checkForEmptyString(nonce, NONCE));
 
 		final OutputDataStream ret = new OutputDataStream(mh, new BufferSegment(new byte[0]));
 		ret.setComplete();
@@ -766,7 +766,7 @@ public class Utils {
 
 		for (int x = 0; x < count * 2; x += 2) {
 			pairs[x] = checkForEmptyString(pairs[x], MSG_DIGEST);
-			pairs[x + 1] = checkForEmptyString(pairs[x + 1], SERIAL_ID);
+			pairs[x + 1] = checkForEmptyString(pairs[x + 1], NONCE);
 			digestMap.put(pairs[x + 1], pairs[x]);
 		}
 
@@ -774,10 +774,10 @@ public class Utils {
 	}
 
 	/**
-	 * Create a digest message from a Map<String (serialID), String (digest)>.
+	 * Create a digest message from a Map<String (nonce), String (digest)>.
 	 *
 	 * @param digestMap
-	 *            The Map<String, String> that holds the serialID to digest
+	 *            The Map<String, String> that holds the nonce to digest
 	 *            mappings
 	 * @return an {@link OutputDataStream}
 	 */
@@ -790,12 +790,12 @@ public class Utils {
 		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST);
 		mh.setHeader(HDRS_COUNT, String.valueOf(digestMap.size()));
 
-		final Iterator<String> sIDs = digestMap.keySet().iterator();
-		while (sIDs.hasNext()) {
-			final String id = sIDs.next();
+		final Iterator<String> nonces = digestMap.keySet().iterator();
+		while (nonces.hasNext()) {
+			final String id = nonces.next();
 			message.append(checkForEmptyString(digestMap.get(id), MSG_DIGEST));
 			message.append("=");
-			message.append(checkForEmptyString(id, SERIAL_ID));
+			message.append(checkForEmptyString(id, NONCE));
 			message.append("\r\n");
 		}
 
@@ -860,7 +860,7 @@ public class Utils {
 			throw new IllegalArgumentException("The data provided does not match the count or is poorly formed");
 		}
 		for (int x = 0; x < (count * 2); x += 2) {
-			pairs[x + 1] = checkForEmptyString(pairs[x + 1], SERIAL_ID);
+			pairs[x + 1] = checkForEmptyString(pairs[x + 1], NONCE);
 			pairs[x] = checkForEmptyString(pairs[x], STATUS);
 			if (pairs[x].equalsIgnoreCase(CONFIRMED)) {
 				ret.put(pairs[x + 1], DigestStatus.Confirmed);
@@ -878,10 +878,10 @@ public class Utils {
 	}
 
 	/**
-	 * Generate a digest response from a Map<String (serialID), DigestStatus (digest status)>.
+	 * Generate a digest response from a Map<String (nonce), DigestStatus (digest status)>.
 	 *
 	 * @param statusMap
-	 *            The Map<String, DigestStatus> that holds the serialID to digest status mappings
+	 *            The Map<String, DigestStatus> that holds the nonce to digest status mappings
 	 * @return an {@link OutputDataStream}
 	 */
 	static public OutputDataStream createDigestResponse(final Map<String, DigestStatus> statusMap) {
@@ -891,12 +891,12 @@ public class Utils {
 		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST_RESP);
 		mh.setHeader(HDRS_COUNT, String.valueOf(statusMap.size()));
 
-		final Iterator<String> sIDs = statusMap.keySet().iterator();
-		while (sIDs.hasNext()) {
-			final String id = sIDs.next();
+		final Iterator<String> nonces = statusMap.keySet().iterator();
+		while (nonces.hasNext()) {
+			final String id = nonces.next();
 			message.append(checkForEmptyString(statusMap.get(id).toString(), STATUS));
 			message.append("=");
-			message.append(checkForEmptyString(id, SERIAL_ID));
+			message.append(checkForEmptyString(id, NONCE));
 			message.append("\r\n");
 		}
 

@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -379,10 +379,10 @@ public class SubscriberSessionImplTest {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
 				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
 				1, 0, sess);
-		s.addDigest("serialId", "digest");
+		s.addDigest("nonce", "digest");
 		final Map<String, String> map = getDigestMap(s);
-		assertTrue(map.containsKey("serialId"));
-		assertEquals("digest", map.get("serialId"));
+		assertTrue(map.containsKey("nonce"));
+		assertEquals("digest", map.get("nonce"));
 	}
 
 	@Test
@@ -396,7 +396,7 @@ public class SubscriberSessionImplTest {
 				2, 0, sess);
 
 		final Map<String, String> digestMap = new HashMap<String, String>();
-		digestMap.put("serial", "digest");
+		digestMap.put("nonce1", "digest");
 
 		new Expectations(s) {
 			{

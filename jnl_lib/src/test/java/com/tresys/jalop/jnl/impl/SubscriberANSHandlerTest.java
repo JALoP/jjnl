@@ -181,7 +181,7 @@ public class SubscriberANSHandlerTest {
 				result = "1";
 				subsess.getSubscriber();
 				result = sub;
-				dsa.getHeaderValue("JAL-Serial-Id");
+				dsa.getHeaderValue("JAL-Id");
 				result = "1";
 				ds.getInputStream();
 				result = dsa;
@@ -235,7 +235,7 @@ public class SubscriberANSHandlerTest {
 				result = "0";
 				subsess.getSubscriber();
 				result = sub;
-				dsa.getHeaderValue("JAL-Serial-Id");
+				dsa.getHeaderValue("JAL-Id");
 				result = "1";
 				ds.getInputStream();
 				result = dsa;
@@ -305,7 +305,7 @@ public class SubscriberANSHandlerTest {
 				result = "1";
 				subsess.getSubscriber();
 				result = sub;
-				dsa.getHeaderValue("JAL-Serial-Id");
+				dsa.getHeaderValue("JAL-Id");
 				result = "1";
 				ds.getInputStream();
 				result = dsa;
@@ -369,7 +369,7 @@ public class SubscriberANSHandlerTest {
 				result = "1";
 				subsess.getSubscriber();
 				result = sub;
-				dsa.getHeaderValue("JAL-Serial-Id");
+				dsa.getHeaderValue("JAL-Id");
 				result = "1";
 				ds.getInputStream();
 				result = dsa;
@@ -426,7 +426,7 @@ public class SubscriberANSHandlerTest {
 				dsa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_JOURNAL;
 				dsa.getHeaderValue(Utils.HDRS_JOURNAL_LEN); result = "10";
 				subsess.getSubscriber(); result = sub;
-				dsa.getHeaderValue(Utils.HDRS_SERIAL_ID); result = "1";
+				dsa.getHeaderValue(Utils.HDRS_NONCE); result = "1";
 				ds.getInputStream(); result = dsa;
 				subsess.getJournalResumeOffset(); result = (long) 5;
 				subsess.getJournalResumeIS(); result = is;
@@ -491,7 +491,7 @@ public class SubscriberANSHandlerTest {
 				result = "1";
 				subsess.getSubscriber();
 				result = sub;
-				dsa.getHeaderValue("JAL-Serial-Id");
+				dsa.getHeaderValue("JAL-Id");
 				result = "1";
 				ds.getInputStream();
 				result = dsa;

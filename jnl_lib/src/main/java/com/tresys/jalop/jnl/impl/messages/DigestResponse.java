@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -34,7 +34,7 @@ import com.tresys.jalop.jnl.DigestStatus;
  */
 public class DigestResponse extends Message {
 	/*
-	 * Contains a mapping of SerialIDs to DigestStatus
+	 * Contains a mapping of nonces to DigestStatus
 	 */
 	private final Map<String, DigestStatus> statusMap;
 
@@ -42,7 +42,7 @@ public class DigestResponse extends Message {
 	 * Create a new {@link DigestResponse}
 	 *
 	 * @param map
-	 *            The map of serial IDs to DigestStatuses sent in the message.
+	 *            The map of nonces to DigestStatuses sent in the message.
 	 * @param otherHeaders
 	 *            Any additional headers sent as part of this message.
 	 */
@@ -52,9 +52,9 @@ public class DigestResponse extends Message {
 	}
 
 	/**
-	 * Get the serial ID indicated in this message.
+	 * Get the nonce indicated in this message.
 	 *
-	 * @return the serialId
+	 * @return the nonce
 	 */
 	public Map<String, DigestStatus> getMap() {
 		return statusMap;

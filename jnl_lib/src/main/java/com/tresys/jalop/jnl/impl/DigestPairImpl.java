@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -28,12 +28,12 @@ import com.tresys.jalop.jnl.DigestPair;
 import com.tresys.jalop.jnl.DigestStatus;
 
 /**
- * Implementation of a {@link DigestPair}. This holds the serial id, the locally calculated digest,
+ * Implementation of a {@link DigestPair}. This holds the nonce, the locally calculated digest,
  * the digest calculated by the peer, and the {@link DigestStatus}.
  */
 public class DigestPairImpl implements DigestPair {
 
-	final String serialId;
+	final String nonce;
 	final byte[] localDigest;
 	final byte[] peerDigest;
 	final DigestStatus digestStatus;
@@ -42,8 +42,8 @@ public class DigestPairImpl implements DigestPair {
 	 * Create a {@link DigestPairImpl} object. The object is created with a
 	 * status of Unknown.
 	 *
-	 * @param serialId
-	 * 				A String which is the serial id for the calculated digests
+	 * @param nonce
+	 * 				A String which is the nonce for the calculated digests
 	 * @param localDigest
 	 * 				A byte[] which is the digest calculated locally by the publisher
 	 * @param peerDigest
@@ -51,17 +51,17 @@ public class DigestPairImpl implements DigestPair {
 	 * @param digestStatus
 	 * 				The {@link DigestStatus} indicating whether the two digests matched.
 	 */
-	public DigestPairImpl(final String serialId, final byte[] localDigest, final byte[] peerDigest,
+	public DigestPairImpl(final String nonce, final byte[] localDigest, final byte[] peerDigest,
 			final DigestStatus digestStatus) {
-		this.serialId = serialId;
+		this.nonce = nonce;
 		this.localDigest = localDigest;
 		this.peerDigest = peerDigest;
 		this.digestStatus = digestStatus;
 	}
 
 	@Override
-	public String getSerialId() {
-		return this.serialId;
+	public String getNonce() {
+		return this.nonce;
 	}
 
 	@Override

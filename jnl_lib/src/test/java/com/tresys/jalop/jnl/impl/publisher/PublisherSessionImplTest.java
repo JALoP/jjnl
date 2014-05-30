@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -137,11 +137,11 @@ public class PublisherSessionImplTest {
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
 				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
-		final String serialId = "serialId";
-		p.addDigest(serialId, local);
+		final String nonce = "nonce";
+		p.addDigest(nonce, local);
 		final Map<String, byte[]> map = getDigestMap(p);
-		assertTrue(map.containsKey(serialId));
-		assertEquals(local, map.get(serialId));
+		assertTrue(map.containsKey(nonce));
+		assertEquals(local, map.get(nonce));
 	}
 
 	@Test(expected = JNLException.class)
@@ -152,9 +152,9 @@ public class PublisherSessionImplTest {
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
 				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
-		final String serialId = "serialId";
-		p.addDigest(serialId, local);
-		p.addDigest(serialId, local);
+		final String nonce = "nonce";
+		p.addDigest(nonce, local);
+		p.addDigest(nonce, local);
 	}
 
 	@Test
@@ -165,12 +165,12 @@ public class PublisherSessionImplTest {
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
 				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
-		final String serialId = "serialId";
-		p.addDigest(serialId, local);
-		final byte[] fetched = p.fetchAndRemoveDigest(serialId);
+		final String nonce = "nonce";
+		p.addDigest(nonce, local);
+		final byte[] fetched = p.fetchAndRemoveDigest(nonce);
 		assertEquals(local, fetched);
 		final Map<String, byte[]> map = getDigestMap(p);
-		assertFalse(map.containsKey(serialId));
+		assertFalse(map.containsKey(nonce));
 	}
 
 }

@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -35,11 +35,11 @@ public class DigestPairImplTest {
 
 	@Test
 	public void testDigestPairImplWorks() {
-		final String serialId = "serialId";
+		final String nonce = "nonce";
 		final byte[] localDigest = "digest".getBytes();
 		final byte[] peerDigest = "peer".getBytes();
-		final DigestPairImpl dp = new DigestPairImpl(serialId, localDigest, peerDigest, DigestStatus.Confirmed);
-		assertEquals(serialId, dp.getSerialId());
+		final DigestPairImpl dp = new DigestPairImpl(nonce, localDigest, peerDigest, DigestStatus.Confirmed);
+		assertEquals(nonce, dp.getNonce());
 		assertEquals(localDigest, dp.getLocalDigest());
 		assertEquals(DigestStatus.Confirmed, dp.getDigestStatus());
 		assertEquals(peerDigest, dp.getPeerDigest());

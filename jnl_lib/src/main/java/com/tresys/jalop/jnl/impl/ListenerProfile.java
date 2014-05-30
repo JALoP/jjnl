@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -217,9 +217,9 @@ public class ListenerProfile implements Profile, StartChannelListener, RequestHa
 						final InputStream resumeInputStream = request.getResumeInputStream();
 						sessionImpl.setJournalResumeIS(resumeInputStream);
 						sessionImpl.setJournalResumeOffset(request.getResumeOffset());
-						subscriberOds = Utils.createJournalResumeMessage(request.getSerialId(), request.getResumeOffset());
+						subscriberOds = Utils.createJournalResumeMessage(request.getNonce(), request.getResumeOffset());
 					} else {
-						subscriberOds = Utils.createSubscribeMessage(request.getSerialId());
+						subscriberOds = Utils.createSubscribeMessage(request.getNonce());
 					}
 
 				} else if(msg.getRole() == Role.Subscriber) {

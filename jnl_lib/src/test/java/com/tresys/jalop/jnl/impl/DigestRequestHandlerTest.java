@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -94,7 +94,7 @@ public class DigestRequestHandlerTest {
 		constructor.setAccessible(true);
 		final DigestMessage dm = constructor.newInstance(new HashMap<String, String>(), new MimeHeaders());
 		final Map<String, String> map = new HashMap<String, String>();
-		map.put("serial1", "313233343536");
+		map.put("nonce", "313233343536");
 
 		new NonStrictExpectations() {
 			{
@@ -135,7 +135,7 @@ public class DigestRequestHandlerTest {
 		constructor.setAccessible(true);
 		final DigestMessage dm = constructor.newInstance(new HashMap<String, String>(), new MimeHeaders());
 		final Map<String, String> map = new HashMap<String, String>();
-		map.put("serial1", "9876543210");
+		map.put("nonce1", "9876543210");
 
 		new NonStrictExpectations() {
 			{
@@ -171,7 +171,7 @@ public class DigestRequestHandlerTest {
 		final DigestRequestHandler drh = new DigestRequestHandler(RecordType.Audit, contextImpl, publisherSessionImpl);
 		final Constructor<SyncMessage> constructor = SyncMessage.class.getDeclaredConstructor(String.class, MimeHeaders.class);
 		constructor.setAccessible(true);
-		final SyncMessage sm = constructor.newInstance("serialId", new MimeHeaders());
+		final SyncMessage sm = constructor.newInstance("nonce", new MimeHeaders());
 
 		new NonStrictExpectations() {
 			{

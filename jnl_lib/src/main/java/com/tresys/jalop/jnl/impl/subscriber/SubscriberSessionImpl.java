@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -211,11 +211,11 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	}
 
 	/**
-	 * Adds a map of serialIds and their related digests to the current map to
+	 * Adds a map of nonces and their related digests to the current map to
 	 * be sent to the publisher
 	 *
 	 * @param toAdd
-	 *            A map of serialIDs and digests to add to the map to be sent.
+	 *            A map of nonces and digests to add to the map to be sent.
 	 */
 	public synchronized void addAllDigests(final Map<String, String> toAdd) {
 
@@ -228,20 +228,20 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	}
 
 	/**
-	 * Adds a serialId and the related digest to a map to be sent to the
+	 * Adds a nonce and the related digest to a map to be sent to the
 	 * publisher
 	 *
-	 * @param serialId
-	 *            A String which is the serialId to be added to the map of
+	 * @param nonce
+	 *            A String which is the nonce to be added to the map of
 	 *            digests to send.
 	 * @param digest
-	 *            A String which is the digest for the serialId to be added to
+	 *            A String which is the digest for the nonce to be added to
 	 *            the map of digests to send.
 	 */
-	public synchronized void addDigest(final String serialId,
+	public synchronized void addDigest(final String nonce,
 			final String digest) {
 
-		this.digestMap.put(serialId, digest);
+		this.digestMap.put(nonce, digest);
 		if (this.digestMap.size() >= this.pendingDigestMax) {
 			synchronized (this) {
 				this.notifyAll();

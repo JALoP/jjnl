@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -165,7 +165,7 @@ public class InitListenerTest {
                 contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
                 contextImpl.getSubscriber(); result = subscriber;
                 subscriber.getSubscribeRequest((SubscriberSession) any); result = subRequest;
-                subRequest.getSerialId(); result = "12345";
+                subRequest.getNonce(); result = "12345";
                 subRequest.getResumeOffset(); result = (long) 0;
                 msg.getChannel(); result = channel;
                 contextImpl.getDefaultPendingDigestMax(); result = 1;
@@ -217,7 +217,7 @@ public class InitListenerTest {
                 contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
                 contextImpl.getSubscriber(); result = subscriber;
                 subscriber.getSubscribeRequest((SubscriberSession) any); result = subRequest;
-                subRequest.getSerialId(); result = "12345";
+                subRequest.getNonce(); result = "12345";
                 subRequest.getResumeOffset(); result = (long) 10;
                 msg.getChannel(); result = channel;
                 contextImpl.getDefaultPendingDigestMax(); result = 1;

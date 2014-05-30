@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -29,27 +29,27 @@ import javax.xml.soap.MimeHeaders;
  * This represents a subscribe message.
  */
 public class SubscribeMessage extends Message {
-	private final String serialId;
+	private final String nonce;
 
 	/**
 	 * Create a new {@link SubscribeMessage}
 	 * 
-	 * @param serialId
-	 *            The serial ID sent in the message.
+	 * @param nonce
+	 *            The nonce sent in the message.
 	 * @param otherHeaders
 	 *            Any additional headers sent as part of this message.
 	 */
-	SubscribeMessage(String serialId, MimeHeaders otherHeaders) {
+	SubscribeMessage(String nonce, MimeHeaders otherHeaders) {
 		super(otherHeaders);
-		this.serialId = serialId;
+		this.nonce = nonce;
 	}
 
 	/**
-	 * Get the serial ID indicated in this message.
+	 * Get the nonce indicated in this message.
 	 * 
-	 * @return the serialId
+	 * @return the nonce
 	 */
-	public String getSerialId() {
-		return serialId;
+	public String getNonce() {
+		return nonce;
 	}
 }

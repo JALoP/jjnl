@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -33,6 +33,6 @@ public class SyncMessageTest {
     @Test 
     public void testSyncMessage() {
         SyncMessage syncMessage = new SyncMessage("1234", new MimeHeaders());
-        assertEquals("1234", syncMessage.getSerialId());
+        assertEquals("1234", syncMessage.getNonce());
     }
 }

@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -35,18 +35,18 @@ import java.io.InputStream;
  */
 public interface SubscribeRequest {
 	/**
-	 * Special case Serial ID to indicated the Publisher should start sending
+	 * Special case Nonce to indicated the Publisher should start sending
 	 * with the oldest records.
 	 */
 	final String EPOC = "0";
 
 	/**
-	 * The library will call this method to determine the serial ID to send as
+	 * The library will call this method to determine the nonce to send as
 	 * part of of a "subscribe" or "journal-resume" message.
 	 * 
-	 * @return the serial ID to send.
+	 * @return the nonce to send.
 	 */
-	String getSerialId();
+	String getNonce();
 
 	/**
 	 * For a "journal-resume", retrieve the number bytes that were previously

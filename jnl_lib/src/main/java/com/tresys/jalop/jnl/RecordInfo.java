@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -29,12 +29,12 @@ package com.tresys.jalop.jnl;
  */
 public interface RecordInfo {
 	/**
-	 * Get the serial ID of the record. Serial IDs are always determined by the
+	 * Get the nonce of the record. Nonces are always determined by the
 	 * publisher.
 	 * 
-	 * @return the serial ID of the record.
+	 * @return the nonce of the record.
 	 */
-	String getSerialId();
+	String getNonce();
 
 	/**
 	 * Get the type of JAL record.

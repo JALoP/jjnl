@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -100,11 +100,11 @@ public class DigestRequestHandler implements RequestHandler {
 				final Map<String, DigestStatus> digestStatusMap = new HashMap<String, DigestStatus>();
 				final Map<String, DigestPair> digestPairMap = new HashMap<String, DigestPair>();
 
-				for(final String serialId : msg.getMap().keySet()) {
+				for(final String nonce : msg.getMap().keySet()) {
 
-					final byte[] localDigest = this.sess.fetchAndRemoveDigest(serialId);
+					final byte[] localDigest = this.sess.fetchAndRemoveDigest(nonce);
 
-					String digest = msg.getMap().get(serialId);
+					String digest = msg.getMap().get(nonce);
 					// Digest must be an even length to be converted to byte[]
 					if(digest.length() % 2 == 1) {
 						digest = LEADING_ZERO + digest;
@@ -119,9 +119,9 @@ public class DigestRequestHandler implements RequestHandler {
 						ds = DigestStatus.Invalid;
 					}
 
-					final DigestPair dp = new DigestPairImpl(serialId, localDigest, peerDigest, ds);
-					digestPairMap.put(serialId, dp);
-					digestStatusMap.put(serialId, ds);
+					final DigestPair dp = new DigestPairImpl(nonce, localDigest, peerDigest, ds);
+					digestPairMap.put(nonce, dp);
+					digestStatusMap.put(nonce, ds);
 				}
 
 				publisher.notifyPeerDigest(this.sess, digestPairMap);
@@ -136,7 +136,7 @@ public class DigestRequestHandler implements RequestHandler {
 				}
 
 				final SyncMessage msg = Utils.processSyncMessage(data);
-				publisher.sync(sess, msg.getSerialId(), msg.getOtherHeaders());
+				publisher.sync(sess, msg.getNonce(), msg.getOtherHeaders());
 				message.sendNUL();
 			}
 

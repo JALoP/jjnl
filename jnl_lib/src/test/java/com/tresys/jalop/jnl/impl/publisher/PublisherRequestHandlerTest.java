@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -100,7 +100,7 @@ public class PublisherRequestHandlerTest {
 
 		final Constructor<SubscribeMessage> constructor = SubscribeMessage.class.getDeclaredConstructor(String.class, MimeHeaders.class);
 		constructor.setAccessible(true);
-		final SubscribeMessage sm = constructor.newInstance("serialId", new MimeHeaders());
+		final SubscribeMessage sm = constructor.newInstance("nonce", new MimeHeaders());
 
 		new Expectations() {
 			{
@@ -115,7 +115,7 @@ public class PublisherRequestHandlerTest {
 				publisher.onSubscribe(publisherSess, anyString, (MimeHeaders) any); result = true;
 				publisher.getNextRecord(publisherSess, anyString); result = sourceRecord;
 				publisherSess.getMd(); result = md;
-				sourceRecord.getSerialId(); result = "serialId2";
+				sourceRecord.getNonce(); result = "nonce2";
 				sourceRecord.getPayloadLength(); result = (long) 10;
 				sourceRecord.getSysMetaLength(); result = (long) 10;
 				sourceRecord.getAppMetaLength(); result = (long) 10;
@@ -161,7 +161,7 @@ public class PublisherRequestHandlerTest {
 
 		final Constructor<JournalResumeMessage> constructor = JournalResumeMessage.class.getDeclaredConstructor(String.class, long.class, MimeHeaders.class);
 		constructor.setAccessible(true);
-		final JournalResumeMessage jrm = constructor.newInstance("serialId", (long) 25, new MimeHeaders());
+		final JournalResumeMessage jrm = constructor.newInstance("nonce", (long) 25, new MimeHeaders());
 
 		new Expectations() {
 			{
@@ -176,7 +176,7 @@ public class PublisherRequestHandlerTest {
 				Utils.processJournalResume(isa); result = jrm;
 				publisher.onJournalResume(publisherSess, anyString, 25, (MimeHeaders) any); result = sourceRecord;
 				publisherSess.getMd(); result = md;
-				sourceRecord.getSerialId(); result = "serialId2";
+				sourceRecord.getNonce(); result = "nonce2";
 				sourceRecord.getPayloadLength(); result = (long) 50;
 				sourceRecord.getSysMetaLength(); result = (long) 10;
 				sourceRecord.getAppMetaLength(); result = (long) 10;

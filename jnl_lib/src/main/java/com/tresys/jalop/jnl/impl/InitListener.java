@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -131,9 +131,9 @@ public class InitListener implements ReplyListener {
 					final InputStream resumeInputStream = request.getResumeInputStream();
 					sessionImpl.setJournalResumeIS(resumeInputStream);
 					sessionImpl.setJournalResumeOffset(request.getResumeOffset());
-					ods = Utils.createJournalResumeMessage(request.getSerialId(), request.getResumeOffset());
+					ods = Utils.createJournalResumeMessage(request.getNonce(), request.getResumeOffset());
 				} else {
-					ods = Utils.createSubscribeMessage(request.getSerialId());
+					ods = Utils.createSubscribeMessage(request.getNonce());
 				}
 
 				message.getChannel().sendMSG(ods, sessionImpl.getListener());

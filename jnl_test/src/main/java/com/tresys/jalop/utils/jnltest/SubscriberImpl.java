@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -64,7 +64,7 @@ import com.tresys.jalop.jnl.SubscriberSession;
  * Sample implementation of a {@link Subscriber}. This {@link Subscriber} simply
  * writes records to disk using a very simple hierarchy. Each record gets it's
  * own directory.
- * Each record is given a unique serial ID when it is transferred, and this
+ * Each record is given a unique nonce when it is transferred, and this
  * ID is used as the directory name. In addition to the actual records, this
  * {@link Subscriber} records a small file that provides additional status
  * information for each record.
@@ -80,8 +80,8 @@ public class SubscriberImpl implements Subscriber {
     /** Filename where status information is written to. */
     private static final String STATUS_FILENAME = "status.js";
 
-    /** Filename where last sid with a confirmed digest is written to. */
-    private static final String LAST_CONFIRMED_FILENAME = "lastConfirmedSid.js";
+    /** Filename where last nonce with a confirmed digest is written to. */
+    private static final String LAST_CONFIRMED_FILENAME = "lastConfirmedNonce.js";
 
     /**
      * Key in the status file for the expected size of the application
@@ -114,22 +114,22 @@ public class SubscriberImpl implements Subscriber {
     private static final String PAYLOAD_PROGRESS = "payload_progress";
 
     /**
-     * Key in the status file for the serial ID the remote uses to identify
+     * Key in the status file for the nonce the remote uses to identify
      * this record.
      */
-    private static final String REMOTE_SID = "remote_sid";
+    private static final String REMOTE_NONCE = "remote_nonce";
 
     /** Key in the status file for the remote IP address for this record */
     private static final String REMOTE_IP = "remote_ip";
 
     /**
-     * Key in the status file for the serial ID used locally to identify
+     * Key in the status file for the nonce used locally to identify
      * this record after it has been synced.
      */
-    private static final String LOCAL_SID = "local_sid";
+    private static final String LOCAL_NONCE = "local_nonce";
 
-    /** Key in the lastConfirmed file for the last sid with a confirmed digest */
-    private static final String LAST_CONFIRMED_SID = "last_confirmed_sid";
+    /** Key in the lastConfirmed file for the last nonce with a confirmed digest */
+    private static final String LAST_CONFIRMED_NONCE = "last_confirmed_nonce";
 
     /** Key in the status file for the calculated digest. */
     private static final Object DGST = "digest";
@@ -147,7 +147,7 @@ public class SubscriberImpl implements Subscriber {
     private static final Object CONFIRMED = "confirmed";
 
     /**
-     * Indicates the remote can't find a digest value for the specified serial
+     * Indicates the remote can't find a digest value for the specified nonce
      * ID. */
     private static final Object UNKNOWN = "unknown";
 
@@ -175,30 +175,30 @@ public class SubscriberImpl implements Subscriber {
     private static final Logger LOGGER = Logger.getLogger(SubscriberImpl.class);
 
     /** The format string for output files. */
-    private static final String SID_FORMAT_STRING = "0000000000";
+    private static final String NONCE_FORMAT_STRING = "0000000000";
 
     /**
      * Regular expression used for filtering directories, i.e. only directories
      * which have exactly ten digits as a filename.
      */
-    private static final String SID_REGEX = "^\\d{10}$";
+    private static final String NONCE_REGEX = "^\\d{10}$";
 
     /**
      * Filter used for searching an existing file system tree for previously
      * downloaded records.
      */
     static final FilenameFilter FILENAME_FILTER =
-        new PatternFilenameFilter(SID_REGEX);
+        new PatternFilenameFilter(NONCE_REGEX);
 
     /** Formatter used to generate the sub-directories for each record. */
-    static final DecimalFormat SID_FORMATER =
-        new DecimalFormat(SID_FORMAT_STRING);
+    static final DecimalFormat NONCE_FORMATER =
+        new DecimalFormat(NONCE_FORMAT_STRING);
 
-    /** Local serial ID counter. */
-    private long sid = 1;
+    /** Local nonce counter. */
+    private long nonce = 1;
 
-    /** Maps remote SID to {@link LocalRecordInfo}. */
-    private final Map<String, LocalRecordInfo> sidMap =
+    /** Maps remote NONCE to {@link LocalRecordInfo}. */
+    private final Map<String, LocalRecordInfo> nonceMap =
         new HashMap<String, SubscriberImpl.LocalRecordInfo>();
 
     /** Buffer size for read data from the network and writing to disk. */
@@ -210,11 +210,11 @@ public class SubscriberImpl implements Subscriber {
     /** The ip address of the remote. */
     private final String remoteIp;
 
-    /** The file to write the last confirmed serial id to. */
+    /** The file to write the last confirmed nonce to. */
     private final File lastConfirmedFile;
 
-    /** The serial ID to send in a subscribe message. */
-    String lastSerialFromRemote = null;
+    /** The nonce to send in a subscribe message. */
+    String lastNonceFromRemote = null;
 
     /** The offset to send in a journal subscribe message. */
     long journalOffset = -1;
@@ -226,7 +226,7 @@ public class SubscriberImpl implements Subscriber {
     private final JNLTest jnlTest;
 
     /**
-     * FileFilter to get all sub-directories that match the serial ID
+     * FileFilter to get all sub-directories that match the nonce
      * pattern.
      */
     private static final FileFilter FILE_FILTER = new FileFilter() {
@@ -256,42 +256,42 @@ public class SubscriberImpl implements Subscriber {
          *
          * @param info
          *            The record info obtained from the remote.
-         * @param localSid
-         *            The SID to assign this record to locally.
+         * @param localNonce
+         *            The NONCE to assign this record to locally.
          */
-        public LocalRecordInfo(final RecordInfo info, final long localSid) {
-            this(info.getSerialId(), info.getAppMetaLength(),
-                 info.getSysMetaLength(), info.getPayloadLength(), localSid);
+        public LocalRecordInfo(final RecordInfo info, final long localNonce) {
+            this(info.getNonce(), info.getAppMetaLength(),
+                 info.getSysMetaLength(), info.getPayloadLength(), localNonce);
         }
 
         /**
          * Create a new LocalRecordInfo.
-         * @param remoteSid
-         *          The serial ID of the record as the remote identifies it.
+         * @param remoteNonce
+         *          The nonce of the record as the remote identifies it.
          * @param appMetaLen
          *          The length, in bytes, of the application meta-data.
          * @param sysMetaLen
          *          The length, in bytes, of the system meta-data.
          * @param payloadLen
          *          The length, in bytes, of the payload.
-         * @param localSid
-         *          The serial ID as it is tracked internally.
+         * @param localNonce
+         *          The nonce as it is tracked internally.
          */
         // suppress warnings about raw types for the JSON map
         @SuppressWarnings("unchecked")
-        public LocalRecordInfo(final String remoteSid, final long appMetaLen,
+        public LocalRecordInfo(final String remoteNonce, final long appMetaLen,
                 final long sysMetaLen, final long payloadLen,
-                final long localSid) {
+                final long localNonce) {
 
             this.recordDir =
                 new File(SubscriberImpl.this.outputIpRoot,
-                         SubscriberImpl.SID_FORMATER.format(localSid));
+                         SubscriberImpl.NONCE_FORMATER.format(localNonce));
             this.statusFile = new File(this.recordDir, STATUS_FILENAME);
             this.status = new JSONObject();
             this.status.put(APP_META_SZ, appMetaLen);
             this.status.put(SYS_META_SZ, sysMetaLen);
             this.status.put(PAYLOAD_SZ, payloadLen);
-            this.status.put(REMOTE_SID, remoteSid);
+            this.status.put(REMOTE_NONCE, remoteNonce);
             this.status.put(REMOTE_IP, SubscriberImpl.this.remoteIp);
         }
     }
@@ -384,27 +384,27 @@ public class SubscriberImpl implements Subscriber {
                                                 java.text.ParseException {
 
         final File[] outputRecordDirs = this.outputRoot.listFiles(SubscriberImpl.FILE_FILTER);
-        long lastSerial = 0;
+        long lastNonce = 0;
         if(outputRecordDirs.length >= 1) {
             Arrays.sort(outputRecordDirs);
 	        final List<File> sortedOutputRecords = java.util.Arrays.asList(outputRecordDirs);
 	        final File lastRecord = sortedOutputRecords.get(sortedOutputRecords.size() - 1);
-	        lastSerial = Long.valueOf(lastRecord.getName());
+	        lastNonce = Long.valueOf(lastRecord.getName());
         }
 
         switch (this.recordType) {
         case Audit:
-            this.jnlTest.setLatestAuditSID(lastSerial++);
+            this.jnlTest.setLatestAuditNONCE(lastNonce++);
             break;
         case Journal:
-            this.jnlTest.setLatestJournalSID(lastSerial++);
+            this.jnlTest.setLatestJournalNONCE(lastNonce++);
             break;
         case Log:
-            this.jnlTest.setLatestLogSID(lastSerial++);
+            this.jnlTest.setLatestLogNONCE(lastNonce++);
             break;
         }
 
-        this.lastSerialFromRemote = SubscribeRequest.EPOC;
+        this.lastNonceFromRemote = SubscribeRequest.EPOC;
         this.journalOffset = 0;
         final JSONParser p  = new JSONParser();
         final File[] recordDirs =
@@ -414,7 +414,7 @@ public class SubscriberImpl implements Subscriber {
 			final JSONObject lastConfirmedJson = (JSONObject) p.parse(new FileReader(
 		        this.lastConfirmedFile));
 
-			this.lastSerialFromRemote = (String) lastConfirmedJson.get(LAST_CONFIRMED_SID);
+			this.lastNonceFromRemote = (String) lastConfirmedJson.get(LAST_CONFIRMED_NONCE);
 		}
 
         final Set<File> deleteDirs = new HashSet<File>();
@@ -436,15 +436,15 @@ public class SubscriberImpl implements Subscriber {
                 final Number progress = (Number) status.get(PAYLOAD_PROGRESS);
                 if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null) {
 					// journal record can be resumed
-                    this.lastSerialFromRemote =
-                        (String) status.get(REMOTE_SID);
+                    this.lastNonceFromRemote =
+                        (String) status.get(REMOTE_NONCE);
                     this.journalOffset = progress.longValue();
                     FileUtils.forceDelete(new File(firstRecord, APP_META_FILENAME));
                     FileUtils.forceDelete(new File(firstRecord, SYS_META_FILENAME));
                     status.remove(APP_META_PROGRESS);
                     status.remove(SYS_META_PROGRESS);
-                    this.sid =
-                        SID_FORMATER.parse(firstRecord.getName()).longValue();
+                    this.nonce =
+                        NONCE_FORMATER.parse(firstRecord.getName()).longValue();
                     this.journalInputStream = new FileInputStream(
                                        new File(firstRecord, PAYLOAD_FILENAME));
                 } else {
@@ -483,12 +483,12 @@ public class SubscriberImpl implements Subscriber {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Returning subscriber request for: " + sess.getRole()
                         + sess.getRecordType());
-            LOGGER.info("serialID: " + this.lastSerialFromRemote);
+            LOGGER.info("nonce: " + this.lastNonceFromRemote);
         }
         return new SubscribeRequest() {
             @Override
-            public String getSerialId() {
-                return SubscriberImpl.this.lastSerialFromRemote;
+            public String getNonce() {
+                return SubscriberImpl.this.lastNonceFromRemote;
             }
 
             @Override
@@ -508,18 +508,18 @@ public class SubscriberImpl implements Subscriber {
                                            final RecordInfo recordInfo,
                                            final InputStream sysMetaData) {
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Got sysmetadata for " + recordInfo.getSerialId());
+            LOGGER.info("Got sysmetadata for " + recordInfo.getNonce());
         }
         LocalRecordInfo lri;
-        synchronized (this.sidMap) {
-            if (this.sidMap.containsKey(recordInfo.getSerialId())) {
+        synchronized (this.nonceMap) {
+            if (this.nonceMap.containsKey(recordInfo.getNonce())) {
                 LOGGER.error("Already contain a record for "
-                             + recordInfo.getSerialId());
+                             + recordInfo.getNonce());
                 return false;
             }
-            lri = new LocalRecordInfo(recordInfo, this.sid);
-            this.sid += 1;
-            this.sidMap.put(recordInfo.getSerialId(), lri);
+            lri = new LocalRecordInfo(recordInfo, this.nonce);
+            this.nonce += 1;
+            this.nonceMap.put(recordInfo.getNonce(), lri);
         }
         lri.statusFile.getParentFile().mkdirs();
         if (!dumpStatus(lri.statusFile, lri.status)) {
@@ -626,12 +626,12 @@ public class SubscriberImpl implements Subscriber {
                     final InputStream appMetaData) {
         if (recordInfo.getAppMetaLength() != 0) {
             LocalRecordInfo lri;
-            synchronized (this.sidMap) {
-                lri = this.sidMap.get(recordInfo.getSerialId());
+            synchronized (this.nonceMap) {
+                lri = this.nonceMap.get(recordInfo.getNonce());
             }
             if (lri == null) {
                 LOGGER.error("Can't find local status for: "
-                             + recordInfo.getSerialId());
+                             + recordInfo.getNonce());
                 return false;
             }
 
@@ -649,12 +649,12 @@ public class SubscriberImpl implements Subscriber {
                                        final InputStream payload) {
         if (recordInfo.getPayloadLength() != 0) {
             LocalRecordInfo lri;
-            synchronized (this.sidMap) {
-                lri = this.sidMap.get(recordInfo.getSerialId());
+            synchronized (this.nonceMap) {
+                lri = this.nonceMap.get(recordInfo.getNonce());
             }
             if (lri == null) {
                 LOGGER.error("Can't find local status for: "
-                                  + recordInfo.getSerialId());
+                                  + recordInfo.getNonce());
                 return false;
             }
 
@@ -676,16 +676,16 @@ public class SubscriberImpl implements Subscriber {
                                       final byte[] digest) {
 		final String hexString = (new BigInteger(1, digest)).toString(16);
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Calculated digest for " + recordInfo.getSerialId()
+            LOGGER.info("Calculated digest for " + recordInfo.getNonce()
                         + ": " + hexString);
         }
         LocalRecordInfo lri;
-        synchronized (this.sidMap) {
-            lri = this.sidMap.get(recordInfo.getSerialId());
+        synchronized (this.nonceMap) {
+            lri = this.nonceMap.get(recordInfo.getNonce());
         }
         if (lri == null) {
             LOGGER.error("Can't find local status for: "
-                         + recordInfo.getSerialId());
+                         + recordInfo.getNonce());
             return false;
         }
 
@@ -701,8 +701,8 @@ public class SubscriberImpl implements Subscriber {
         boolean ret = true;
         LocalRecordInfo lri;
         for (final Entry<String, DigestStatus> entry : statuses.entrySet()) {
-            synchronized (this.sidMap) {
-                lri = this.sidMap.remove(entry.getKey());
+            synchronized (this.nonceMap) {
+                lri = this.nonceMap.remove(entry.getKey());
             }
             if (lri == null) {
                 LOGGER.error("Can't find local status for: " + entry.getKey());
@@ -737,8 +737,8 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
 	private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
 
-		final long latestSid = retrieveLatestSid();
-		final File dest = new File(this.outputRoot, SubscriberImpl.SID_FORMATER.format(latestSid));
+		final long latestNonce = retrieveLatestNonce();
+		final File dest = new File(this.outputRoot, SubscriberImpl.NONCE_FORMATER.format(latestNonce));
 
 		if(LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Renaming directory from: " +lri.recordDir.getAbsolutePath() + " to: "+
@@ -747,8 +747,8 @@ public class SubscriberImpl implements Subscriber {
 
 		if(lri.recordDir.renameTo(dest)) {
 			final JSONObject lastConfirmedStatus = new JSONObject();
-			final String remoteSid = (String) lri.status.get(REMOTE_SID);
-			lastConfirmedStatus.put(LAST_CONFIRMED_SID, remoteSid);
+			final String remoteNonce = (String) lri.status.get(REMOTE_NONCE);
+			lastConfirmedStatus.put(LAST_CONFIRMED_NONCE, remoteNonce);
 			dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
 		} else {
 			LOGGER.error("Error trying to move confirmed file.");
@@ -759,30 +759,30 @@ public class SubscriberImpl implements Subscriber {
     }
 
     /**
-     * Retrieve the next available serial id for the record type.
+     * Retrieve the next available nonce for the record type.
      *
-     * @return the next unused serial id for the record type
+     * @return the next unused nonce for the record type
      */
-    private long retrieveLatestSid() {
-        long latestSid = 1;
+    private long retrieveLatestNonce() {
+        long latestNonce = 1;
 
         synchronized(this.jnlTest) {
 	        switch (this.recordType) {
 	        case Audit:
-	            latestSid = this.jnlTest.getLatestAuditSID();
-	            this.jnlTest.setLatestAuditSID(++latestSid);
+	            latestNonce = this.jnlTest.getLatestAuditNONCE();
+	            this.jnlTest.setLatestAuditNONCE(++latestNonce);
 	            break;
 	        case Journal:
-	            latestSid = this.jnlTest.getLatestJournalSID();
-	            this.jnlTest.setLatestJournalSID(++latestSid);
+	            latestNonce = this.jnlTest.getLatestJournalNONCE();
+	            this.jnlTest.setLatestJournalNONCE(++latestNonce);
 	            break;
 	        case Log:
-	            latestSid = this.jnlTest.getLatestLogSID();
-	            this.jnlTest.setLatestLogSID(++latestSid);
+	            latestNonce = this.jnlTest.getLatestLogNONCE();
+	            this.jnlTest.setLatestLogNONCE(++latestNonce);
 	            break;
 	        }
         }
-        return latestSid;
+        return latestNonce;
     }
 
 }

@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -60,7 +60,7 @@ public class SubscriberANSHandler implements ReplyListener {
 
 	private static final String[] KNOWN_HEADERS = { Utils.HDRS_APP_META_LEN.toLowerCase(),
 			Utils.HDRS_SYS_META_LEN.toLowerCase(), Utils.HDRS_LOG_LEN.toLowerCase(), Utils.HDRS_AUDIT_LEN.toLowerCase(), Utils.HDRS_JOURNAL_LEN.toLowerCase(),
-			Utils.HDRS_CONTENT_TYPE.toLowerCase(), Utils.HDRS_MESSAGE.toLowerCase(), Utils.HDRS_SERIAL_ID.toLowerCase() };
+			Utils.HDRS_CONTENT_TYPE.toLowerCase(), Utils.HDRS_MESSAGE.toLowerCase(), Utils.HDRS_NONCE.toLowerCase() };
 
 	static final int BUFFER_SIZE = 4096;
 
@@ -222,7 +222,7 @@ public class SubscriberANSHandler implements ReplyListener {
 					private final long sysMetadataLength = sysMetadataSize;
 					private final long appMetadataLength = appMetadataSize;
 					private final long payloadLength = payloadSize;
-					private final String serialId = dsa.getHeaderValue(Utils.HDRS_SERIAL_ID);
+					private final String nonce = dsa.getHeaderValue(Utils.HDRS_NONCE);
 					private final RecordType recordType = recType;
 
 					@Override
@@ -231,8 +231,8 @@ public class SubscriberANSHandler implements ReplyListener {
 					}
 
 					@Override
-					public String getSerialId() {
-						return this.serialId;
+					public String getNonce() {
+						return this.nonce;
 					}
 
 					@Override
@@ -301,7 +301,7 @@ public class SubscriberANSHandler implements ReplyListener {
 				}
 				final String hexDgst = (new BigInteger(1, digest)).toString(16);
 
-				subsess.addDigest(recInfo.getSerialId(), hexDgst);
+				subsess.addDigest(recInfo.getNonce(), hexDgst);
 			} catch (final BEEPException e) {
 				if(log.isEnabledFor(Level.ERROR)) {
 					log.error(e.getMessage());

@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -156,18 +156,18 @@ public class PublisherSessionImpl extends SessionImpl implements
 	}
 
 	/**
-	 * Get the locally calculated digest associated with the given serialId and
+	 * Get the locally calculated digest associated with the given nonce and
 	 * then remove it from the map.
 	 *
-	 * @param serialId
-	 * 				A String which is the serial id for the calculated digest
+	 * @param nonce
+	 * 				A String which is the nonce for the calculated digest
 	 * @return
-	 * 				The local digest associated with the serialId.
+	 * 				The local digest associated with the nonce.
 	 */
-	public byte[] fetchAndRemoveDigest(final String serialId) {
+	public byte[] fetchAndRemoveDigest(final String nonce) {
 		synchronized(this.digestMap) {
-			final byte[] localDigest = this.digestMap.get(serialId);
-			this.digestMap.remove(serialId);
+			final byte[] localDigest = this.digestMap.get(nonce);
+			this.digestMap.remove(nonce);
 			return localDigest;
 		}
 	}
@@ -175,21 +175,21 @@ public class PublisherSessionImpl extends SessionImpl implements
 	/**
 	 * Add a locally calculated digest to the set of tracked digests.
 	 *
-	 * @param serialId
-	 * 				A String which is the serial id for the calculated digest
+	 * @param nonce
+	 * 				A String which is the nonce for the calculated digest
 	 * @param localDigest
 	 * 				A byte[] which is the digest calculated locally by the publisher
 	 * @throws JNLException
-	 * 				If attempting to add a serialId that already exists in the map.
+	 * 				If attempting to add a nonce that already exists in the map.
 	 */
-	public void addDigest(final String serialId, final byte[] localDigest)
+	public void addDigest(final String nonce, final byte[] localDigest)
 			throws JNLException {
 		synchronized(this.digestMap) {
-			if (this.digestMap.containsKey(serialId)) {
+			if (this.digestMap.containsKey(nonce)) {
 				throw new JNLException(
-						"Attempting to add multiple digests for the same serialId");
+						"Attempting to add multiple digests for the same nonce");
 			}
-			this.digestMap.put(serialId, localDigest);
+			this.digestMap.put(nonce, localDigest);
 		}
 	}
 

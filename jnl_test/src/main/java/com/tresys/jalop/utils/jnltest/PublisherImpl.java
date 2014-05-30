@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -74,11 +74,11 @@ public class PublisherImpl implements Publisher {
 	private static final String STATUS_FILENAME = "status.js";
 
 	/** The format string for output files. */
-	private static final String SID_FORMAT_STRING = "0000000000";
+	private static final String NONCE_FORMAT_STRING = "0000000000";
 
 	/** Formatter used to generate the sub-directories for each record. */
-	static final DecimalFormat SID_FORMATER =
-        new DecimalFormat(SID_FORMAT_STRING);
+	static final DecimalFormat NONCE_FORMATER =
+        new DecimalFormat(NONCE_FORMAT_STRING);
 
 	/** Key in the status file to indicate if a 'sync' message was sent. */
     private static final String SYNCED = "synced";
@@ -93,17 +93,17 @@ public class PublisherImpl implements Publisher {
      * Regular expression used for filtering directories, i.e. only directories
      * which have exactly ten digits as a filename.
      */
-    private static final String SID_REGEX = "^\\d{10}$";
+    private static final String NONCE_REGEX = "^\\d{10}$";
 
     /**
      * Filter used for searching an existing file system tree for previously
      * downloaded records.
      */
     static final FilenameFilter FILENAME_FILTER =
-        new PatternFilenameFilter(SID_REGEX);
+        new PatternFilenameFilter(NONCE_REGEX);
 
     /**
-     * FileFilter to get all sub-directories that match the serial ID
+     * FileFilter to get all sub-directories that match the nonce
      * pattern.
      */
     private static final FileFilter FILE_FILTER = new FileFilter() {
@@ -152,16 +152,16 @@ public class PublisherImpl implements Publisher {
 	}
 
 	@Override
-	public SourceRecord getNextRecord(final PublisherSession sess, final String lastSerialId) {
+	public SourceRecord getNextRecord(final PublisherSession sess, final String lastNonce) {
 
-		final long nextSerialId;
+		final long nextNonce;
 
 		try {
 
-			if(Long.valueOf(lastSerialId) == 0) {
+			if(Long.valueOf(lastNonce) == 0) {
 
 				if(LOGGER.isInfoEnabled()) {
-					LOGGER.info("SerialId of 0 sent. Finding the oldest file.");
+					LOGGER.info("Nonce of 0 sent. Finding the oldest file.");
 				}
 
 				final File[] recordDirs =
@@ -172,66 +172,66 @@ public class PublisherImpl implements Publisher {
 				final File firstFile = recordDirs[0];
 				final String fileName = firstFile.getName();
 
-				nextSerialId = Long.valueOf(fileName);
+				nextNonce = Long.valueOf(fileName);
 
-				if(nextSerialId == 0) {
+				if(nextNonce == 0) {
 					if(LOGGER.isEnabledFor(Level.ERROR)) {
-						LOGGER.error("Found a record with the invalid serialId of 0.");
+						LOGGER.error("Found a record with the invalid nonce of 0.");
 					}
-					throw new RuntimeException("SerialId of 0 is reserved and cannot be associated with a record.");
+					throw new RuntimeException("Nonce of 0 is reserved and cannot be associated with a record.");
 				}
 
 				if(LOGGER.isInfoEnabled()) {
-					LOGGER.info("Oldest file found with serialId: " + nextSerialId);
+					LOGGER.info("Oldest file found with nonce: " + nextNonce);
 				}
 
 			} else {
-				nextSerialId = Long.valueOf(lastSerialId) + 1;
+				nextNonce = Long.valueOf(lastNonce) + 1;
 			}
 
-			final File serialDir =
+			final File nonceDir =
 				new File(this.inputRoot,
-						SID_FORMATER.format(Long.valueOf(nextSerialId)));
+						NONCE_FORMATER.format(Long.valueOf(nextNonce)));
 
-			if(!serialDir.exists()) {
+			if(!nonceDir.exists()) {
 				if(LOGGER.isInfoEnabled()) {
-					LOGGER.info("Directory structure for serialId: " + nextSerialId +
+					LOGGER.info("Directory structure for nonce: " + nextNonce +
 							" does not exist. Returning null.");
 				}
 				return null;
 			}
 
-			return new SourceRecordImpl(Long.toString(nextSerialId), 0);
+			return new SourceRecordImpl(Long.toString(nextNonce), 0);
 
 		} catch (final NumberFormatException e) {
 			if(LOGGER.isEnabledFor(Level.ERROR)) {
-				LOGGER.error("SerialId is not numeric - returning null");
+				LOGGER.error("Nonce is not numeric - returning null");
 			}
 			return null;
 		}
 	}
 
 	@Override
-	public SourceRecord onJournalResume(final PublisherSession sess, final String serialId,
+	public SourceRecord onJournalResume(final PublisherSession sess, final String nonce,
 			final long offset, final MimeHeaders headers) {
 
-		return new SourceRecordImpl(serialId, offset);
+		return new SourceRecordImpl(nonce, offset);
 	}
 
 	@Override
-	public boolean onSubscribe(final PublisherSession sess, final String serialId,
+	public boolean onSubscribe(final PublisherSession sess, final String nonce,
 			final MimeHeaders headers) {
 		try{
-			final long serial = Long.parseLong(serialId);
-			if(serial < 0) {
+			final long myNonce = Long.parseLong(nonce);
+			if(myNonce < 0) {
 				if(LOGGER.isEnabledFor(Level.ERROR)) {
-					LOGGER.error("serialId must be a postive number");
+					LOGGER.error("nonce must be a postive number");
 				}
 				return false;
 			}
 		} catch (final NumberFormatException nfe) {
 			if(LOGGER.isEnabledFor(Level.ERROR)) {
-				LOGGER.error("serialId sent is not numeric - " + serialId);
+				LOGGER.error("nonce sent is not numeric - " + nonce);
 			}
 			return false;
 		}
@@ -244,31 +244,31 @@ public class PublisherImpl implements Publisher {
 
 		final Map<String, String> complete = new HashMap<String, String>();
 		complete.put("recordComplete", "true");
-		return dumpStatus(record.getSerialId(), complete);
+		return dumpStatus(record.getNonce(), complete);
 	}
 
 	@Override
-	public boolean sync(final PublisherSession sess, final String serialId,
+	public boolean sync(final PublisherSession sess, final String nonce,
 			final MimeHeaders headers) {
 
 		final Map<String, String> synched = new HashMap<String, String>();
 		synched.put(SYNCED, "true");
-		return dumpStatus(serialId, synched);
+		return dumpStatus(nonce, synched);
 	}
 
 	@Override
-	public void notifyDigest(final PublisherSession sess, final String serialId,
+	public void notifyDigest(final PublisherSession sess, final String nonce,
 			final byte[] digest) {
 
 		final String hexString = (new BigInteger(1, digest)).toString(16);
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Calculated digest for " + serialId
+            LOGGER.info("Calculated digest for " + nonce
                         + ": " + hexString);
         }
 
         final Map<String, String> map = new HashMap<String, String>();
         map.put(LOCALDGST, hexString);
-        dumpStatus(serialId, map);
+        dumpStatus(nonce, map);
 	}
 
 	@Override
@@ -278,13 +278,13 @@ public class PublisherImpl implements Publisher {
 		for(final String key : digestPairs.keySet()) {
 			final DigestPair pair = digestPairs.get(key);
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("Digest status for " + pair.getSerialId()
+				LOGGER.info("Digest status for " + pair.getNonce()
 						+ ": " + pair.getDigestStatus());
 			}
 			final String hexString = (new BigInteger(1, pair.getPeerDigest())).toString(16);
 			final Map<String, String> map = new HashMap<String, String>();
 	        map.put(PEERDGST, hexString);
-	        dumpStatus(pair.getSerialId(), map);
+	        dumpStatus(pair.getNonce(), map);
 		}
 	}
 
@@ -295,19 +295,19 @@ public class PublisherImpl implements Publisher {
      *         <code>false</code> otherwise.
      */
 	@SuppressWarnings("unchecked")
-	final boolean dumpStatus(final String serialId, final Map<String, String> statusMap) {
+	final boolean dumpStatus(final String nonce, final Map<String, String> statusMap) {
 
     	final JSONParser p  = new JSONParser();
     	JSONObject status;
     	File statusFile;
     	BufferedOutputStream w;
 
-    	final File serialDir =
+    	final File nonceDir =
             new File(this.inputRoot,
-            		SID_FORMATER.format(Long.valueOf(serialId)));
+            		NONCE_FORMATER.format(Long.valueOf(nonce)));
 
     	try {
-    		statusFile = new File(serialDir, STATUS_FILENAME);
+    		statusFile = new File(nonceDir, STATUS_FILENAME);
     		if(!statusFile.exists()) {
     			if (LOGGER.isInfoEnabled()) {
     				LOGGER.info("The '" + STATUS_FILENAME + "' file does not exist so creating it.");
@@ -344,34 +344,34 @@ public class PublisherImpl implements Publisher {
 
 	private class SourceRecordImpl implements SourceRecord {
 
-		private final String serialId;
+		private final String nonce;
 		private final long offset;
-		final File serialDir;
+		final File nonceDir;
 		final File sysFile;
 		final File appFile;
 		final File payloadFile;
 
 		@SuppressWarnings("unchecked")
-		public SourceRecordImpl(final String serialId, final long offset) {
+		public SourceRecordImpl(final String nonce, final long offset) {
 
-			this.serialId = serialId;
+			this.nonce = nonce;
 			this.offset = offset;
 
-			this.serialDir =
+			this.nonceDir =
                 new File(PublisherImpl.this.inputRoot,
-                		PublisherImpl.SID_FORMATER.format(Long.valueOf(serialId)));
+                		PublisherImpl.NONCE_FORMATER.format(Long.valueOf(nonce)));
 
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("Getting files for sysMetadata, appMetadata, and payload.");
 			}
-			this.sysFile = new File(this.serialDir, SYS_META_FILENAME);
+			this.sysFile = new File(this.nonceDir, SYS_META_FILENAME);
 			if(!this.sysFile.exists()) {
 				throw new RuntimeException("SysMetadata file doesn't exist");
 			}
 
-			this.appFile = new File(this.serialDir, APP_META_FILENAME);
+			this.appFile = new File(this.nonceDir, APP_META_FILENAME);
 
-			this.payloadFile = new File(this.serialDir, PAYLOAD_FILENAME);
+			this.payloadFile = new File(this.nonceDir, PAYLOAD_FILENAME);
 			if(offset > 0 && PublisherImpl.this.recordType == RecordType.Journal
 					&& !this.payloadFile.exists()) {
 				throw new RuntimeException("Payload file doesn't exist");
@@ -380,8 +380,8 @@ public class PublisherImpl implements Publisher {
 		}
 
 		@Override
-		public String getSerialId() {
-			return this.serialId;
+		public String getNonce() {
+			return this.nonce;
 		}
 
 		@Override

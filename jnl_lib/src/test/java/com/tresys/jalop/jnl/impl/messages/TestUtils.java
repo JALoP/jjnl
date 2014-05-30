@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -833,7 +833,7 @@ public class TestUtils {
 
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
 				Utils.MSG_SUBSCRIBE);
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_SERIAL_ID), "0");
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_NONCE), "0");
 	}
 
 	@Test
@@ -844,18 +844,18 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "0");
+		headers.setHeader(Utils.HDRS_NONCE, "0");
 
 		createDataStream(headers);
 
 		final InputDataStreamAdapter ids = data.getInputStream();
 		final SubscribeMessage msg = Utils.processSubscribe(ids);
 
-		assertEquals(msg.getSerialId(), "0");
+		assertEquals(msg.getNonce(), "0");
 	}
 
 	@Test(expected = MissingMimeHeaderException.class)
-	public void testProcessSubscribeThrowsExceptionWithNoSerial()
+	public void testProcessSubscribeThrowsExceptionWithNoNonce()
 			throws Exception {
 
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
@@ -871,7 +871,7 @@ public class TestUtils {
 	}
 
 	@Test(expected = UnexpectedMimeValueException.class)
-	public void testProcessSubscribeThrowsExceptionWithBlankSerial()
+	public void testProcessSubscribeThrowsExceptionWithBlankNonce()
 			throws Exception {
 
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
@@ -879,7 +879,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "");
+		headers.setHeader(Utils.HDRS_NONCE, "");
 
 		createDataStream(headers);
 
@@ -903,13 +903,13 @@ public class TestUtils {
 
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
 				Utils.MSG_JOURNAL_RESUME);
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_SERIAL_ID), "0");
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_NONCE), "0");
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_JOURNAL_OFFSET),
 				"10");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testCreateJournalResumeMessageThrowsExceptionNullSerial()
+	public void testCreateJournalResumeMessageThrowsExceptionNullNonce()
 			throws SecurityException, NoSuchFieldException,
 			IllegalArgumentException, IllegalAccessException {
 
@@ -917,7 +917,7 @@ public class TestUtils {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testCreateJournalResumeMessageThrowsExceptionBlankSerial()
+	public void testCreateJournalResumeMessageThrowsExceptionBlankNonce()
 			throws SecurityException, NoSuchFieldException,
 			IllegalArgumentException, IllegalAccessException {
 
@@ -940,7 +940,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_NONCE, "1");
 		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "10");
 
 		createDataStream(headers);
@@ -948,12 +948,12 @@ public class TestUtils {
 		final InputDataStreamAdapter ids = data.getInputStream();
 		final JournalResumeMessage jrm = Utils.processJournalResume(ids);
 
-		assertEquals(jrm.getSerialId(), "1");
+		assertEquals(jrm.getNonce(), "1");
 		assertEquals(jrm.getOffset(), 10);
 	}
 
 	@Test(expected = MissingMimeHeaderException.class)
-	public void testProcessJournalResumeThrowsExceptionWithNoSerial()
+	public void testProcessJournalResumeThrowsExceptionWithNoNonce()
 			throws Exception {
 
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
@@ -970,7 +970,7 @@ public class TestUtils {
 	}
 
 	@Test(expected = UnexpectedMimeValueException.class)
-	public void testProcessJournalResumeThrowsExceptionWithBlankSerial()
+	public void testProcessJournalResumeThrowsExceptionWithBlankNonce()
 			throws Exception {
 
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
@@ -978,7 +978,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "");
+		headers.setHeader(Utils.HDRS_NONCE, "");
 		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "10");
 
 		createDataStream(headers);
@@ -996,7 +996,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_NONCE, "1");
 
 		createDataStream(headers);
 
@@ -1013,7 +1013,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_NONCE, "1");
 		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "");
 
 		createDataStream(headers);
@@ -1031,7 +1031,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_NONCE, "1");
 		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "bad");
 
 		createDataStream(headers);
@@ -1049,7 +1049,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_JOURNAL_RESUME);
-		headers.setHeader(Utils.HDRS_SERIAL_ID, "1");
+		headers.setHeader(Utils.HDRS_NONCE, "1");
 		headers.setHeader(Utils.HDRS_JOURNAL_OFFSET, "-1");
 
 		createDataStream(headers);
@@ -1061,23 +1061,23 @@ public class TestUtils {
 	public void testCreateSyncWorks() throws IllegalAccessException {
 	    final OutputDataStream syncMsg = Utils.createSyncMessage("1234");
 	    assertNotNull(syncMsg);
-	    assertEquals("1234", getMimeHeader(syncMsg, Utils.HDRS_SERIAL_ID));
+	    assertEquals("1234", getMimeHeader(syncMsg, Utils.HDRS_NONCE));
 	    assertEquals(Utils.CT_JALOP, getMimeHeader(syncMsg, org.beepcore.beep.core.MimeHeaders.CONTENT_TYPE));
         assertEquals(org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING, getMimeHeader(syncMsg, org.beepcore.beep.core.MimeHeaders.CONTENT_TRANSFER_ENCODING));
 	}
 
 	@Test (expected = IllegalArgumentException.class)
-	    public final void testCreateSyncThrowsExceptionForNullSerialId() {
+	    public final void testCreateSyncThrowsExceptionForNullNonce() {
         final OutputDataStream syncMsg = Utils.createSyncMessage(null);
     }
 
 	@Test (expected = IllegalArgumentException.class)
-    public final void testCreateSyncThrowsExceptionForAllSpacesSerialId() {
+    public final void testCreateSyncThrowsExceptionForAllSpacesNonce() {
 	    final OutputDataStream syncMsg = Utils.createSyncMessage("        ");
 	}
 
 	@Test (expected = IllegalArgumentException.class)
-    public final void testCreateSyncThrowsExceptionForEmptySerialId() {
+    public final void testCreateSyncThrowsExceptionForEmptyNonce() {
         final OutputDataStream syncMsg = Utils.createSyncMessage("");
     }
 
@@ -1087,15 +1087,15 @@ public class TestUtils {
                       Utils.CT_JALOP,
 	                  org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 	    headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
-	    headers.setHeader(Utils.HDRS_SERIAL_ID, "1234");
+	    headers.setHeader(Utils.HDRS_NONCE, "1234");
 	    createDataStream(headers);
 	    final InputDataStreamAdapter ids = data.getInputStream();
 	    final SyncMessage syncMsg = Utils.processSyncMessage(ids);
-	    assertEquals("1234", syncMsg.getSerialId());
+	    assertEquals("1234", syncMsg.getNonce());
 	}
 
 	@Test (expected = MissingMimeHeaderException.class)
-	public void testProcessSyncThrowsExceptionWhenMissingSerialId() throws Exception  {
+	public void testProcessSyncThrowsExceptionWhenMissingNonce() throws Exception  {
 	    final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
                 Utils.CT_JALOP, org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 	        headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
@@ -1105,22 +1105,22 @@ public class TestUtils {
 	}
 
 	@Test (expected = UnexpectedMimeValueException.class)
-    public void testProcessSyncThrowsExceptionWithEmptySerialId() throws Exception  {
+    public void testProcessSyncThrowsExceptionWithEmptyNonce() throws Exception  {
         final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
                 Utils.CT_JALOP, org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
             headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
-            headers.setHeader(Utils.HDRS_SERIAL_ID, "");
+            headers.setHeader(Utils.HDRS_NONCE, "");
             createDataStream(headers);
             final InputDataStreamAdapter ids = data.getInputStream();
             final SyncMessage syncMsg = Utils.processSyncMessage(ids);
     }
 
 	@Test (expected = UnexpectedMimeValueException.class)
-    public void testProcessSyncThrowsExceptionWithSerialIdAllSpaces() throws Exception  {
+    public void testProcessSyncThrowsExceptionWithNonceAllSpaces() throws Exception  {
         final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
                 Utils.CT_JALOP, org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
             headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SYNC);
-            headers.setHeader(Utils.HDRS_SERIAL_ID, "     ");
+            headers.setHeader(Utils.HDRS_NONCE, "     ");
             createDataStream(headers);
             final InputDataStreamAdapter ids = data.getInputStream();
             final SyncMessage syncMsg = Utils.processSyncMessage(ids);
@@ -1151,7 +1151,7 @@ public class TestUtils {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testCreateDigestMessageThrowsExceptionWhenSidIsEmpty() throws Exception {
+	public void testCreateDigestMessageThrowsExceptionWhenNonceIsEmpty() throws Exception {
 		final Map<String, String> digests = new HashMap<String, String>();
 		digests.put("", "123456789abcdef");
 
@@ -1252,7 +1252,7 @@ public class TestUtils {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testCreateDigestResponseThrowsExceptionWhenSidIsEmpty() throws Exception {
+	public void testCreateDigestResponseThrowsExceptionWhenNonceIsEmpty() throws Exception {
 		final Map<String, DigestStatus> digests = new HashMap<String, DigestStatus>();
 		digests.put("", DigestStatus.Confirmed);
 		digests.put("nothing", DigestStatus.Invalid);

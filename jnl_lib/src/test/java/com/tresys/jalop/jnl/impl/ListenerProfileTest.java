@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -284,7 +284,7 @@ public class ListenerProfileTest {
                 contextImpl.getDefaultPendingDigestMax(); result = 1;
                 channel.getNumber(); result = 5;
                 subscriber.getSubscribeRequest((SubscriberSession) any); result = request;
-                request.getSerialId(); result = "1";
+                request.getNonce(); result = "1";
                 Utils.createInitAckMessage(anyString, anyString); result = ods;
 			}
 		};
@@ -335,7 +335,7 @@ public class ListenerProfileTest {
                 subscriber.getSubscribeRequest((SubscriberSession) any); result = request;
                 request.getResumeOffset(); result = (long) 25;
                 request.getResumeInputStream(); result = is;
-                request.getSerialId(); result = "1";
+                request.getNonce(); result = "1";
                 Utils.createInitAckMessage(anyString, anyString); result = ods;
 			}
 		};

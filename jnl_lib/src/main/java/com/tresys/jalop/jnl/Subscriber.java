@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -130,7 +130,7 @@ public interface Subscriber {
 	 *            The {@link SubscriberSession} that calculated the digest
 	 *            value.
 	 * @param recordInfo
-	 *            The details (serial ID, etc) of the record this digest applies
+	 *            The details (nonce, etc) of the record this digest applies
 	 *            to.
 	 * @param digest
 	 *            The digest value.
@@ -147,7 +147,7 @@ public interface Subscriber {
 	 * @param sess
 	 *            The {@link SubscriberSession} that received the message.
 	 * @param statuses
-	 *            A map of serial IDs to {@link DigestStatus}, indicating if the
+	 *            A map of nonces to {@link DigestStatus}, indicating if the
 	 *            remote JALoP Network Store agrees with the digest values
 	 *            calculated locally.
 	 * @return true to continue receiving JAL records on this

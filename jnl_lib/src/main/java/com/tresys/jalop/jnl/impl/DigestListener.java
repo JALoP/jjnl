@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -59,7 +59,7 @@ public class DigestListener implements ReplyListener {
 	 * @param subscriberSession
 	 *            The {@link SubscriberSessionImpl} associated with this listener.
 	 * @param digestsSent
-	 *            A Map of serialIds to digests that have been sent to the publisher.
+	 *            A Map of nonces to digests that have been sent to the publisher.
 	 */
 	public DigestListener(final SubscriberSessionImpl subscriberSession, final Map<String, String> digestsSent) {
 		this.subscriberSession = subscriberSession;
@@ -80,15 +80,15 @@ public class DigestListener implements ReplyListener {
 			final DigestResponse msg = Utils.processDigestResponse(data);
 			final Map<String, DigestStatus> statusMap = msg.getMap();
 
-			final Set<String> serialIds = statusMap.keySet();
-			String maxSerial = "";
+			final Set<String> nonces = statusMap.keySet();
+			String maxNonce = "";
 
-			for(final String serialId : serialIds) {
-				if(this.digestsSent.containsKey(serialId)) {
-					if(serialId.compareTo(maxSerial) > 0) {
-						maxSerial = serialId;
+			for(final String nonce : nonces) {
+				if(this.digestsSent.containsKey(nonce)) {
+					if(nonce.compareTo(maxNonce) > 0) {
+						maxNonce = nonce;
 					}
-					this.digestsSent.remove(serialId);
+					this.digestsSent.remove(nonce);
 				}
 			}
 			//Add back in any digests that were sent but didn't receive a response
@@ -98,7 +98,7 @@ public class DigestListener implements ReplyListener {
 
 			this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, statusMap);
 
-			final OutputDataStream ods = Utils.createSyncMessage(maxSerial);
+			final OutputDataStream ods = Utils.createSyncMessage(maxNonce);
 			message.getChannel().sendMSG(ods, this);
 
 		} catch (final BEEPException e) {

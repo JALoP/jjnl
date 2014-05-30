@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -37,7 +37,7 @@ public class TestJournalResumeMessage {
 
 		MimeHeaders otherHeaders = new MimeHeaders();
 		JournalResumeMessage msg = new JournalResumeMessage("1", 10, otherHeaders);
-		assertEquals(msg.getSerialId(), "1");
+		assertEquals(msg.getNonce(), "1");
 		assertEquals(msg.getOffset(), 10);
 		assertEquals(msg.getOtherHeaders(), otherHeaders);
 	}

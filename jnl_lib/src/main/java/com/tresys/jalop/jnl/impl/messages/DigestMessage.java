@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -32,15 +32,15 @@ import javax.xml.soap.MimeHeaders;
  */
 public class DigestMessage extends Message {
 	/**
-	 * Maps serialIDs to digests
+	 * Maps nonces to digests
 	 */
 	private Map<String, String> digestMap;
 
 	/**
 	 * Create a new {@link DigestMessage}
 	 * 
-	 * @param serialId
-	 *            The map of serialIDs and digests sent in the message.
+	 * @param nonce
+	 *            The map of nonces and digests sent in the message.
 	 * @param otherHeaders
 	 *            Any additional headers sent as part of this message.
 	 */
@@ -50,7 +50,7 @@ public class DigestMessage extends Message {
 	}
 
 	/**
-	 * Get the map of serialIDs and digests in this message.
+	 * Get the map of nonces and digests in this message.
 	 * 
 	 * @return the map
 	 */

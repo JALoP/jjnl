@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -44,14 +44,14 @@ public interface Publisher {
 	 * 
 	 * @param sess
 	 *            The {@link PublisherSession} that is trying to send a record.
-	 * @param lastSerialId
-	 *            The serial ID of the last JAL record that was sent using
+	 * @param lastNonce
+	 *            The nonce of the last JAL record that was sent using
 	 *            <tt>sess</tt>.
 	 * @return a {@link SourceRecord} object that is the next JAL record to send
 	 *         to the remote JALoP Network Store.
 	 */
 	SourceRecord getNextRecord(final PublisherSession sess,
-			final String lastSerialId);
+			final String lastNonce);
 
 	/**
 	 * The library executes this method when the remote JALoP Network Store
@@ -60,8 +60,8 @@ public interface Publisher {
 	 * @param sess
 	 *            The {@link PublisherSession} that received the
 	 *            "journal-resume" message.
-	 * @param serialId
-	 *            The serial ID the remote JALoP Network Store indicated it
+	 * @param nonce
+	 *            The nonce the remote JALoP Network Store indicated it
 	 *            wants to resume.
 	 * @param offset
 	 *            The number of bytes the remote JALoP Network Store has already
@@ -70,11 +70,11 @@ public interface Publisher {
 	 *            Any additional headers that were sent as part of the
 	 *            "journal-resume" message.
 	 * @return a {@link SourceRecord} for the JAL record identified by
-	 *         <tt>serialId</tt>. If JAL record does not exist, this function
+	 *         <tt>nonce</tt>. If JAL record does not exist, this function
 	 *         should return null.
 	 */
 	SourceRecord onJournalResume(final PublisherSession sess,
-			final String serialId, final long offset, final MimeHeaders headers);
+			final String nonce, final long offset, final MimeHeaders headers);
 
 	/**
 	 * The library executes this method when the remote JALoP Network Store
@@ -85,15 +85,15 @@ public interface Publisher {
 	 * @param sess
 	 *            The {@link PublisherSession} that received the "subscribe"
 	 *            message.
-	 * @param serialId
-	 *            The serial ID indicated in the subscribe message.
+	 * @param nonce
+	 *            The nonce indicated in the subscribe message.
 	 * @param headers
 	 *            Any additional headers that were sent as part of the
 	 *            "subscribe" message.
 	 * @return <tt>true</tt> to allow the subscribe to complete, <tt>false</tt>
 	 *         otherwise.
 	 */
-	boolean onSubscribe(final PublisherSession sess, final String serialId,
+	boolean onSubscribe(final PublisherSession sess, final String nonce,
 			final MimeHeaders headers);
 
 	/**
@@ -103,7 +103,7 @@ public interface Publisher {
 	 * @param sess
 	 *            The {@link PublisherSession} that sent the JAL record.
 	 * @param serailId
-	 *            The serial ID of the JAL record that was sent.
+	 *            The nonce of the JAL record that was sent.
 	 * @param record
 	 *            The @{link SourceRecord} that was sent. This is the same
 	 *            object that was returned from either
@@ -121,14 +121,14 @@ public interface Publisher {
 	 * 
 	 * @param sess
 	 *            The {@link PublisherSession} that received the "sync" message.
-	 * @param serialId
-	 *            The serial ID indicated in the "sync" message.
+	 * @param nonce
+	 *            The nonce indicated in the "sync" message.
 	 * @param headers
 	 *            Any addition MIME headers in the message./
 	 * @return <tt>true</tt> to continue sending records on this session,
 	 *         <tt>false</tt> otherwise.
 	 */
-	boolean sync(final PublisherSession sess, final String serialId,
+	boolean sync(final PublisherSession sess, final String nonce,
 			final MimeHeaders headers);
 
 	/**
@@ -137,12 +137,12 @@ public interface Publisher {
 	 * 
 	 * @param sess
 	 *            The {@link PublisherSession} that calculated the digest.
-	 * @param serialId
-	 *            The serial ID of the JAL record for this digest.
+	 * @param nonce
+	 *            The nonce of the JAL record for this digest.
 	 * @param digest
 	 *            The digest value.
 	 */
-	void notifyDigest(final PublisherSession sess, final String serialId,
+	void notifyDigest(final PublisherSession sess, final String nonce,
 			final byte[] digest);
 
 	/**
@@ -152,9 +152,9 @@ public interface Publisher {
 	 * @param sess
 	 *            The {@link PublisherSession} that calculated the digest.
 	 * @param digestPairs
-	 *            A {@link Map} of serial IDs to {@link DigestPair}
+	 *            A {@link Map} of nonces to {@link DigestPair}
 	 *            <tt>Objects</tt> Each Key/Value in the map represents the
-	 *            serial ID (as identified by the remote JALoP Network Store),
+	 *            nonce (as identified by the remote JALoP Network Store),
 	 *            remotely calculated digest, and locally calculated digest.
 	 */
 	void notifyPeerDigest(final PublisherSession sess,

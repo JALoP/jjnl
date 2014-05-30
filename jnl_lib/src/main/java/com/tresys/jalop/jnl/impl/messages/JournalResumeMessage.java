@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -27,7 +27,7 @@ import javax.xml.soap.MimeHeaders;
 
 /**
  * This represents a 'journal-resume' message. A 'journal-resume' message
- * indicates a partially transferred journal record (by serial ID) and an
+ * indicates a partially transferred journal record (by nonce) and an
  * offset. The offset indicates the number of bytes already transferred for a
  * particular journal record.
  */
@@ -37,17 +37,17 @@ public class JournalResumeMessage extends SubscribeMessage {
 	/**
 	 * Create a {@link JournalResumeMessage}
 	 * 
-	 * @param serialId
-	 *            The serial ID for the journal record to resume.
+	 * @param nonce
+	 *            The nonce for the journal record to resume.
 	 * @param offset
 	 *            The offset into the journal record to start transferring data
 	 *            from.
 	 * @param otherHeaders
 	 *            Any additional headers sent with this message.
 	 */
-	public JournalResumeMessage(final String serialId, final long offset,
+	public JournalResumeMessage(final String nonce, final long offset,
 			final MimeHeaders otherHeaders) {
-		super(serialId, otherHeaders);
+		super(nonce, otherHeaders);
 		this.offset = offset;
 	}
 

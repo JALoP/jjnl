@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -95,7 +95,7 @@ public class PublisherRequestHandler implements RequestHandler {
 			final PublisherSessionImpl sess =
 				contextImpl.getPublisherSession(message.getChannel().getSession(), this.recordType);
 
-			String serialId = null;
+			String nonce = null;
 			SourceRecord sourceRecord = null;
 			long offset = 0;
 
@@ -104,22 +104,22 @@ public class PublisherRequestHandler implements RequestHandler {
 					log.debug("Received a subscribe message.");
 				}
 				final SubscribeMessage msg = Utils.processSubscribe(data);
-				serialId = msg.getSerialId();
-				if(!publisher.onSubscribe(sess, serialId, msg.getOtherHeaders())) {
+				nonce = msg.getNonce();
+				if(!publisher.onSubscribe(sess, nonce, msg.getOtherHeaders())) {
 					if(log.isEnabledFor(Level.ERROR)) {
 						log.error("Problem with subscribe - not sending any records.");
 					}
 					return;
 				}
-				sourceRecord = publisher.getNextRecord(sess, serialId);
+				sourceRecord = publisher.getNextRecord(sess, nonce);
 			} else if(Utils.MSG_JOURNAL_RESUME.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
 				if(log.isDebugEnabled()) {
 					log.debug("Received a journal resume message.");
 				}
 				final JournalResumeMessage msg = Utils.processJournalResume(data);
-				serialId = msg.getSerialId();
+				nonce = msg.getNonce();
 				offset = msg.getOffset();
-				sourceRecord = publisher.onJournalResume(sess, serialId, msg.getOffset(), msg.getOtherHeaders());
+				sourceRecord = publisher.onJournalResume(sess, nonce, msg.getOffset(), msg.getOtherHeaders());
 			}
 
 			String messageType = null;
@@ -145,11 +145,11 @@ public class PublisherRequestHandler implements RequestHandler {
 
 				md.reset();
 
-				final String currSerialId = sourceRecord.getSerialId();
+				final String currNonce = sourceRecord.getNonce();
 
 				final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 				mh.setContentType(Utils.CT_JALOP);
-				mh.setHeader(Utils.HDRS_SERIAL_ID, currSerialId);
+				mh.setHeader(Utils.HDRS_NONCE, currNonce);
 				mh.setHeader(Utils.HDRS_MESSAGE, messageType);
 				mh.setHeader(payloadLengthHeader, String.valueOf(sourceRecord.getPayloadLength()));
 				mh.setHeader(Utils.HDRS_SYS_META_LEN, String.valueOf(sourceRecord.getSysMetaLength()));
@@ -207,10 +207,10 @@ public class PublisherRequestHandler implements RequestHandler {
 
 				final byte[] digest = md.digest();
 
-				sess.addDigest(currSerialId, digest);
-				publisher.notifyDigest(sess, currSerialId, digest);
+				sess.addDigest(currNonce, digest);
+				publisher.notifyDigest(sess, currNonce, digest);
 
-				sourceRecord = publisher.getNextRecord(sess, currSerialId);
+				sourceRecord = publisher.getNextRecord(sess, currNonce);
 			}
 			message.sendNUL();
 

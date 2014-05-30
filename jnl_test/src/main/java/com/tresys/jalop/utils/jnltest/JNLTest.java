@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -82,17 +82,17 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	 */
 	private ConnectionHandler connectionHandler;
 	/**
-	 * Counter to keep track of the last used serial Id for log records
+	 * Counter to keep track of the last used nonce for log records
 	 */
-	private long latestLogSID;
+	private long latestLogNONCE;
 	/**
-	 * Counter to keep track of the last used serial Id for audit records
+	 * Counter to keep track of the last used nonce for audit records
 	 */
-	private long latestAuditSID;
+	private long latestAuditNONCE;
 	/**
-	 * Counter to keep track of the last used serial Id for journal records
+	 * Counter to keep track of the last used nonce for journal records
 	 */
-	private long latestJournalSID;
+	private long latestJournalNONCE;
 	/**
 	 * Create a JNLTest object based on the specified configuration.
 	 *
@@ -104,45 +104,45 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	}
 
 	/**
-	 * @return the latestLogSID
+	 * @return the latestLogNONCE
 	 */
-	public long getLatestLogSID() {
-		return latestLogSID;
+	public long getLatestLogNONCE() {
+		return latestLogNONCE;
 	}
 
 	/**
-	 * @param latestLogSID the latestLogSID to set
+	 * @param latestLogNONCE the latestLogNONCE to set
 	 */
-	public void setLatestLogSID(final long latestLogSID) {
-		this.latestLogSID = latestLogSID;
+	public void setLatestLogNONCE(final long latestLogNONCE) {
+		this.latestLogNONCE = latestLogNONCE;
 	}
 
 	/**
-	 * @return the latestAuditSID
+	 * @return the latestAuditNONCE
 	 */
-	public long getLatestAuditSID() {
-		return latestAuditSID;
+	public long getLatestAuditNONCE() {
+		return latestAuditNONCE;
 	}
 
 	/**
-	 * @param latestAuditSID the latestAuditSID to set
+	 * @param latestAuditNONCE the latestAuditNONCE to set
 	 */
-	public void setLatestAuditSID(final long latestAuditSID) {
-		this.latestAuditSID = latestAuditSID;
+	public void setLatestAuditNONCE(final long latestAuditNONCE) {
+		this.latestAuditNONCE = latestAuditNONCE;
 	}
 
 	/**
-	 * @return the latestJournalSID
+	 * @return the latestJournalNONCE
 	 */
-	public long getLatestJournalSID() {
-		return latestJournalSID;
+	public long getLatestJournalNONCE() {
+		return latestJournalNONCE;
 	}
 
 	/**
-	 * @param latestJournalSID the latestJournalSID to set
+	 * @param latestJournalNONCE the latestJournalNONCE to set
 	 */
-	public void setLatestJournalSID(final long latestJournalSID) {
-		this.latestJournalSID = latestJournalSID;
+	public void setLatestJournalNONCE(final long latestJournalNONCE) {
+		this.latestJournalNONCE = latestJournalNONCE;
 	}
 
 	/**
@@ -277,23 +277,23 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
     }
 
 	@Override
-	public SourceRecord getNextRecord(final PublisherSession sess, final String lastSerialId) {
-		return this.pubSessMap.get(sess).get(sess.getRecordType()).getNextRecord(sess, lastSerialId);
+	public SourceRecord getNextRecord(final PublisherSession sess, final String lastNonce) {
+		return this.pubSessMap.get(sess).get(sess.getRecordType()).getNextRecord(sess, lastNonce);
 	}
 
 	@Override
-	public SourceRecord onJournalResume(final PublisherSession sess, final String serialId,
+	public SourceRecord onJournalResume(final PublisherSession sess, final String nonce,
 			final long offset, final MimeHeaders headers) {
 		setPubMap(sess);
-		return this.pubSessMap.get(sess).get(sess.getRecordType()).onJournalResume(sess, serialId, offset, headers);
+		return this.pubSessMap.get(sess).get(sess.getRecordType()).onJournalResume(sess, nonce, offset, headers);
 	}
 
 	@Override
-	public boolean onSubscribe(final PublisherSession sess, final String serialId,
+	public boolean onSubscribe(final PublisherSession sess, final String nonce,
 			final MimeHeaders headers) {
 
 		setPubMap(sess);
-        return this.pubSessMap.get(sess).get(sess.getRecordType()).onSubscribe(sess, serialId, headers);
+        return this.pubSessMap.get(sess).get(sess.getRecordType()).onSubscribe(sess, nonce, headers);
 	}
 
 	private void setPubMap(final PublisherSession sess) {
@@ -325,15 +325,15 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	}
 
 	@Override
-	public boolean sync(final PublisherSession sess, final String serialId,
+	public boolean sync(final PublisherSession sess, final String nonce,
 			final MimeHeaders headers) {
-		return this.pubSessMap.get(sess).get(sess.getRecordType()).sync(sess, serialId, headers);
+		return this.pubSessMap.get(sess).get(sess.getRecordType()).sync(sess, nonce, headers);
 	}
 
 	@Override
-	public void notifyDigest(final PublisherSession sess, final String serialId,
+	public void notifyDigest(final PublisherSession sess, final String nonce,
 			final byte[] digest) {
-		this.pubSessMap.get(sess).get(sess.getRecordType()).notifyDigest(sess, serialId, digest);
+		this.pubSessMap.get(sess).get(sess.getRecordType()).notifyDigest(sess, nonce, digest);
 	}
 
 	@Override

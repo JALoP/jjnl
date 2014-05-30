@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -43,7 +43,7 @@ public enum DigestStatus {
 	/**
 	 * Indicates that the subscriber sent a message digest for a JAL record that
 	 * the publisher does not recognize (i.e. it doesn't have a record for the
-	 * particular serial ID).
+	 * particular nonce).
 	 */
 	Unknown,
 }
