@@ -2,8 +2,8 @@ This is an implementation of a library that supports sending and receiving of
 JALoP Records over a network using the JALoP/BEEP protocol.
 
 Building and Installing
-This project uses the maven (maven.apache.org) build tool version 3.0.4, and 
-is tested using the Oracle Java SE Development Kit 6u27. Other versions of
+This project uses the maven (maven.apache.org) build tool version 3.2.1, and 
+is tested using the Oracle Java SE Development Kit 7u51. Other versions of
 the JDK/JVM and maven should work, but have not been tested.
 
 The JJNL uses a multi-module layout, and the entire project can be built by
