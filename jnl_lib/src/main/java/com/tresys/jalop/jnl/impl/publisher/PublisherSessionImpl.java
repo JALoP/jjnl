@@ -43,6 +43,7 @@ import org.beepcore.beep.util.BufferSegment;
 import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.MessageMSG;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.PublisherSession;
 import com.tresys.jalop.jnl.RecordType;
@@ -72,6 +73,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 	private final Publisher publisher;
 	private final ContextImpl contextImpl;
 	private final Map<String, byte[]> digestMap;
+	private Mode mode = Mode.Unset;
 
 	public MessageMSG msg;
 
@@ -132,6 +134,15 @@ public class PublisherSessionImpl extends SessionImpl implements
 	@Override
 	public Role getRole() {
 		return Role.Publisher;
+	}
+
+	@Override
+	public Mode getMode() {
+		return this.mode;
+	}
+
+	public Mode setMode(Mode mode) {
+		return this.mode = mode;
 	}
 
 	/**

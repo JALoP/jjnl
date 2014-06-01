@@ -88,7 +88,6 @@ public class PublisherRequestHandler implements RequestHandler {
 				contextImpl.getPublisherSession(message.getChannel().getSession(), this.recordType);
 
 			String nonce = null;
-			Mode mode = Mode.Unset;
 			SourceRecord sourceRecord = null;
 			long offset = 0;
 
@@ -99,8 +98,7 @@ public class PublisherRequestHandler implements RequestHandler {
 				}
 				final SubscribeMessage msg = Utils.processSubscribe(data);
 				nonce = msg.getNonce();
-				mode = msg.getMode();
-				if(!publisher.onSubscribe(sess, nonce, mode, msg.getOtherHeaders())) {
+				if(!publisher.onSubscribe(sess, nonce, sess.getMode(), msg.getOtherHeaders())) {
 					if(log.isEnabledFor(Level.ERROR)) {
 						log.error("Problem with subscribe - not sending any records.");
 					}

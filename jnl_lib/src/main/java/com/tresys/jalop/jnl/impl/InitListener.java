@@ -134,7 +134,7 @@ public class InitListener implements ReplyListener {
 					sessionImpl.setJournalResumeOffset(request.getResumeOffset());
 					ods = Utils.createJournalResumeMessage(request.getNonce(), request.getResumeOffset());
 				} else {
-					ods = Utils.createSubscribeMessage(request.getNonce(), subscriber.getMode());
+					ods = Utils.createSubscribeMessage(request.getNonce());
 				}
 
 				message.getChannel().sendMSG(ods, sessionImpl.getListener());

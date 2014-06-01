@@ -220,7 +220,7 @@ public class ListenerProfile implements Profile, StartChannelListener, RequestHa
 						sessionImpl.setJournalResumeOffset(request.getResumeOffset());
 						subscriberOds = Utils.createJournalResumeMessage(request.getNonce(), request.getResumeOffset());
 					} else {
-						subscriberOds = Utils.createSubscribeMessage(request.getNonce(), subscriber.getMode());
+						subscriberOds = Utils.createSubscribeMessage(request.getNonce());
 					}
 
 				} else if(msg.getRole() == Role.Subscriber) {

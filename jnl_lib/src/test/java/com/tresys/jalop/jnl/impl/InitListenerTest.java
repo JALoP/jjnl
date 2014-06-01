@@ -51,7 +51,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
-import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -172,7 +171,7 @@ public class InitListenerTest {
                 contextImpl.getDefaultPendingDigestMax(); result = 1;
                 contextImpl.getDefaultDigestTimeout(); result = 1;
                 channel.getSession(); result = sess;
-                Utils.createSubscribeMessage(anyString, (Mode) any); result = ods;
+                Utils.createSubscribeMessage(anyString); result = ods;
             }
         };
 

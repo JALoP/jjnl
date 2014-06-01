@@ -52,6 +52,13 @@ public interface Session {
 	Role getRole();
 
 	/**
+	 * Get the {@link Mode} of this {@link Session}.
+	 *
+	 * @return The {@link Mode} of this {@link Session}
+	 */
+	Mode getMode();
+
+	/**
 	 * Set an error flag on the {@link Session}. Once an error is set, the
 	 * library will not continue to deliver events to any of the registered
 	 * handlers, and will attempt to close the connection with the remote JALoP

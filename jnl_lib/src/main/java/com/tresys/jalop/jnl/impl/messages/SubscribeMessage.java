@@ -25,29 +25,23 @@ package com.tresys.jalop.jnl.impl.messages;
 
 import javax.xml.soap.MimeHeaders;
 
-import com.tresys.jalop.jnl.Mode;
-
 /**
  * This represents a subscribe message.
  */
 public class SubscribeMessage extends Message {
 	private final String nonce;
-	private final Mode mode;
 
 	/**
 	 * Create a new {@link SubscribeMessage}
 	 * 
 	 * @param nonce
 	 *            The nonce sent in the message.
-	 * @param {@link Mode}
-	 *            The {@link Mode} sent in the message.
 	 * @param otherHeaders
 	 *            Any additional headers sent as part of this message.
 	 */
-	SubscribeMessage(String nonce, Mode mode, MimeHeaders otherHeaders) {
+	SubscribeMessage(String nonce, MimeHeaders otherHeaders) {
 		super(otherHeaders);
 		this.nonce = nonce;
-		this.mode = mode;
 	}
 
 	/**
@@ -57,15 +51,5 @@ public class SubscribeMessage extends Message {
 	 */
 	public String getNonce() {
 		return nonce;
-	}
-
-	/**
-	 * The library will call this method to determine the {@link Mode} to send as
-	 * part of of a "subscribe" or "journal-resume" message.
-	 * 
-	 * @return the {@link Mode} to request.
-	 */
-	public Mode getMode() {
-		return this.mode;
 	}
 }

@@ -39,6 +39,7 @@ import org.beepcore.beep.core.Channel;
 import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
@@ -67,6 +68,7 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	protected Map<String, String> digestMap;
 	private long journalResumeOffset;
 	private InputStream journalResumeIS;
+	private Mode mode = Mode.Unset;
 
 	/**
 	 * Create a {@link SubscriberSessionImpl} object.
@@ -172,6 +174,11 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	@Override
 	public Role getRole() {
 		return Role.Subscriber;
+	}
+
+	@Override
+	public Mode getMode() {
+		return this.mode;
 	}
 
 	/**
