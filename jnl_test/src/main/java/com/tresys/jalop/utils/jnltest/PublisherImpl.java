@@ -151,7 +151,6 @@ public class PublisherImpl implements Publisher {
         }
 	}
 
-	@Override
 	public SourceRecord getNextRecord(final PublisherSession sess, final String lastNonce) {
 
 		final long nextNonce;
@@ -163,6 +162,7 @@ public class PublisherImpl implements Publisher {
 				if(LOGGER.isInfoEnabled()) {
 					LOGGER.info("Nonce of 0 sent. Finding the oldest file.");
 				}
+				LOGGER.info("Path: " + this.inputRoot.getAbsolutePath());
 
 				final File[] recordDirs =
 					this.inputRoot.listFiles(PublisherImpl.FILE_FILTER);
@@ -229,12 +229,19 @@ public class PublisherImpl implements Publisher {
 				}
 				return false;
 			}
+			SourceRecord rec = getNextRecord(sess, nonce);
+			while (rec != null) {
+				final String currNonce = rec.getNonce();
+				sess.sendRecord(rec);
+				rec = getNextRecord(sess, currNonce);
+			}
 		} catch (final NumberFormatException nfe) {
 			if(LOGGER.isEnabledFor(Level.ERROR)) {
 				LOGGER.error("nonce sent is not numeric - " + nonce);
 			}
 			return false;
 		}
+		sess.complete();
 		return true;
 	}
 
@@ -287,13 +294,12 @@ public class PublisherImpl implements Publisher {
 	        dumpStatus(pair.getNonce(), map);
 		}
 	}
-
 	/**
-     * Write status information about a record out to disk.
-     * @param lri The {@link LocalRecordInfo} object output stats for.
-     * @return <code>true</code> If the data was successfully written out.
-     *         <code>false</code> otherwise.
-     */
+	 * Write status information about a record out to disk.
+	 * @param lri The {@link LocalRecordInfo} object output stats for.
+	 * @return <code>true</code> If the data was successfully written out.
+	 *         <code>false</code> otherwise.
+	 */
 	@SuppressWarnings("unchecked")
 	final boolean dumpStatus(final String nonce, final Map<String, String> statusMap) {
 

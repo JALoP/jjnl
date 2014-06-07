@@ -38,22 +38,6 @@ import javax.xml.soap.MimeHeaders;
  */
 public interface Publisher {
 	/**
-	 * The library executes this method when it is ready to send another JAL
-	 * record to the remote JALoP Network Store. The library sends the returned
-	 * {@link SourceRecord} to the remote JALoP Network Store.
-	 * 
-	 * @param sess
-	 *            The {@link PublisherSession} that is trying to send a record.
-	 * @param lastNonce
-	 *            The nonce of the last JAL record that was sent using
-	 *            <tt>sess</tt>.
-	 * @return a {@link SourceRecord} object that is the next JAL record to send
-	 *         to the remote JALoP Network Store.
-	 */
-	SourceRecord getNextRecord(final PublisherSession sess,
-			final String lastNonce);
-
-	/**
 	 * The library executes this method when the remote JALoP Network Store
 	 * attempts to resume a journal record.
 	 * 

@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012, 2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -29,5 +29,17 @@ package com.tresys.jalop.jnl;
  * no additional methods defined for a {@link Publisher}.
  */
 public interface PublisherSession extends Session {
+	/**
+	 * The network store executes this method to give a record to the library
+	 * to be sent across the network.
+	 *
+	 * @param rec
+	 *            The record to send
+	 */
+	void sendRecord(final SourceRecord rec);
 
+	/**
+	 * Called by the publishing network store to indicate it is done sending records 
+	 */
+	void complete();
 }
