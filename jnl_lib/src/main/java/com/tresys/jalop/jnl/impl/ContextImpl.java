@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -51,6 +51,7 @@ import org.beepcore.beep.transport.tcp.TCPSessionCreator;
 
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.Context;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -239,7 +240,7 @@ public final class ContextImpl implements Context {
 	}
 
 	@Override
-	public void publish(final InetAddress addr, final int port,
+	public void publish(final InetAddress addr, final int port, Mode mode,
 			final RecordType... types) throws IllegalArgumentException,
 			JNLException, BEEPException {
 
@@ -283,7 +284,7 @@ public final class ContextImpl implements Context {
 				final ReplyListener listener = new InitListener(addr, Role.Publisher, rt, this);
 
 				final OutputDataStream ods = Utils.createInitMessage(
-						Role.Publisher, rt, this.allowedXmlEncodings,
+						Role.Publisher, mode, rt, this.allowedXmlEncodings,
 						this.allowedMessageDigests, this.agent);
 
 				channel.sendMSG(ods, listener);
@@ -292,7 +293,7 @@ public final class ContextImpl implements Context {
 	}
 
 	@Override
-	public void subscribe(final InetAddress addr, final int port,
+	public void subscribe(final InetAddress addr, final int port, Mode mode,
 			final RecordType... types) throws JNLException, BEEPException {
 
 		if (addr == null) {
@@ -335,7 +336,7 @@ public final class ContextImpl implements Context {
 				final ReplyListener listener = new InitListener(addr, Role.Subscriber, rt, this);
 
 				final OutputDataStream ods = Utils.createInitMessage(
-						Role.Subscriber, rt, this.allowedXmlEncodings,
+						Role.Subscriber, mode, rt, this.allowedXmlEncodings,
 						this.allowedMessageDigests, this.agent);
 
 				channel.sendMSG(ods, listener);

@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -44,6 +44,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.google.common.net.InetAddresses;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 
@@ -63,6 +64,9 @@ public class Config {
 	private static final String LISTENER = "listener";
 	private static final String LOG = "log";
 	private static final String OUTPUT = "output";
+	private static final String MODE = "mode";
+	private static final String MODE_ARCHIVE = "archive";
+	private static final String MODE_LIVE = "live";
 	private static final String PEERS = "peers";
 	private static final String PENDING_DGST_MAX = "pendingDigestMax";
 	private static final String PENDING_DGST_TIMEOUT = "pendingDigestTimeout";
@@ -144,6 +148,7 @@ public class Config {
 	private int pendingDigestTimeout;
 	private int port;
 	private final Set<RecordType> recordTypes;
+	private Mode mode;
 	private Role role;
 	private Date sessionTimeout;
 	private final String source;
@@ -163,6 +168,7 @@ public class Config {
 		this.pendingDigestMax = -1;
 		this.pendingDigestTimeout = -1;
 		this.port = -1;
+		this.mode = Mode.Unset;
 	}
 
 	/**
@@ -255,6 +261,17 @@ public class Config {
 	 */
 	public Role getRole() {
 		return this.role;
+	}
+
+	/**
+	 * Obtain the indicated role, {@link Mode#Live} or
+	 * {@link Mode#Archive}. This is not applicable for listeners.
+	 *
+	 * @see Config#isListener()
+	 * @return The designated mode.
+	 */
+	public Mode getMode() {
+		return this.mode;
 	}
 
 	/**
@@ -420,6 +437,7 @@ public class Config {
 				.intValue());
 		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, subscriber)
 				.intValue());
+		setMode(itemAsString(MODE, subscriber, true));
 	}
 
 	/**
@@ -701,6 +719,25 @@ public class Config {
 	 */
 	public void setRole(final Role role) {
 		this.role = role;
+	}
+
+	/**
+	 * Set the mode. This is only applicable for connectors (i.e.
+	 * {@link Config#isListener()} returns <code>false</code>).
+	 *
+	 * @param mode
+	 *            The mode.
+	 */
+	public void setMode(final String mode) 
+			throws ConfigurationException {
+		if (mode.equalsIgnoreCase(MODE_LIVE)) {
+			this.mode = Mode.Live;
+		} else if (mode.equalsIgnoreCase(MODE_ARCHIVE)) {
+			this.mode = Mode.Archive;
+		} else {
+			throw new ConfigurationException(this.source, 
+				"Expected '" + MODE_LIVE + " or " + MODE_ARCHIVE);
+		}
 	}
 
 	/**

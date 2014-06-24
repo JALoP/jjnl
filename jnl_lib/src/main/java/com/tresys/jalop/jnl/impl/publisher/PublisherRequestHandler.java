@@ -35,6 +35,7 @@ import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.MessageMSG;
 import org.beepcore.beep.core.RequestHandler;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SourceRecord;
@@ -91,13 +92,25 @@ public class PublisherRequestHandler implements RequestHandler {
 			long offset = 0;
 
 			sess.msg = message;
-			if(Utils.MSG_SUBSCRIBE.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
+			if(Utils.MSG_SUBSCRIBE_ARCHIVE.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
 				if(log.isDebugEnabled()) {
-					log.debug("Received a subscribe message.");
+					log.debug("Received a subscribe-archival message.");
 				}
 				final SubscribeMessage msg = Utils.processSubscribe(data);
 				nonce = msg.getNonce();
-				if(!publisher.onSubscribe(sess, nonce, msg.getOtherHeaders())) {
+				if(!publisher.onSubscribe(sess, nonce, Mode.Archive, msg.getOtherHeaders())) {
+					if(log.isEnabledFor(Level.ERROR)) {
+						log.error("Problem with subscribe - not sending any records.");
+					}
+					return;
+				}
+			} else if(Utils.MSG_SUBSCRIBE_LIVE.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
+				if(log.isDebugEnabled()) {
+					log.debug("Received a subscribe-live message.");
+				}
+				final SubscribeMessage msg = Utils.processSubscribe(data);
+				nonce = msg.getNonce();
+				if(!publisher.onSubscribe(sess, nonce, Mode.Live, msg.getOtherHeaders())) {
 					if(log.isEnabledFor(Level.ERROR)) {
 						log.error("Problem with subscribe - not sending any records.");
 					}

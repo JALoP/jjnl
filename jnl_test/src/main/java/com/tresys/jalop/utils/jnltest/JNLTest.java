@@ -43,6 +43,7 @@ import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.ConnectionRequest;
 import com.tresys.jalop.jnl.DigestPair;
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.PublisherSession;
 import com.tresys.jalop.jnl.RecordInfo;
@@ -192,11 +193,11 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
         if (!this.config.isListener()) {
             if (this.config.getRole() == Role.Subscriber) {
                 final ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
-				contextImpl.subscribe(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
+				contextImpl.subscribe(this.config.getAddress(), this.config.getPort(), config.getMode(), this.config.getRecordTypes().toArray(new RecordType[0]));
 
             } else if (this.config.getRole() == Role.Publisher) {
 				final ContextImpl contextImpl = new ContextImpl(this, null, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
-				contextImpl.publish(this.config.getAddress(), this.config.getPort(), this.config.getRecordTypes().toArray(new RecordType[0]));
+				contextImpl.publish(this.config.getAddress(), this.config.getPort(), config.getMode(), this.config.getRecordTypes().toArray(new RecordType[0]));
             }
             this.logger.info("Waiting: " + config.getSessionTimeout());
             synchronized(this) {
@@ -284,11 +285,11 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	}
 
 	@Override
-	public boolean onSubscribe(final PublisherSession sess, final String nonce,
+	public boolean onSubscribe(final PublisherSession sess, final String nonce, Mode mode,
 			final MimeHeaders headers) {
 
 		setPubMap(sess);
-        return this.pubSessMap.get(sess).get(sess.getRecordType()).onSubscribe(sess, nonce, headers);
+        return this.pubSessMap.get(sess).get(sess.getRecordType()).onSubscribe(sess, nonce, mode, headers);
 	}
 
 	private void setPubMap(final PublisherSession sess) {

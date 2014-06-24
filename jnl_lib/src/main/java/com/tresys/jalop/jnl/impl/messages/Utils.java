@@ -46,6 +46,7 @@ import org.beepcore.beep.util.BufferSegment;
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
@@ -68,8 +69,6 @@ public class Utils {
 	public static final String INVALID_EQUALS = INVALID + "=";
 	public static final String JOURNAL = "journal";
 	public static final String LOG = "log";
-	public static final String PUBLISH = "publish";
-	public static final String SUBSCRIBE = "subscribe";
 	public static final String UNKNOWN = "unknown";
 	public static final String UNKNOWN_EQUALS = UNKNOWN + "=";
 
@@ -107,7 +106,12 @@ public class Utils {
 	public static final String MSG_JOURNAL_RESUME = "journal-resume";
 	public static final String MSG_LOG = "log-record";
 	public static final String MSG_SYNC = "sync";
+	public static final String MSG_PUBLISH = "publish";
 	public static final String MSG_SUBSCRIBE = "subscribe";
+	public static final String MSG_PUBLISH_LIVE = "publish-live";
+	public static final String MSG_SUBSCRIBE_LIVE = "subscribe-live";
+	public static final String MSG_PUBLISH_ARCHIVE = "publish-archival";
+	public static final String MSG_SUBSCRIBE_ARCHIVE = "subscribe-archival";
 
 	public static final String NONCE = "nonce";
 	public static final String STATUS = "status";
@@ -188,7 +192,9 @@ public class Utils {
 	 * carries no payload.
 	 *
 	 * @param role
-	 *            The {@link Role} ('JAL-Mode') to send.
+	 *            The {@link Role} in ('JAL-Mode') to send.
+	 * @param mode
+	 *            The {@link Mode} in ('JAL-Mode') to send.
 	 * @param dataClass
 	 *            The type of records to transfer over this channel.
 	 * @param digestAlgorithms
@@ -206,7 +212,7 @@ public class Utils {
 	 *            <code>non-null</code> and not be the empty string.
 	 * @return The {@link OutputDataStream}
 	 */
-	public static OutputDataStream createInitMessage(final Role role,
+	public static OutputDataStream createInitMessage(final Role role, final Mode mode,
 			final RecordType dataClass, final List<String> xmlEncodings,
 			final List<String> digestAlgorithms, final String agent) {
 
@@ -223,15 +229,16 @@ public class Utils {
 		if (digestsString != null) {
 			headers.setHeader(HDRS_ACCEPT_DIGEST, digestsString);
 		}
-		switch (role) {
-		case Publisher:
-			headers.setHeader(HDRS_MODE, PUBLISH);
-			break;
-		case Subscriber:
-			headers.setHeader(HDRS_MODE, SUBSCRIBE);
-			break;
-		default:
-			throw new IllegalArgumentException("Illegal value for 'role'");
+		if (Role.Publisher == role && Mode.Live == mode) {
+			headers.setHeader(HDRS_MODE, MSG_PUBLISH_LIVE);
+		} else if (Role.Publisher == role && Mode.Archive == mode) {
+			headers.setHeader(HDRS_MODE, MSG_PUBLISH_ARCHIVE);
+		} else if (Role.Subscriber == role && Mode.Live == mode) {
+			headers.setHeader(HDRS_MODE, MSG_SUBSCRIBE_LIVE);
+		} else if (Role.Subscriber == role && Mode.Archive == mode) {
+			headers.setHeader(HDRS_MODE, MSG_SUBSCRIBE_ARCHIVE);
+		} else {
+			throw new IllegalArgumentException("Illegal value for 'JAL-Mode'");
 		}
 		switch (dataClass) {
 		case Journal:
@@ -394,18 +401,28 @@ public class Utils {
 
 		final String[] digests = knownHeaders.getHeader(HDRS_ACCEPT_DIGEST);
 
-		final String[] mode = knownHeaders.getHeader(HDRS_MODE);
-		if (mode == null) {
+		final String[] hdrsMode = knownHeaders.getHeader(HDRS_MODE);
+		if (hdrsMode == null) {
 			throw new MissingMimeHeaderException(HDRS_MODE);
 		}
 		Role role;
-		if (mode[0].equalsIgnoreCase(PUBLISH)) {
+		Mode mode;
+		if (hdrsMode[0].equalsIgnoreCase(MSG_PUBLISH_LIVE)) {
 			role = Role.Publisher;
-		} else if (mode[0].equalsIgnoreCase(SUBSCRIBE)) {
+			mode = Mode.Live;
+		} else if (hdrsMode[0].equalsIgnoreCase(MSG_PUBLISH_ARCHIVE)) {
+			role = Role.Publisher;
+			mode = Mode.Archive;
+		} else if (hdrsMode[0].equalsIgnoreCase(MSG_SUBSCRIBE_LIVE)) {
 			role = Role.Subscriber;
+			mode = Mode.Live;
+		} else if (hdrsMode[0].equalsIgnoreCase(MSG_SUBSCRIBE_ARCHIVE)) {
+			role = Role.Subscriber;
+			mode = Mode.Archive;
 		} else {
-			throw new UnexpectedMimeValueException(HDRS_MODE, PUBLISH + ", or "
-					+ SUBSCRIBE, mode[0]);
+			throw new UnexpectedMimeValueException(HDRS_MODE, MSG_PUBLISH_LIVE + ", or "
+					+ ", or " + MSG_PUBLISH_ARCHIVE + ", or " + MSG_SUBSCRIBE_LIVE
+					+ ", or " + MSG_SUBSCRIBE_ARCHIVE, hdrsMode[0]);
 		}
 
 		final String[] dataClass = knownHeaders.getHeader(HDRS_DATA_CLASS);
@@ -430,7 +447,7 @@ public class Utils {
 			agentString = agent[0];
 		}
 
-		return new InitMessage(recordType, role, encodings, digests,
+		return new InitMessage(recordType, role, mode, encodings, digests,
 				agentString, unknownHeaders);
 
 	}

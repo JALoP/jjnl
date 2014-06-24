@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -57,6 +57,7 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.tresys.jalop.jnl.ConnectionHandler;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -575,6 +576,7 @@ public class ContextImplTest {
 				session.startChannel(anyString); result = channel;
 				channel.getState(); result = Channel.STATE_ACTIVE;
 				Utils.createInitMessage((Role)any,
+						(Mode)any,
 						(RecordType)any,
 						(List<String>)any,
 						(List<String>)any,
@@ -583,7 +585,7 @@ public class ContextImplTest {
 			}
 		};
 
-		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Log);
+		c.subscribe(InetAddress.getByName("localhost"), 0, Mode.Live, RecordType.Log);
 		assertEquals(ConnectionState.CONNECTED, connectionStateField.get(c));
 
 		new VerificationsInOrder() {
@@ -598,21 +600,21 @@ public class ContextImplTest {
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 		connectionStateField.set(c, ConnectionState.CONNECTED);
-		c.subscribe(InetAddress.getByName("localhost"), 1234, RecordType.Log);
+		c.subscribe(InetAddress.getByName("localhost"), 1234, Mode.Archive, RecordType.Log);
 	}
 
 	@Test(expected = JNLException.class)
 	public final void testSubscribeThrowsExceptionWithNullSubscriber(final Publisher publisher)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
-		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Log);
+		c.subscribe(InetAddress.getByName("localhost"), 0, Mode.Live, RecordType.Log);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public final void testSubscribeThrowsExceptionWithNullAddress(final Subscriber subscriber)
 			throws IllegalAccessException, JNLException, BEEPException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
-		c.subscribe(null, 0, RecordType.Log);
+		c.subscribe(null, 0, Mode.Archive, RecordType.Log);
 	}
 
 	@Test(expected = JNLException.class)
@@ -629,7 +631,7 @@ public class ContextImplTest {
 			}
 		};
 
-		c.subscribe(InetAddress.getByName("localhost"), 0, RecordType.Unset);
+		c.subscribe(InetAddress.getByName("localhost"), 0, Mode.Archive, RecordType.Unset);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -647,6 +649,7 @@ public class ContextImplTest {
 				session.startChannel(anyString, (RequestHandler) any); result = channel;
 				channel.getState(); result = Channel.STATE_ACTIVE;
 				Utils.createInitMessage((Role)any,
+						(Mode)any,
 						(RecordType)any,
 						(List<String>)any,
 						(List<String>)any,
@@ -655,7 +658,7 @@ public class ContextImplTest {
 			}
 		};
 
-		c.publish(InetAddress.getByName("localhost"), 0, RecordType.Log);
+		c.publish(InetAddress.getByName("localhost"), 0, Mode.Live, RecordType.Log);
 		assertEquals(ConnectionState.CONNECTED, connectionStateField.get(c));
 
 		new VerificationsInOrder() {
@@ -670,21 +673,21 @@ public class ContextImplTest {
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
 		connectionStateField.set(c, ConnectionState.CONNECTED);
-		c.publish(InetAddress.getByName("localhost"), 1234, RecordType.Log);
+		c.publish(InetAddress.getByName("localhost"), 1234, Mode.Live, RecordType.Log);
 	}
 
 	@Test(expected = JNLException.class)
 	public final void testPublishThrowsExceptionWithNullPublisher(final Subscriber subscriber)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
-		c.publish(InetAddress.getByName("localhost"), 0, RecordType.Log);
+		c.publish(InetAddress.getByName("localhost"), 0, Mode.Archive, RecordType.Log);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public final void testPublishThrowsExceptionWithNullAddress(final Publisher publisher)
 			throws IllegalAccessException, JNLException, BEEPException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
-		c.publish(null, 0, RecordType.Log);
+		c.publish(null, 0, Mode.Live, RecordType.Log);
 	}
 
 	@Test(expected = JNLException.class)
@@ -701,6 +704,6 @@ public class ContextImplTest {
 			}
 		};
 
-		c.publish(InetAddress.getByName("localhost"), 0, RecordType.Unset);
+		c.publish(InetAddress.getByName("localhost"), 0, Mode.Archive, RecordType.Unset);
 	}
 }

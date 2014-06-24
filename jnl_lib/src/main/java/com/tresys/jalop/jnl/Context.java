@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -28,6 +28,7 @@ import java.net.InetAddress;
 
 import org.beepcore.beep.core.BEEPException;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 
 /**
@@ -79,6 +80,8 @@ public interface Context {
 	 *            The IP address of the remote to connect to.
 	 * @param port
 	 *            The port to connect to.
+	 * @param mode
+	 *            The mode (archive or live) to publish in.
 	 * @param types
 	 *            The types of JALoP records to subscribe to.
 	 * @throws IllegalArgumentException
@@ -89,7 +92,7 @@ public interface Context {
 	 * @see Context#registerSubscriber(Subscriber)
 	 * @see Subscriber
 	 */
-	void publish(InetAddress addr, int port, RecordType... types)
+	void publish(InetAddress addr, int port, Mode mode, RecordType... types)
 			throws IllegalArgumentException, JNLException, BEEPException;
 
 	/**
@@ -106,6 +109,8 @@ public interface Context {
 	 *            The IP address of the remote to connect to.
 	 * @param port
 	 *            The port to connect to.
+	 * @param mode
+	 *            The mode (archive or live) to subscribe to.
 	 * @param types
 	 *            The types of JALoP records to subscribe to.
 	 * @throws IllegalArgumentException
@@ -116,7 +121,7 @@ public interface Context {
 	 * @see Context#registerSubscriber(Subscriber)
 	 * @see Subscriber
 	 */
-	void subscribe(InetAddress addr, int port, RecordType... types)
+	void subscribe(InetAddress addr, int port, Mode mode, RecordType... types)
 			throws BEEPException, JNLException;
 
 	/**

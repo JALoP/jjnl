@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -31,6 +31,7 @@ import javax.xml.soap.MimeHeaders;
 
 import org.junit.Test;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 
@@ -46,8 +47,8 @@ public class TestInitMessage {
 		String[] digests = new String[]{Utils.DGST_SHA256};
 		MimeHeaders otherHeaders = new MimeHeaders();
 
-		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, encodings,
-				digests, "agent", otherHeaders);
+		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, Mode.Live, 
+					encodings, digests, "agent", otherHeaders);
 
 		assertEquals(init.getAcceptDigests(), Arrays.asList(digests));
 		assertEquals(init.getAcceptEncodings(), Arrays.asList(encodings));
@@ -55,12 +56,13 @@ public class TestInitMessage {
 		assertEquals(init.getOtherHeaders(), otherHeaders);
 		assertEquals(init.getRecordType(), RecordType.Audit);
 		assertEquals(init.getRole(), Role.Publisher);
+		assertEquals(init.getMode(), Mode.Live);
 	}
 
 	@Test
 	public void testInitMessageNoEncoding() {
 
-		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, null,
+		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, Mode.Live, null,
 				new String[]{Utils.DGST_SHA256}, "agent", new MimeHeaders());
 
 		assertEquals(init.getAcceptEncodings(), Arrays.asList("none"));
@@ -69,8 +71,8 @@ public class TestInitMessage {
 	@Test
 	public void testInitMessageNoDigests() {
 
-		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, new String[]{Utils.BINARY},
-				null, "agent", new MimeHeaders());
+		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, Mode.Live,
+					new String[]{Utils.BINARY}, null, "agent", new MimeHeaders());
 
 		assertEquals(init.getAcceptDigests(), Arrays.asList("sha256"));
 

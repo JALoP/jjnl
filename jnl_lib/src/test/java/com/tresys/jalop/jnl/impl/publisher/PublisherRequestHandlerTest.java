@@ -51,6 +51,7 @@ import org.beepcore.beep.core.Session;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SourceRecord;
@@ -110,9 +111,9 @@ public class PublisherRequestHandlerTest {
 				message.getChannel(); result = channel;
 				channel.getSession(); result = sess;
 				contextImpl.getPublisherSession(sess, (RecordType)any); result = publisherSess;
-				isa.getHeaderValue(anyString); result = Utils.MSG_SUBSCRIBE;
+				isa.getHeaderValue(anyString); result = Utils.MSG_SUBSCRIBE_ARCHIVE;
 				Utils.processSubscribe(isa); result = sm;
-				publisher.onSubscribe(publisherSess, anyString, (MimeHeaders) any); result = true;
+				publisher.onSubscribe(publisherSess, anyString, (Mode) Mode.Archive, (MimeHeaders) any); result = true;
 			}
 		};
 
@@ -145,8 +146,7 @@ public class PublisherRequestHandlerTest {
 				message.getChannel(); result = channel;
 				channel.getSession(); result = sess;
 				contextImpl.getPublisherSession(sess, (RecordType)any); result = publisherSess;
-				isa.getHeaderValue(anyString); result = Utils.MSG_JOURNAL_RESUME;
-				isa.getHeaderValue(anyString); result = Utils.MSG_JOURNAL_RESUME;
+				isa.getHeaderValue(anyString); result = Utils.MSG_JOURNAL_RESUME; times = 3;
 				Utils.processJournalResume(isa); result = jrm;
 				publisher.onJournalResume(publisherSess, anyString, 25, (MimeHeaders) any); result = sourceRecord;
 			}

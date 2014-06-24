@@ -4,7 +4,7 @@
  *
  * All other source code is copyright Tresys Technology and licensed as below.
  *
- * Copyright (c) 2012 Tresys Technology LLC, Columbia, Maryland, USA
+ * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
  *
  * This software was developed by Tresys Technology LLC
  * with U.S. Government sponsorship.
@@ -45,6 +45,7 @@ import org.junit.Test;
 import org.junit.Before;
 
 import com.google.common.net.InetAddresses;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 
 import com.tresys.jalop.utils.jnltest.Config.Config;
@@ -71,6 +72,7 @@ public class ConfigTest {
         sub.put("pendingDigestTimeout", 120);
         sub.put("output", "./output");
         sub.put("sessionTimeout", "00:00:00");
+        sub.put("mode", "Live");
         
 	    pub = new JSONObject();
         pub.put("dataClass", dataClassArray);
@@ -137,6 +139,7 @@ public class ConfigTest {
         assertEquals(128, cfg.getPendingDigestMax());
         assertEquals(120, cfg.getPendingDigestTimeout());
         assertEquals(1234, cfg.getPort());
+        assertEquals(Mode.Live, cfg.getMode());
         assertNotNull(cfg.getPeerConfigs());
         assertTrue(cfg.getPeerConfigs().isEmpty());
         assertEquals(new File("./output").getPath(), cfg.getOutputPath().getPath());

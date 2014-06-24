@@ -29,6 +29,7 @@ import java.util.List;
 
 import javax.xml.soap.MimeHeaders;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 
@@ -62,12 +63,19 @@ public class InitMessage extends Message {
 	private final Role role;
 
 	/**
+	 * Stores the proposed {@link Mode}
+	 */
+	private final Mode mode;
+
+	/**
 	 * Create an {@link InitMessage} object.
 	 * 
 	 * @param recordType
 	 *            The type of record to transfer over this connection
 	 * @param role
 	 *            The role indicated in the message
+	 * @param mode
+	 *            The mode indicated in the message
 	 * @param encodingsArray
 	 *            The list of proposed encodings.
 	 * @param digestsArray
@@ -77,12 +85,13 @@ public class InitMessage extends Message {
 	 * @param otherHeaders
 	 *            Any additional (unrecognized) headers
 	 */
-	public InitMessage(final RecordType recordType, final Role role,
+	public InitMessage(final RecordType recordType, final Role role, final Mode mode,
 			String[] encodingsArray, String[] digestsArray, final String agent,
 			final MimeHeaders otherHeaders) {
 		super(otherHeaders);
 		this.recordType = recordType;
 		this.role = role;
+		this.mode = mode;
 
 		this.agentString = agent;
 		List<String> encodingsList;
@@ -154,4 +163,12 @@ public class InitMessage extends Message {
 		return this.role;
 	}
 
+	/**
+	 * Retrieve the {@link Mode} that should be adopted.
+	 * 
+	 * @return The Mode indicated in the message.
+	 */
+	public Mode getMode() {
+		return this.mode;
+	}
 }

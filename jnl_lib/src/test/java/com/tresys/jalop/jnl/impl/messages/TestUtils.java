@@ -54,6 +54,7 @@ import org.junit.Test;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
@@ -224,7 +225,7 @@ public class TestUtils {
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
 		headers.setHeader(Utils.HDRS_ACCEPT_ENCODING, Utils.BINARY);
 		headers.setHeader(Utils.HDRS_ACCEPT_DIGEST, Utils.DGST_SHA256);
-		headers.setHeader(Utils.HDRS_MODE, Utils.SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_SUBSCRIBE_LIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
 
 		createDataStream(headers);
@@ -236,6 +237,7 @@ public class TestUtils {
 		assertEquals(msg.getRole(), Role.Subscriber);
 		assertEquals(msg.getAcceptEncodings(), Arrays.asList(Utils.BINARY));
 		assertEquals(msg.getRecordType(), RecordType.Log);
+		assertEquals(msg.getMode(), Mode.Live);
 	}
 
 	@Test(expected = MissingMimeHeaderException.class)
@@ -254,14 +256,14 @@ public class TestUtils {
 	}
 
 	@Test
-	public void testProcessInitMessageSubscriber() throws Exception {
+	public void testProcessInitMessageSubscriberArchive() throws Exception {
 
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_SUBSCRIBE_ARCHIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
 
 		createDataStream(headers);
@@ -270,17 +272,37 @@ public class TestUtils {
 
 		final InitMessage msg = Utils.processInitMessage(ids);
 		assertEquals(msg.getRole(), Role.Subscriber);
+		assertEquals(msg.getMode(), Mode.Archive);
 	}
 
-	@Test
-	public void testProcessInitMessagePublisher() throws Exception {
+	public void testProcessInitMessageSubscriberLive() throws Exception {
 
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_SUBSCRIBE_LIVE);
+		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
+
+		createDataStream(headers);
+
+		final InputDataStreamAdapter ids = data.getInputStream();
+
+		final InitMessage msg = Utils.processInitMessage(ids);
+		assertEquals(msg.getRole(), Role.Subscriber);
+		assertEquals(msg.getMode(), Mode.Live);
+	}
+
+	@Test
+	public void testProcessInitMessagePublisherArchive() throws Exception {
+
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_ARCHIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
 
 		createDataStream(headers);
@@ -289,6 +311,27 @@ public class TestUtils {
 
 		final InitMessage msg = Utils.processInitMessage(ids);
 		assertEquals(msg.getRole(), Role.Publisher);
+		assertEquals(msg.getMode(), Mode.Archive);
+	}
+
+	@Test
+	public void testProcessInitMessagePublisherLive() throws Exception {
+
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_LIVE);
+		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
+
+		createDataStream(headers);
+
+		final InputDataStreamAdapter ids = data.getInputStream();
+
+		final InitMessage msg = Utils.processInitMessage(ids);
+		assertEquals(Role.Publisher, msg.getRole());
+		assertEquals(Mode.Live, msg.getMode());
 	}
 
 	@Test(expected = UnexpectedMimeValueException.class)
@@ -315,7 +358,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_SUBSCRIBE_LIVE);
 		createDataStream(headers);
 		final InputDataStreamAdapter ids = data.getInputStream();
 		Utils.processInitMessage(ids);
@@ -329,7 +372,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_ARCHIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.JOURNAL);
 
 		createDataStream(headers);
@@ -348,7 +391,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_ARCHIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.AUDIT);
 
 		createDataStream(headers);
@@ -367,7 +410,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_ARCHIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
 
 		createDataStream(headers);
@@ -387,7 +430,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_ARCHIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, "bad");
 
 		createDataStream(headers);
@@ -405,7 +448,7 @@ public class TestUtils {
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT);
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_LIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
 		headers.setHeader(Utils.HDRS_AGENT, "agent");
 
@@ -472,7 +515,7 @@ public class TestUtils {
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_LIVE);
 		headers.setHeader(Utils.HDRS_DATA_CLASS, Utils.LOG);
 		createDataStream(headers);
 		final InputDataStreamAdapter ids = data.getInputStream();
@@ -494,7 +537,7 @@ public class TestUtils {
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
-		headers.setHeader(Utils.HDRS_MODE, Utils.PUBLISH);
+		headers.setHeader(Utils.HDRS_MODE, Utils.MSG_PUBLISH_ARCHIVE);
 		createDataStream(headers);
 		final InputDataStreamAdapter ids = data.getInputStream();
 
@@ -529,7 +572,7 @@ public class TestUtils {
 			IllegalAccessException {
 
 		final OutputDataStream ods = Utils.createInitMessage(Role.Publisher,
-				RecordType.Log, Arrays.asList(Utils.BINARY),
+				Mode.Live, RecordType.Log, Arrays.asList(Utils.BINARY),
 				Arrays.asList(Utils.DGST_SHA256), "agent");
 		assertTrue(ods.isComplete());
 
@@ -545,7 +588,7 @@ public class TestUtils {
 				Utils.DGST_SHA256);
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ACCEPT_ENCODING),
 				Utils.BINARY);
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MODE), Utils.PUBLISH);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MODE), Utils.MSG_PUBLISH_LIVE);
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_DATA_CLASS),
 				Utils.LOG);
 	}
@@ -556,7 +599,7 @@ public class TestUtils {
 			IllegalArgumentException, IllegalAccessException {
 
 		final OutputDataStream ods = Utils.createInitMessage(Role.Subscriber,
-				RecordType.Audit, Arrays.asList(Utils.BINARY),
+				Mode.Live, RecordType.Audit, Arrays.asList(Utils.BINARY),
 				Arrays.asList(Utils.DGST_SHA256), "agent");
 
 		final Field headers = ods.getClass().getDeclaredField("mimeHeaders");
@@ -566,7 +609,7 @@ public class TestUtils {
 				.get(ods);
 
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MODE),
-				Utils.SUBSCRIBE);
+				Utils.MSG_SUBSCRIBE_LIVE);
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_DATA_CLASS),
 				Utils.AUDIT);
 	}
@@ -576,7 +619,7 @@ public class TestUtils {
 			throws SecurityException, NoSuchFieldException,
 			IllegalArgumentException, IllegalAccessException {
 
-		final OutputDataStream ods = Utils.createInitMessage(Role.Subscriber,
+		final OutputDataStream ods = Utils.createInitMessage(Role.Subscriber, Mode.Live,
 				RecordType.Journal, Arrays.asList(Utils.BINARY),
 				Arrays.asList(Utils.DGST_SHA256), "agent");
 
@@ -596,7 +639,7 @@ public class TestUtils {
 			IllegalArgumentException, IllegalAccessException {
 
 		final OutputDataStream ods = Utils
-				.createInitMessage(Role.Publisher, RecordType.Log, null,
+				.createInitMessage(Role.Publisher, Mode.Live, RecordType.Log, null,
 						Arrays.asList(Utils.DGST_SHA256), "agent");
 
 		final Field headers = ods.getClass().getDeclaredField("mimeHeaders");
@@ -612,7 +655,7 @@ public class TestUtils {
 			throws SecurityException, NoSuchFieldException,
 			IllegalArgumentException, IllegalAccessException {
 
-		final OutputDataStream ods = Utils.createInitMessage(Role.Publisher,
+		final OutputDataStream ods = Utils.createInitMessage(Role.Publisher, Mode.Live,
 				RecordType.Log, Arrays.asList(Utils.BINARY), null, "agent");
 
 		final Field headers = ods.getClass().getDeclaredField("mimeHeaders");
@@ -628,7 +671,7 @@ public class TestUtils {
 			throws SecurityException, NoSuchFieldException,
 			IllegalArgumentException, IllegalAccessException {
 
-		final OutputDataStream ods = Utils.createInitMessage(Role.Publisher,
+		final OutputDataStream ods = Utils.createInitMessage(Role.Publisher, Mode.Archive,
 				RecordType.Log, Arrays.asList(Utils.BINARY),
 				Arrays.asList(Utils.DGST_SHA256), null);
 
@@ -645,7 +688,7 @@ public class TestUtils {
 			throws SecurityException, NoSuchFieldException,
 			IllegalArgumentException, IllegalAccessException {
 
-		Utils.createInitMessage(Role.Unset, RecordType.Journal,
+		Utils.createInitMessage(Role.Unset, Mode.Archive, RecordType.Journal,
 				Arrays.asList(Utils.BINARY), Arrays.asList(Utils.DGST_SHA256),
 				"agent");
 	}
@@ -655,7 +698,17 @@ public class TestUtils {
 			throws SecurityException, NoSuchFieldException,
 			IllegalArgumentException, IllegalAccessException {
 
-		Utils.createInitMessage(Role.Publisher, RecordType.Unset,
+		Utils.createInitMessage(Role.Publisher, Mode.Live, RecordType.Unset,
+				Arrays.asList(Utils.BINARY), Arrays.asList(Utils.DGST_SHA256),
+				"agent");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testCreateInitMessageThrowsExceptionWithUnsetMode()
+			throws SecurityException, NoSuchFieldException,
+			IllegalArgumentException, IllegalAccessException {
+
+		Utils.createInitMessage(Role.Publisher, Mode.Unset, RecordType.Log,
 				Arrays.asList(Utils.BINARY), Arrays.asList(Utils.DGST_SHA256),
 				"agent");
 	}

@@ -51,6 +51,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestPair;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.PublisherSession;
 import com.tresys.jalop.jnl.RecordType;
@@ -219,7 +220,7 @@ public class PublisherImpl implements Publisher {
 	}
 
 	@Override
-	public boolean onSubscribe(final PublisherSession sess, final String nonce,
+	public boolean onSubscribe(final PublisherSession sess, final String nonce, Mode mode,
 			final MimeHeaders headers) {
 		try{
 			final long myNonce = Long.parseLong(nonce);

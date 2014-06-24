@@ -28,6 +28,8 @@ import java.util.Map;
 
 import javax.xml.soap.MimeHeaders;
 
+import com.tresys.jalop.jnl.Mode;
+
 /**
  * Users of this library should provide an <tt>Object</tt> that implements this
  * interface if they wish to act as a JALoP Publisher. Their object must be
@@ -71,13 +73,15 @@ public interface Publisher {
 	 *            message.
 	 * @param nonce
 	 *            The nonce indicated in the subscribe message.
+	 * @param mode
+	 *            The {@link Mode} the subscriber wants to use.
 	 * @param headers
 	 *            Any additional headers that were sent as part of the
 	 *            "subscribe" message.
 	 * @return <tt>true</tt> to allow the subscribe to complete, <tt>false</tt>
 	 *         otherwise.
 	 */
-	boolean onSubscribe(final PublisherSession sess, final String nonce,
+	boolean onSubscribe(final PublisherSession sess, final String nonce, Mode mode,
 			final MimeHeaders headers);
 
 	/**

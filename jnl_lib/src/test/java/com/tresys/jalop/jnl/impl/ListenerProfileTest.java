@@ -69,6 +69,7 @@ import org.junit.Test;
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.ConnectionRequest;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -262,7 +263,7 @@ public class ListenerProfileTest {
 		final String[] encodings = new String[]{Utils.BINARY};
 		final String[] digests = new String[]{DigestMethod.SHA256};
 		final MimeHeaders otherHeaders = new MimeHeaders();
-		final InitMessage im = new InitMessage(RecordType.Log, Role.Publisher, encodings,
+		final InitMessage im = new InitMessage(RecordType.Log, Role.Publisher, Mode.Live, encodings,
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 
@@ -311,7 +312,7 @@ public class ListenerProfileTest {
 		final String[] encodings = new String[]{Utils.BINARY};
 		final String[] digests = new String[]{DigestMethod.SHA256};
 		final MimeHeaders otherHeaders = new MimeHeaders();
-		final InitMessage im = new InitMessage(RecordType.Journal, Role.Publisher, encodings,
+		final InitMessage im = new InitMessage(RecordType.Journal, Role.Publisher, Mode.Archive, encodings,
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 
@@ -362,7 +363,7 @@ public class ListenerProfileTest {
 		final String[] encodings = new String[]{Utils.BINARY};
 		final String[] digests = new String[]{DigestMethod.SHA256};
 		final MimeHeaders otherHeaders = new MimeHeaders();
-		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, encodings,
+		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, Mode.Live, encodings,
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 
@@ -405,7 +406,7 @@ public class ListenerProfileTest {
 		final String[] encodings = new String[]{Utils.BINARY};
 		final String[] digests = new String[]{DigestMethod.SHA256};
 		final MimeHeaders otherHeaders = new MimeHeaders();
-		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, encodings,
+		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, Mode.Live, encodings,
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 		connectErrors.add(ConnectError.UnauthorizedMode);
@@ -447,7 +448,7 @@ public class ListenerProfileTest {
 		final String[] otherEncodings = new String[]{Utils.ENC_XML};
 		final String[] digests = new String[]{DigestMethod.SHA256};
 		final MimeHeaders otherHeaders = new MimeHeaders();
-		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, encodings,
+		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, Mode.Live, encodings,
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 		connectErrors.add(ConnectError.UnauthorizedMode);
@@ -489,7 +490,7 @@ public class ListenerProfileTest {
 		final String[] otherDigests = new String[]{DigestMethod.SHA1};
 		final String[] digests = new String[]{DigestMethod.SHA256};
 		final MimeHeaders otherHeaders = new MimeHeaders();
-		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, encodings,
+		final InitMessage im = new InitMessage(RecordType.Log, Role.Subscriber, Mode.Live, encodings,
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 		connectErrors.add(ConnectError.UnauthorizedMode);
