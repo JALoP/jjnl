@@ -251,6 +251,13 @@ public class PublisherImpl implements Publisher {
 	@Override
 	public boolean onSubscribe(final PublisherSession sess, final String nonce, Mode mode,
 			final MimeHeaders headers) {
+		if(LOGGER.isInfoEnabled()) {
+			if (mode == Mode.Archive) {
+				LOGGER.info("onSubscribe mode: archive");
+			} else if (mode == Mode.Live) {
+				LOGGER.info("onSubscribe mode: live");
+			}
+		}
 		try{
 			final long myNonce = Long.parseLong(nonce);
 			if(myNonce < 0) {
