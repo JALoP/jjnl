@@ -75,14 +75,13 @@ public class PublisherRequestHandler implements RequestHandler {
 	public void receiveMSG(final MessageMSG message) {
 
 		if (log.isDebugEnabled()) {
-			log.debug("received message in PublisherRequestHandler!!");
+			log.debug("received message in PublisherRequestHandler");
 		}
 
 		final InputDataStreamAdapter data = message.getDataStream().getInputStream();
 
 		try {
 
-			log.debug("Received: " + data.getHeaderValue(Utils.HDRS_MESSAGE));
 			final Publisher publisher = this.contextImpl.getPublisher();
 
 			final PublisherSessionImpl sess =
@@ -120,8 +119,7 @@ public class PublisherRequestHandler implements RequestHandler {
 					}
 					return;
 				}
-			} //TODO add else here that throws an exception
-
+			}
 		} catch (final BEEPException e) {
 			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error receiving message: " + e.getMessage());

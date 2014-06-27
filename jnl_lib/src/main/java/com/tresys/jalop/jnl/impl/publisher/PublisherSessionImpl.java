@@ -211,7 +211,6 @@ public class PublisherSessionImpl extends SessionImpl implements
 	}
 
 	public void sendRecord(final SourceRecord rec) {
-		int offset = 0; // TODO: This should be set elsewhere for journal resume
 		String messageType = null;
 		String payloadLengthHeader = null;
 		switch(this.getRecordType()) {
@@ -237,6 +236,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 		final MessageDigest md = getMd();
 
 		final String nonce = rec.getNonce();
+		long offset = rec.getOffset();
 
 		try {
 

@@ -283,7 +283,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
     }
 
 	@Override
-	public SourceRecord onJournalResume(final PublisherSession sess, final String nonce,
+	public boolean onJournalResume(final PublisherSession sess, final String nonce,
 			final long offset, final MimeHeaders headers) {
 		setPubMap(sess);
 		return this.pubSessMap.get(sess).get(sess.getRecordType()).onJournalResume(sess, nonce, offset, headers);

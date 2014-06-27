@@ -236,6 +236,11 @@ public class SubscriberANSHandler implements ReplyListener {
 					}
 
 					@Override
+					public long getOffset() {
+						return subsess.getJournalResumeOffset();
+					}
+
+					@Override
 					public RecordType getRecordType() {
 						return this.recordType;
 					}

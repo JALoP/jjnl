@@ -148,7 +148,7 @@ public class PublisherRequestHandlerTest {
 				contextImpl.getPublisherSession(sess, (RecordType)any); result = publisherSess;
 				isa.getHeaderValue(anyString); result = Utils.MSG_JOURNAL_RESUME; times = 3;
 				Utils.processJournalResume(isa); result = jrm;
-				publisher.onJournalResume(publisherSess, anyString, 25, (MimeHeaders) any); result = sourceRecord;
+				publisher.onJournalResume(publisherSess, anyString, 25, (MimeHeaders) any); result = true;
 			}
 		};
 

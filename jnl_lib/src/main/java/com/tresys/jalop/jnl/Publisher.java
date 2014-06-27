@@ -55,11 +55,11 @@ public interface Publisher {
 	 * @param headers
 	 *            Any additional headers that were sent as part of the
 	 *            "journal-resume" message.
-	 * @return a {@link SourceRecord} for the JAL record identified by
-	 *         <tt>nonce</tt>. If JAL record does not exist, this function
-	 *         should return null.
+	 * @return <tt>true</tt> if the JAL record identified by
+	 *         <tt>nonce</tt> can be resumed. If JAL record does not exist, this function
+	 *         should return false.
 	 */
-	SourceRecord onJournalResume(final PublisherSession sess,
+	boolean  onJournalResume(final PublisherSession sess,
 			final String nonce, final long offset, final MimeHeaders headers);
 
 	/**

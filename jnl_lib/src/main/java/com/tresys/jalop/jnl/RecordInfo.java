@@ -37,6 +37,13 @@ public interface RecordInfo {
 	String getNonce();
 
 	/**
+	 * Get the offset of the journal record. 
+	 * 
+	 * @return the offset of the journal record.
+	 */
+	long getOffset();
+
+	/**
 	 * Get the type of JAL record.
 	 * 
 	 * @return The type of record.

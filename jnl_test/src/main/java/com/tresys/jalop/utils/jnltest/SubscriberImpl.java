@@ -600,7 +600,10 @@ public class SubscriberImpl implements Subscriber {
             int cnt = incomingData.read(buffer);
             while (cnt != -1) {
                 w.write(buffer, 0, cnt);
+                w.flush();
                 total += cnt;
+                lri.status.put(statusKey, total);
+                ret = dumpStatus(lri.statusFile, lri.status);
                 cnt = incomingData.read(buffer);
             }
             w.close();

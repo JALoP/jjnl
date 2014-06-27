@@ -152,6 +152,19 @@ public class PublisherImpl implements Publisher {
         }
 	}
 
+	private SourceRecord getJournalRecord(final String nonce, final long offset) {
+		final File nonceDir = new File(this.inputRoot,
+					NONCE_FORMATER.format(Long.valueOf(nonce)));
+		if(!nonceDir.exists()) {
+			if(LOGGER.isInfoEnabled()) {
+				LOGGER.info("Directory structure for nonce: " + nonce +
+						" does not exist. Returning null.");
+			}
+			return null;
+		}
+		return new SourceRecordImpl(nonce, offset);
+	}
+
 	public SourceRecord getNextRecord(final PublisherSession sess, final String lastNonce) {
 
 		final long nextNonce;
@@ -213,10 +226,26 @@ public class PublisherImpl implements Publisher {
 	}
 
 	@Override
-	public SourceRecord onJournalResume(final PublisherSession sess, final String nonce,
-			final long offset, final MimeHeaders headers) {
+	public boolean onJournalResume(final PublisherSession sess, final String nonce,
+					final long offset, final MimeHeaders headers) {
 
-		return new SourceRecordImpl(nonce, offset);
+		// Get the Journal record.
+		SourceRecord rec = getJournalRecord(nonce, offset);
+		if (rec == null) {
+			if(LOGGER.isEnabledFor(Level.ERROR)) {
+				LOGGER.error("Journal record does not exist");
+			}
+			return false;
+		}
+		sess.sendRecord(rec);
+
+		rec = getNextRecord(sess, nonce);
+		while ( rec != null ){
+			String currNonce = rec.getNonce();
+			sess.sendRecord(rec);
+			rec = getNextRecord(sess, currNonce);
+		}
+		return true;
 	}
 
 	@Override
@@ -389,6 +418,11 @@ public class PublisherImpl implements Publisher {
 		@Override
 		public String getNonce() {
 			return this.nonce;
+		}
+
+		@Override
+		public long getOffset() {
+			return this.offset;
 		}
 
 		@Override
