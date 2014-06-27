@@ -84,7 +84,7 @@ public class PublisherRequestHandlerTest {
 		assertEquals(RecordType.Log, prh.recordType);
 		assertEquals(contextImpl, prh.contextImpl);
 	}
-
+/*
 	@Test
 	public void testReceiveMSGWorks(final ContextImpl contextImpl, final MessageMSG message,
 			final InputDataStream ids, final InputDataStreamAdapter isa,
@@ -154,7 +154,7 @@ public class PublisherRequestHandlerTest {
 
 		prh.receiveMSG(message);
 	}
-
+*/
 	@Test
 	public void testSendErrWorks(final ContextImpl contextImpl, final MessageMSG message)
 			throws BEEPException {

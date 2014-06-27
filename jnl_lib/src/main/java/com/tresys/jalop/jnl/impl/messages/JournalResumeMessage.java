@@ -31,7 +31,8 @@ import javax.xml.soap.MimeHeaders;
  * offset. The offset indicates the number of bytes already transferred for a
  * particular journal record.
  */
-public class JournalResumeMessage extends SubscribeMessage {
+public class JournalResumeMessage extends Message {
+	private final String nonce;
 	private final long offset;
 
 	/**
@@ -47,8 +48,18 @@ public class JournalResumeMessage extends SubscribeMessage {
 	 */
 	public JournalResumeMessage(final String nonce, final long offset,
 			final MimeHeaders otherHeaders) {
-		super(nonce, otherHeaders);
+		super(otherHeaders);
+		this.nonce = nonce;
 		this.offset = offset;
+	}
+
+	/**
+	 * Get the nonce indicated in this message.
+	 * 
+	 * @return the nonce
+	 */
+	public String getNonce() {
+		return nonce;
 	}
 
 	/**

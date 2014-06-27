@@ -277,6 +277,11 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigestResponse(sess, statuses);
     }
 
+    @Override
+    public Mode getMode() {
+        return this.config.getMode();
+    }
+
 	@Override
 	public SourceRecord onJournalResume(final PublisherSession sess, final String nonce,
 			final long offset, final MimeHeaders headers) {

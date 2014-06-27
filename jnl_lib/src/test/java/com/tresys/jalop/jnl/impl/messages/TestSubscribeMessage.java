@@ -30,14 +30,27 @@ import javax.xml.soap.MimeHeaders;
 
 import org.junit.Test;
 
+import com.tresys.jalop.jnl.Mode;
+
 public class TestSubscribeMessage {
 
 	@Test
-	public void testSubscribeMessageWorks() {
+	public void testSubscribeLiveMessageWorks() {
 
 		MimeHeaders otherHeaders = new MimeHeaders();
-		SubscribeMessage msg = new SubscribeMessage("1", otherHeaders);
+		SubscribeMessage msg = new SubscribeMessage("1", Mode.Live, otherHeaders);
 		assertEquals(msg.getNonce(), "1");
+		assertEquals(msg.getMode(), Mode.Live);
+		assertEquals(msg.getOtherHeaders(), otherHeaders);
+	}
+
+	@Test
+	public void testSubscribeArchiveMessageWorks() {
+
+		MimeHeaders otherHeaders = new MimeHeaders();
+		SubscribeMessage msg = new SubscribeMessage("1", Mode.Archive, otherHeaders);
+		assertEquals(msg.getNonce(), "1");
+		assertEquals(msg.getMode(), Mode.Archive);
 		assertEquals(msg.getOtherHeaders(), otherHeaders);
 	}
 }

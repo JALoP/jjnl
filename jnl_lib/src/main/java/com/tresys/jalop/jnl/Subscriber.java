@@ -27,6 +27,8 @@ package com.tresys.jalop.jnl;
 import java.io.InputStream;
 import java.util.Map;
 
+import com.tresys.jalop.jnl.Mode;
+
 /**
  * Users of this library should provide an <tt>Object</tt> that implements this
  * interface if they wish to act as a JALoP Subscriber. Their <tt>Object</tt>
@@ -155,4 +157,12 @@ public interface Subscriber {
 	 */
 	boolean notifyDigestResponse(SubscriberSession sess,
 			final Map<String, DigestStatus> statuses);
+
+	/**
+	 * The {@link ContextImpl} executes this method to get the
+	 * {@link Mode} to create the {@link SubscribeRequest}.
+	 * 
+	 * @return {@link Mode}, either Archive or Live
+	 */
+	Mode getMode();
 }

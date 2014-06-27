@@ -50,6 +50,7 @@ import org.beepcore.beep.profile.ProfileConfiguration;
 import org.beepcore.beep.transport.tcp.TCPSession;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -219,7 +220,7 @@ public class ListenerProfile implements Profile, StartChannelListener, RequestHa
 						sessionImpl.setJournalResumeOffset(request.getResumeOffset());
 						subscriberOds = Utils.createJournalResumeMessage(request.getNonce(), request.getResumeOffset());
 					} else {
-						subscriberOds = Utils.createSubscribeMessage(request.getNonce());
+						subscriberOds = Utils.createSubscribeMessage(request.getNonce(), subscriber.getMode());
 					}
 
 				} else if(msg.getRole() == Role.Subscriber) {

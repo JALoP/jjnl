@@ -75,42 +75,33 @@ public class PublisherRequestHandler implements RequestHandler {
 	public void receiveMSG(final MessageMSG message) {
 
 		if (log.isDebugEnabled()) {
-			log.debug("received message in PublisherRequestHandler");
+			log.debug("received message in PublisherRequestHandler!!");
 		}
 
 		final InputDataStreamAdapter data = message.getDataStream().getInputStream();
 
 		try {
 
+			log.debug("Received: " + data.getHeaderValue(Utils.HDRS_MESSAGE));
 			final Publisher publisher = this.contextImpl.getPublisher();
 
 			final PublisherSessionImpl sess =
 				contextImpl.getPublisherSession(message.getChannel().getSession(), this.recordType);
 
 			String nonce = null;
+			Mode mode = Mode.Unset;
 			SourceRecord sourceRecord = null;
 			long offset = 0;
 
 			sess.msg = message;
-			if(Utils.MSG_SUBSCRIBE_ARCHIVE.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
+			if(data.getHeaderValue(Utils.HDRS_MESSAGE).startsWith(Utils.MSG_SUBSCRIBE)) {
 				if(log.isDebugEnabled()) {
-					log.debug("Received a subscribe-archival message.");
+					log.debug("Received a subscribe message.");
 				}
 				final SubscribeMessage msg = Utils.processSubscribe(data);
 				nonce = msg.getNonce();
-				if(!publisher.onSubscribe(sess, nonce, Mode.Archive, msg.getOtherHeaders())) {
-					if(log.isEnabledFor(Level.ERROR)) {
-						log.error("Problem with subscribe - not sending any records.");
-					}
-					return;
-				}
-			} else if(Utils.MSG_SUBSCRIBE_LIVE.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
-				if(log.isDebugEnabled()) {
-					log.debug("Received a subscribe-live message.");
-				}
-				final SubscribeMessage msg = Utils.processSubscribe(data);
-				nonce = msg.getNonce();
-				if(!publisher.onSubscribe(sess, nonce, Mode.Live, msg.getOtherHeaders())) {
+				mode = msg.getMode();
+				if(!publisher.onSubscribe(sess, nonce, mode, msg.getOtherHeaders())) {
 					if(log.isEnabledFor(Level.ERROR)) {
 						log.error("Problem with subscribe - not sending any records.");
 					}
@@ -123,8 +114,13 @@ public class PublisherRequestHandler implements RequestHandler {
 				final JournalResumeMessage msg = Utils.processJournalResume(data);
 				nonce = msg.getNonce();
 				offset = msg.getOffset();
-				sourceRecord = publisher.onJournalResume(sess, nonce, msg.getOffset(), msg.getOtherHeaders());
-			}
+				if(!publisher.onJournalResume(sess, nonce, offset, msg.getOtherHeaders())) {
+					if(log.isEnabledFor(Level.ERROR)) {
+						log.error("Problem with journal resume - not sending any records.");
+					}
+					return;
+				}
+			} //TODO add else here that throws an exception
 
 		} catch (final BEEPException e) {
 			if (log.isEnabledFor(Level.ERROR)) {

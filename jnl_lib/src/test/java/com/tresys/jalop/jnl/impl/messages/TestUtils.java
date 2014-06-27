@@ -871,11 +871,11 @@ public class TestUtils {
 	}
 
 	@Test
-	public void testCreateSubscribeMessageWorks() throws SecurityException,
+	public void testCreateSubscribeLiveMessageWorks() throws SecurityException,
 			NoSuchFieldException, IllegalArgumentException,
 			IllegalAccessException {
 
-		final OutputDataStream ods = Utils.createSubscribeMessage("0");
+		final OutputDataStream ods = Utils.createSubscribeMessage("0", Mode.Live);
 		assertTrue(ods.isComplete());
 
 		final Field headers = ods.getClass().getDeclaredField("mimeHeaders");
@@ -885,18 +885,37 @@ public class TestUtils {
 				.get(ods);
 
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
-				Utils.MSG_SUBSCRIBE);
+				Utils.MSG_SUBSCRIBE_LIVE);
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_NONCE), "0");
 	}
 
 	@Test
-	public void testProcessSubscribeWorks() throws Exception {
+	public void testCreateSubscribeArchiveMessageWorks() throws SecurityException,
+			NoSuchFieldException, IllegalArgumentException,
+			IllegalAccessException {
+
+		final OutputDataStream ods = Utils.createSubscribeMessage("0", Mode.Archive);
+		assertTrue(ods.isComplete());
+
+		final Field headers = ods.getClass().getDeclaredField("mimeHeaders");
+		headers.setAccessible(true);
+
+		final org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers
+				.get(ods);
+
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
+				Utils.MSG_SUBSCRIBE_ARCHIVE);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_NONCE), "0");
+	}
+
+	@Test
+	public void testProcessSubscribeLiveWorks() throws Exception {
 
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
-		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE_LIVE);
 		headers.setHeader(Utils.HDRS_NONCE, "0");
 
 		createDataStream(headers);
@@ -905,6 +924,26 @@ public class TestUtils {
 		final SubscribeMessage msg = Utils.processSubscribe(ids);
 
 		assertEquals(msg.getNonce(), "0");
+		assertEquals(msg.getMode(), Mode.Live);
+	}
+
+	@Test
+	public void testProcessSubscribeArchiveWorks() throws Exception {
+
+		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
+				Utils.CT_JALOP,
+				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE_ARCHIVE);
+		headers.setHeader(Utils.HDRS_NONCE, "0");
+
+		createDataStream(headers);
+
+		final InputDataStreamAdapter ids = data.getInputStream();
+		final SubscribeMessage msg = Utils.processSubscribe(ids);
+
+		assertEquals(msg.getNonce(), "0");
+		assertEquals(msg.getMode(), Mode.Archive);
 	}
 
 	@Test(expected = MissingMimeHeaderException.class)
@@ -915,7 +954,7 @@ public class TestUtils {
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
-		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE_LIVE);
 
 		createDataStream(headers);
 
@@ -931,7 +970,7 @@ public class TestUtils {
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
-		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
+		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE_LIVE);
 		headers.setHeader(Utils.HDRS_NONCE, "");
 
 		createDataStream(headers);

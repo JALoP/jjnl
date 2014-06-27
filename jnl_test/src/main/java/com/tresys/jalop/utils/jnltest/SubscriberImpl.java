@@ -54,6 +54,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
@@ -501,6 +502,11 @@ public class SubscriberImpl implements Subscriber {
                 return SubscriberImpl.this.journalInputStream;
             }
         };
+    }
+
+    @Override
+    public final Mode getMode() {
+        return this.jnlTest.getMode();
     }
 
     @Override

@@ -323,12 +323,18 @@ public class Utils {
 	 *            non-null and contain at least one non-whitespace character.
 	 * @return The {@link OutputDataStream}.
 	 */
-	static public OutputDataStream createSubscribeMessage(String nonce) {
+	static public OutputDataStream createSubscribeMessage(String nonce, Mode mode) {
 		nonce = checkForEmptyString(nonce, HDRS_NONCE);
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
-		headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE);
+                if (mode == Mode.Live) {
+                        headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE_LIVE);
+                } else if (mode == Mode.Archive) {
+                        headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE_ARCHIVE);
+                } else {
+                        throw new IllegalArgumentException("Illegal value for JAL-Mode");
+                }
 		headers.setHeader(HDRS_NONCE, nonce);
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
@@ -526,8 +532,23 @@ public class Utils {
 	static public SubscribeMessage processSubscribe(
 			final InputDataStreamAdapter is) throws BEEPException,
 			MissingMimeHeaderException, UnexpectedMimeValueException {
-		final MimeHeaders[] headers = processMessageCommon(is, MSG_SUBSCRIBE,
-				HDRS_MESSAGE, HDRS_NONCE);
+		
+		final String messageType = is.getHeaderValue(HDRS_MESSAGE);
+		Mode mode = Mode.Unset;
+		if (messageType == null) {
+			throw new MissingMimeHeaderException(HDRS_MESSAGE);
+		}
+
+		if (messageType.equalsIgnoreCase(MSG_SUBSCRIBE_ARCHIVE)) {
+			mode = Mode.Archive; 
+		} else if (messageType.equalsIgnoreCase(MSG_SUBSCRIBE_LIVE)) {
+			mode = Mode.Live; 
+		} else {
+			throw new UnexpectedMimeValueException(HDRS_MESSAGE,
+				MSG_SUBSCRIBE_LIVE + " or " + MSG_SUBSCRIBE_ARCHIVE, messageType);
+                }
+
+		final MimeHeaders[] headers = splitHeaders(is, HDRS_NONCE);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
@@ -541,7 +562,7 @@ public class Utils {
 			throw new UnexpectedMimeValueException(HDRS_NONCE,
 					"non-empty-string", nonce);
 		}
-		return new SubscribeMessage(nonce, unknownHeaders);
+		return new SubscribeMessage(nonce, mode, unknownHeaders);
 	}
 
 	/**

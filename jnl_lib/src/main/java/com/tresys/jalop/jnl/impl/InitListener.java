@@ -39,6 +39,7 @@ import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ReplyListener;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -133,7 +134,7 @@ public class InitListener implements ReplyListener {
 					sessionImpl.setJournalResumeOffset(request.getResumeOffset());
 					ods = Utils.createJournalResumeMessage(request.getNonce(), request.getResumeOffset());
 				} else {
-					ods = Utils.createSubscribeMessage(request.getNonce());
+					ods = Utils.createSubscribeMessage(request.getNonce(), subscriber.getMode());
 				}
 
 				message.getChannel().sendMSG(ods, sessionImpl.getListener());

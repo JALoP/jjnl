@@ -59,6 +59,7 @@ import org.junit.Test;
 
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.IncompleteRecordException;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
@@ -121,6 +122,11 @@ public class SubscriberANSHandlerTest {
 		public SubscribeRequest getSubscribeRequest(final SubscriberSession sess) {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@Override
+		public Mode getMode() {
+			return Mode.Live;
 		}
 	}
 
