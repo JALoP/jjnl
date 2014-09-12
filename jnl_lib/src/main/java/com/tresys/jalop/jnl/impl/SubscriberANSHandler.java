@@ -345,6 +345,7 @@ public class SubscriberANSHandler implements ReplyListener {
 		private class JalopDataStream extends InputStream {
 			private boolean finishedReading;
 			InputDataStreamAdapter dsa;
+			InputDataStream ds;
 			private final long dataSize;
 			private long bytesRead;
 
@@ -352,6 +353,7 @@ public class SubscriberANSHandler implements ReplyListener {
 					BEEPException, UnexpectedMimeValueException {
 				this.finishedReading = false;
 				this.dsa = ds.getInputStream();
+				this.ds = ds;
 				this.bytesRead = 0;
 				if (dataSize < 0) {
 					throw new IllegalArgumentException(
@@ -402,18 +404,32 @@ public class SubscriberANSHandler implements ReplyListener {
 				if (this.finishedReading == true)
 					return -1;
 
-				int ret = 0;
+				int bytesRead = 0;
+
+				// Calculate number of bytes to be read
+				// If last frame, get remaining bytes
+				// otherwise, full buffer
 				int new_len = len;
 				if ((len + this.bytesRead) > this.dataSize) {
 					new_len = (int) (this.dataSize - this.bytesRead);
 				}
 
-				ret = this.dsa.read(b, off, new_len);
-				this.bytesRead+=ret;
-				if (ret != new_len) {
-					throw new IOException(
-							"Could not read data of requested length");
+				// Keep reading until requested amount is finished
+				while (bytesRead < new_len) {
+					int n = this.dsa.read(b, off + bytesRead, new_len - bytesRead);
+					if ( n > 0 ) {
+						bytesRead += n;
+						this.bytesRead += n;
+					} else if (this.ds.isComplete()) {
+						// Shouldn't get to state where expecting more data
+						// but the DataStream has been completed (processed last BEEP Frame)
+						throw new IOException("Could not read data of requested length");
+					} else {
+						// continue waiting for bytes from DataStreamAdapter
+						log.error("DataStreamAdapter return -1 on read from SubscriberANSHandler");
+					}
 				}
+
 				md.update(b, off, new_len);
 				if (this.bytesRead == this.dataSize) {
 					// check for break string
@@ -427,7 +443,7 @@ public class SubscriberANSHandler implements ReplyListener {
 					}
 					this.finishedReading = true;
 				}
-				return ret;
+				return bytesRead;
 			}
 
 			public void flush() throws IOException {
