@@ -236,6 +236,7 @@ public class ListenerProfile implements Profile, StartChannelListener, RequestHa
 							this.address, msg.getRecordType(), publisher, connRequest.getSelectedXmlDigest(),
 							connRequest.getSelectedXmlEncoding(), message.getChannel().getNumber(),
 							message.getChannel().getSession(), this.contextImpl);
+					sessionImpl.setMode(msg.getMode());
 
 					this.contextImpl.addSession(message.getChannel().getSession(),
 							sessionImpl);
