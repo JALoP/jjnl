@@ -27,8 +27,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -150,7 +148,7 @@ public class Config {
 	private final Set<RecordType> recordTypes;
 	private Mode mode;
 	private Role role;
-	private Date sessionTimeout;
+	private long sessionTimeout;
 	private final String source;
     private ProfileConfiguration sslConfig;
 
@@ -279,11 +277,10 @@ public class Config {
 	 * connector should wait (once the connection is established) before
 	 * disconnecting from a remote.
 	 *
-	 * @return A Date that represents the amount of time to wait. This is the
-	 *         amount of time to wait, not a future date.
+	 * @return time to wait in milliseconds
 	 */
 
-	public Date getSessionTimeout() {
+	public long getSessionTimeout() {
 		return this.sessionTimeout;
 	}
 
@@ -353,9 +350,19 @@ public class Config {
 			throws ConfigurationException {
 		final String sessionTimeout = itemAsString(SESSION_TIMEOUT, obj);
 		try {
-			setSessionTimeout(new SimpleDateFormat("hh:mm:ss")
-					.parse(sessionTimeout));
-		} catch (final java.text.ParseException e) {
+			String[] tokens = sessionTimeout.split(":");
+			if (tokens.length != 3) {
+				throw new Exception("invalid session timeout");
+			}
+			int hours = Integer.parseInt(tokens[0]);
+			int minutes = Integer.parseInt(tokens[1]);
+			int seconds = Integer.parseInt(tokens[2]);
+
+			// convert hours->seconds, minutes->seconds, and add
+			long timeout = (hours * 60 * 60) + (minutes * 60) + seconds;
+			// convert from seconds to milliseconds
+			setSessionTimeout(timeout * 1000);
+		} catch (final Exception e) {
 			throw new ConfigurationException(this.source, "Bad format for '"
 					+ SESSION_TIMEOUT + "' (" + sessionTimeout + ") "
 					+ e.toString());
@@ -746,7 +753,7 @@ public class Config {
 	 *
 	 * @param sessionTimeout
 	 */
-	public void setSessionTimeout(final Date sessionTimeout) {
+	public void setSessionTimeout(final long sessionTimeout) {
 		this.sessionTimeout = sessionTimeout;
 	}
 

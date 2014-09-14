@@ -202,7 +202,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
             this.logger.info("Waiting: " + config.getSessionTimeout());
             synchronized(this) {
                 try {
-                    this.wait(config.getSessionTimeout().getTime());
+                    this.wait(config.getSessionTimeout());
                 } catch (final InterruptedException e) {
                     this.logger.info("Someone woke us up");
                 }

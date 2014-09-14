@@ -126,7 +126,7 @@ public class ConfigTest {
 		assertNotNull(cfg.getPeerConfigs());
 		assertTrue(cfg.getPeerConfigs().isEmpty());
 		assertEquals(new File("./input").getPath(), cfg.getInputPath().getPath());
-		assertEquals(new SimpleDateFormat("hh:mm:ss").parse("00:00:00"), cfg.getSessionTimeout());
+		assertEquals(0, cfg.getSessionTimeout());
 	}
 
 	@Test
@@ -143,7 +143,7 @@ public class ConfigTest {
         assertNotNull(cfg.getPeerConfigs());
         assertTrue(cfg.getPeerConfigs().isEmpty());
         assertEquals(new File("./output").getPath(), cfg.getOutputPath().getPath());
-        assertEquals(new SimpleDateFormat("hh:mm:ss").parse("00:00:00"), cfg.getSessionTimeout());
+        assertEquals(0, cfg.getSessionTimeout());
     }
 
 	@Test(expected = ConfigurationException.class)
