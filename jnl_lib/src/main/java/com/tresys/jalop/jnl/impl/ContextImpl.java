@@ -226,8 +226,10 @@ public final class ContextImpl implements Context {
 		final Profile profile = new ListenerProfile(this, addr);
 
 		final ProfileRegistry profileRegistry = new ProfileRegistry();
-		profileRegistry.addStartChannelListener(URI, profile.init(URI, this.sslProperties), null);
-		profileRegistry.addStartChannelListener(TLSProfile.URI, this.sslListener, null);
+		if (this.sslProperties == null)
+			profileRegistry.addStartChannelListener(URI, profile.init(URI, this.sslProperties), null);
+		else
+			profileRegistry.addStartChannelListener(TLSProfile.URI, this.sslListener, null);
 
 		if(log.isDebugEnabled()) {
 			log.debug("Listening on " + addr.toString() + ":" + port);
