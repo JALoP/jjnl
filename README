@@ -45,6 +45,7 @@ Installation Instructions:
 
 4. Package JALoP JNL project
 	- cd into the jnl_parent directory and run "mvn package"
+    On Solaris run "mvn package -DskipTests=true" when building under Java 7 due to JMockit / Java 7 configuration issues.
 
 Other Options (these steps do not need to be executed in order to use the JALoP
 libraries)
