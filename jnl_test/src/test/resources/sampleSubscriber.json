@@ -7,6 +7,7 @@
   	"pendingDigestMax": 1,
   	"pendingDigestTimeout": 120,
   	"output": "./output",
+  	"mode": "archive",
   }
   "ssl": {
     "Key Algorithm": "SunX509",
