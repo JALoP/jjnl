@@ -27,17 +27,17 @@ Installation Instructions:
 	(Follow instructions at http://maven.apache.org/download.html)
 
 2. Download the beepcore package from the JALoP Area on github, it is available
-  here: https://github.com/downloads/jalop-tresys/beepcore-java/beepcore-0.9.13.tgz
+  here: https://github.com/downloads/jalop-tresys/beepcore-java/beepcore-0.9.14.tgz
 
-3. Extract the beepcore tarball somewhere, and cd into the beepcore-0.9.13/lib directory
+3. Extract the beepcore tarball somewhere, and cd into the beepcore-0.9.14/lib directory
    and run the following commands:
    $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
        -Dfile=beepcore.jar -DgroupId=org.beepcore-java \
-       -DartifactId=beepcore -Dversion=0.9.13 -Dpackaging=jar
+       -DartifactId=beepcore -Dversion=0.9.14 -Dpackaging=jar
 
    $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
        -Dfile=beeptls-jsse.jar -DgroupId=org.beepcore-java -DartifactId=beeptls-jsse \
-       -Dversion=0.9.13 -Dpackaging=jar
+       -Dversion=0.9.14 -Dpackaging=jar
 
    $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
        -Dfile=concurrent.jar -DgroupId=EDU.oswego.cs.dl.util -DartifactId=concurrent \

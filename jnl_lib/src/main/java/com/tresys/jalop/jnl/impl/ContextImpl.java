@@ -234,7 +234,9 @@ public final class ContextImpl implements Context {
 		}
 
 		while(true) {
-			TCPSessionCreator.listen(addr, port, profileRegistry);
+			TCPSession session = TCPSessionCreator.listen(addr, port, profileRegistry);
+			if (this.sslProperties != null)
+				session.requiresTLS(true);
 		}
 
 	}
