@@ -23,44 +23,51 @@ running maven commands in the jnl_parent directory. The various modules are:
 
 Installation Instructions:
 
-1. Download and install maven
+1. Download and install maven:
 	(Follow instructions at http://maven.apache.org/download.html)
 
-2. Download the beepcore package from the JALoP Area on github, it is available
-  here: https://github.com/downloads/jalop-tresys/beepcore-java/beepcore-0.9.14.tgz
+2. Install the target beepcore library
+    # Go to the root jjnl directory and run the following commands to determine the required beepcore version:
+        ver=$(gawk 'BEGIN{RS="<[^>]+>"}{if (RT=="</beepcore.version>"){print $1}}' jnl_parent/pom.xml)
+        echo $ver
 
-3. Extract the beepcore tarball somewhere, and cd into the beepcore-0.9.14/lib directory
-   and run the following commands:
-   $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
-       -Dfile=beepcore.jar -DgroupId=org.beepcore-java \
-       -DartifactId=beepcore -Dversion=0.9.14 -Dpackaging=jar
+    # Install beepcore from the jjnl 3rd-party distribution directory
+        cd 3rd-party/beepcore-java/${ver}
+        tar xvfz beepcore-${ver}.tgz
+        cd beepcore-${ver}/lib
+        chmod 744 ./install_jars.sh
+        ./install_jars.sh
+     
+3. Package JALoP JNL project
+	# Go to the root directory for the jjnl repository. 
+	# Go into the jnl_parent subdirectory:
+        cd ../../../../../jnl_parent
 
-   $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
-       -Dfile=beeptls-jsse.jar -DgroupId=org.beepcore-java -DartifactId=beeptls-jsse \
-       -Dversion=0.9.14 -Dpackaging=jar
+	# Build the jjnl library using maven:
+        mvn clean
+		mvn package
 
-   $ mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
-       -Dfile=concurrent.jar -DgroupId=EDU.oswego.cs.dl.util -DartifactId=concurrent \
-       -Dversion=1.3.4 -Dpackaging=jar
+	# Note:
+	# On Solaris use the following option when building under Java 7 due to JMockit / Java 7 configuration issues.
+		mvn package -DskipTests=true
 
-4. Package JALoP JNL project
-	- cd into the jnl_parent directory and run "mvn package"
-    On Solaris run "mvn package -DskipTests=true" when building under Java 7 due to JMockit / Java 7 configuration issues.
+Other Options:
+--------------
+These steps do not need to be executed in order to use the JALoP
+libraries.
 
-Other Options (these steps do not need to be executed in order to use the JALoP
-libraries)
+To run the unit tests and generate code coverage reports, run:
+	mvn test
 
-To run the unit tests and generate code coverage reports, run
-$ mvn test
 The generated code coverage reports will appear in the directory coverage-report
 
-To clean the target directory, run
-$ mvn clean
+To clean the target directory, run:
+	mvn clean
 
-To generate Javadoc documentation, run
-$ mvn site
-The generated documents will appear in the directory target/site
+To generate Javadoc documentation, run:
+	mvn site
 
+The generated documents will appear in the directory target/site.
 
 This project is built and tested in the following environments:
   RedHat Enterprise Linux (RHEL) 5 on x86_64
