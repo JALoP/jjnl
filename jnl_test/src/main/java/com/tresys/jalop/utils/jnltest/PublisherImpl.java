@@ -304,7 +304,11 @@ public class PublisherImpl implements Publisher {
 	public void notifyDigest(final PublisherSession sess, final String nonce,
 			final byte[] digest) {
 
-		final String hexString = (new BigInteger(1, digest)).toString(16);
+		String hexString = "";
+		for (byte b : digest) {
+		    hexString = hexString + String.format("%02x",b);
+		}
+
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Calculated digest for " + nonce
                         + ": " + hexString);

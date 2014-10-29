@@ -683,7 +683,11 @@ public class SubscriberImpl implements Subscriber {
     public final boolean notifyDigest(final SubscriberSession sess,
                                       final RecordInfo recordInfo,
                                       final byte[] digest) {
-		final String hexString = (new BigInteger(1, digest)).toString(16);
+		String hexString = "";
+		for (byte b : digest) {
+		    hexString = hexString + String.format("%02x",b);
+		}
+
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Calculated digest for " + recordInfo.getNonce()
                         + ": " + hexString);

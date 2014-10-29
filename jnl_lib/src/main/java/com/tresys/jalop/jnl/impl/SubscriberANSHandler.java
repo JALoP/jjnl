@@ -304,7 +304,11 @@ public class SubscriberANSHandler implements ReplyListener {
 				if (!sub.notifyDigest(subsess, recInfo, digest)) {
 					throw new AbortChannelException("Error in notifyDigest");
 				}
-				final String hexDgst = (new BigInteger(1, digest)).toString(16);
+
+				String hexDgst = "";
+				for (byte b : digest) {
+				    hexDgst = hexDgst + String.format("%02x",b);
+				}
 
 				subsess.addDigest(recInfo.getNonce(), hexDgst);
 			} catch (final BEEPException e) {
