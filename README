@@ -33,7 +33,8 @@ Installation Instructions:
 
     # Install beepcore from the jjnl 3rd-party distribution directory
         cd 3rd-party/beepcore-java/${ver}
-        tar xvfz beepcore-${ver}.tgz
+	gunzip beepcore-${ver}.tgz
+        tar xvf beepcore-${ver}.tar
         cd beepcore-${ver}/lib
         chmod 744 ./install_jars.sh
         ./install_jars.sh
@@ -44,7 +45,7 @@ Installation Instructions:
         cd ../../../../../jnl_parent
 
 	# Build the jjnl library using maven:
-        mvn clean
+		mvn clean
 		mvn package
 
 	# Note:
