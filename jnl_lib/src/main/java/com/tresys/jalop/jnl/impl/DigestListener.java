@@ -76,30 +76,28 @@ public class DigestListener implements ReplyListener {
 		final InputDataStreamAdapter data = message.getDataStream().getInputStream();
 
 		try {
-
 			final DigestResponse msg = Utils.processDigestResponse(data);
 			final Map<String, DigestStatus> statusMap = msg.getMap();
 
 			final Set<String> nonces = statusMap.keySet();
-			String maxNonce = "";
 
 			for(final String nonce : nonces) {
 				if(this.digestsSent.containsKey(nonce)) {
-					if(nonce.compareTo(maxNonce) > 0) {
-						maxNonce = nonce;
-					}
-					this.digestsSent.remove(nonce);
+                                    // For each nonce in the statusMap, send a sync message and remove the nonce from the sent queue
+                                    final OutputDataStream ods = Utils.createSyncMessage(nonce);
+                                    message.getChannel().sendMSG(ods, this);
+                                    this.digestsSent.remove(nonce);
 				}
 			}
-			//Add back in any digests that were sent but didn't receive a response
+			// Add back in any digests that were sent but didn't receive a response
 			if(!this.digestsSent.isEmpty()) {
 				this.subscriberSession.addAllDigests(this.digestsSent);
 			}
 
-			this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, statusMap);
+                        // Issue notifyDigestCallback for all messages found that we received a response to, and remove messages from map.
+                        this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, statusMap);
 
-			final OutputDataStream ods = Utils.createSyncMessage(maxNonce);
-			message.getChannel().sendMSG(ods, this);
+
 
 		} catch (final BEEPException e) {
 			if(log.isEnabledFor(Level.ERROR)) {

@@ -177,10 +177,10 @@ public class DigestListenerTest {
 
 	    new VerificationsInOrder() {
 	        {
-				subSess.addAllDigests(digestsSent);
-				subscriber.notifyDigestResponse(subSess, dr.getMap());
 				Utils.createSyncMessage("1");
 				channel.sendMSG((OutputDataStream) any, null);
+				subSess.addAllDigests(digestsSent);
+				subscriber.notifyDigestResponse(subSess, dr.getMap());
 	        }
 	    };
 
