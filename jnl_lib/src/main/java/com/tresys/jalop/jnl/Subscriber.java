@@ -148,15 +148,17 @@ public interface Subscriber {
 	 * 
 	 * @param sess
 	 *            The {@link SubscriberSession} that received the message.
-	 * @param statuses
-	 *            A map of nonces to {@link DigestStatus}, indicating if the
-	 *            remote JALoP Network Store agrees with the digest values
-	 *            calculated locally.
+	 * @param nonce
+	 *            Network nonce associated with digest status.
+	 * @param status
+	 *            {@link DigestStatus}, indicating if the
+	 *            remote JALoP Network Store agrees with the digest value
+	 *            calculated locally for the specified nonce. 
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyDigestResponse(SubscriberSession sess,
-			final Map<String, DigestStatus> statuses);
+			final String nonce, final DigestStatus status);
 
 	/**
 	 * The {@link ContextImpl} executes this method to get the

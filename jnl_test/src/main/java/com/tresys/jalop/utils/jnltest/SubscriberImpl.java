@@ -710,40 +710,48 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
     @Override
     public final boolean notifyDigestResponse(final SubscriberSession sess,
-                                    final Map<String, DigestStatus> statuses) {
+                                    final String nonce, final DigestStatus status) {
         boolean ret = true;
         LocalRecordInfo lri;
-        for (final Entry<String, DigestStatus> entry : statuses.entrySet()) {
-            synchronized (this.nonceMap) {
-                lri = this.nonceMap.remove(entry.getKey());
+        
+        LOGGER.trace("notifyDigestResponse for nonce: " + nonce + ", status: " + status);
+        // try to locate the provided nonce in the map of received digests
+        synchronized (this.nonceMap) {
+            lri = this.nonceMap.remove(nonce);
+        }
+        if (lri == null) {
+            LOGGER.error("Can't find local status for: " + nonce);
+            ret = true;
+        } else {
+            switch (status) {
+            case Confirmed:
+                lri.status.put(DGST_CONF, CONFIRMED);
+                break;
+            case Unknown:
+                lri.status.put(DGST_CONF, UNKNOWN);
+                break;
+            case Invalid:
+                lri.status.put(DGST_CONF, INVALID);
+                break;
+            default:
+                LOGGER.error("Undefined confirmation status for nonce: " + nonce);
+                return false;
             }
-            if (lri == null) {
-                LOGGER.error("Can't find local status for: " + entry.getKey());
+            
+            // Store off the status for the record - still in temp
+            if (!dumpStatus(lri.statusFile, lri.status)) {
                 ret = false;
-            } else {
-                switch (entry.getValue()) {
-                case Confirmed:
-                    lri.status.put(DGST_CONF, CONFIRMED);
-                    break;
-                case Unknown:
-                    lri.status.put(DGST_CONF, UNKNOWN);
-                    break;
-                case Invalid:
-                    lri.status.put(DGST_CONF, INVALID);
-                    break;
-                default:
-                    return false;
-                }
-                if (!dumpStatus(lri.statusFile, lri.status)) {
+            }
+            
+            // If the digest is confirmed, go ahead and move the record from temp directory
+            // Otherwise record stays in temp
+            if(DigestStatus.Confirmed.equals(status)) {
+                if(!moveConfirmedRecord(lri)) {
                     ret = false;
-                }
-                if(DigestStatus.Confirmed.equals(entry.getValue())) {
-					if(!moveConfirmedRecord(lri)) {
-						ret = false;
-					}
-                }
+		}
             }
         }
+
         return ret;
     }
 

@@ -273,8 +273,8 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
     }
 
     @Override
-    public boolean notifyDigestResponse(final SubscriberSession sess, final Map<String, DigestStatus> statuses) {
-        return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigestResponse(sess, statuses);
+    public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status) {
+        return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigestResponse(sess, nonce, status);
     }
 
     @Override

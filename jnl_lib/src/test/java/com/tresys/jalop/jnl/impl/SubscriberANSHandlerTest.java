@@ -113,7 +113,7 @@ public class SubscriberANSHandlerTest {
 
 		@Override
 		public boolean notifyDigestResponse(final SubscriberSession sess,
-				final Map<String, DigestStatus> statuses) {
+				final String nonce, final DigestStatus status) {
 			return false;
 
 		}

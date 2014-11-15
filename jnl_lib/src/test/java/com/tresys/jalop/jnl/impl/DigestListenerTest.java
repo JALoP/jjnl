@@ -13,7 +13,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *	http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,55 +62,55 @@ import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
 public class DigestListenerTest {
-    // Needed to mock static functions in the Utils class.
-    @Mocked
-    private Utils utils;
-    @Before
-    public void setUp() {
-        // Disable logging so the build doesn't get spammed.
-        Logger.getRootLogger().setLevel(Level.OFF);
-    }
+	// Needed to mock static functions in the Utils class.
+	@Mocked
+	private Utils utils;
+	@Before
+	public void setUp() {
+		// Disable logging so the build doesn't get spammed.
+	Logger.getRootLogger().setLevel(Level.OFF);
+	}
 
-    private static Field digestMapField;
+	private static Field digestMapField;
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
+	@BeforeClass
+	public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
 		digestMapField = SubscriberSessionImpl.class.getDeclaredField("digestMap");
 		digestMapField.setAccessible(true);
-    }
+	}
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, String> getDigestMap(final SubscriberSessionImpl s)
+	@SuppressWarnings("unchecked")
+	private static Map<String, String> getDigestMap(final SubscriberSessionImpl s)
 			throws IllegalArgumentException, IllegalAccessException {
-        return (Map<String, String>) digestMapField.get(s);
-    }
+		return (Map<String, String>) digestMapField.get(s);
+	}
 
-    @Test (expected = AbortChannelException.class)
-    public void testDigestListenerReceiveErr(final SubscriberSessionImpl subSess, final Message message)
+	@Test (expected = AbortChannelException.class)
+	public void testDigestListenerReceiveErr(final SubscriberSessionImpl subSess, final Message message)
 			throws AbortChannelException {
 		final Map<String, String> map = new HashMap<String, String>();
 		final DigestListener digestListener = new DigestListener(subSess, map);
-	    digestListener.receiveERR(message);
-    }
+		digestListener.receiveERR(message);
+	}
 
-    @Test (expected = AbortChannelException.class)
-    public void testDigestListenerThrowsExceptionOnReceiveAns(final SubscriberSessionImpl subSess, final Message message)
+	@Test (expected = AbortChannelException.class)
+	public void testDigestListenerThrowsExceptionOnReceiveAns(final SubscriberSessionImpl subSess, final Message message)
 			throws AbortChannelException {
 		final Map<String, String> map = new HashMap<String, String>();
 		final DigestListener digestListener = new DigestListener(subSess, map);
-	    digestListener.receiveANS(message);
-    }
+		digestListener.receiveANS(message);
+	}
 
-    @Test
-    public void testDigestListenerDoesNothingOnReceiveNul(final SubscriberSessionImpl subSess, final Message message)
+	@Test
+	public void testDigestListenerDoesNothingOnReceiveNul(final SubscriberSessionImpl subSess, final Message message)
 			throws AbortChannelException {
 		final Map<String, String> map = new HashMap<String, String>();
 		final DigestListener digestListener = new DigestListener(subSess, map);
-	    digestListener.receiveNUL(message);
-    }
+		digestListener.receiveNUL(message);
+	}
 
-    @Test
-    public void testDigestListenerReceiveRpy(final SubscriberSessionImpl subSess, final Message message, final Channel channel,
+	@Test
+	public void testDigestListenerReceiveRpy(final SubscriberSessionImpl subSess, final Message message, final Channel channel,
 			final InputDataStream ids, final InputDataStreamAdapter isa, final Subscriber subscriber)
 			throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
 
@@ -121,31 +121,32 @@ public class DigestListenerTest {
 		final Map<String, String> digestsSent = new HashMap<String, String>();
 		digestsSent.put("1", "digest");
 
-	    new NonStrictExpectations() {
-	        {
+		new NonStrictExpectations() {
+			{
 				message.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;
 				Utils.processDigestResponse(isa); result = dr;
 				dr.getMap(); result = statusMap;
 				subSess.getSubscriber(); result = subscriber;
 				message.getChannel(); result = channel;
-	        }
-	    };
+				subscriber.notifyDigestResponse(subSess, "1", DigestStatus.Confirmed); result = true;
+			}
+		};
 
-	    final DigestListener digestListener = new DigestListener(subSess, digestsSent);
-	    digestListener.receiveRPY(message);
+		final DigestListener digestListener = new DigestListener(subSess, digestsSent);
+		digestListener.receiveRPY(message);
 
-	    new Verifications() {
-	        {
-				subscriber.notifyDigestResponse(subSess, dr.getMap());
+		new Verifications() {
+			{
+				subscriber.notifyDigestResponse(subSess, "1", DigestStatus.Confirmed);
 				Utils.createSyncMessage("1");
 				channel.sendMSG((OutputDataStream) any, null);
-	        }
-	    };
-    }
+			}
+		};
+	}
 
-    @Test
-    public void testDigestListenerAddsDigestsBackInReceiveRpy(final Message message, final InputDataStream ids, final Channel channel,
+	@Test
+	public void testDigestListenerAddsDigestsBackInReceiveRpy(final Message message, final InputDataStream ids, final Channel channel,
 			final InputDataStreamAdapter isa, final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
 			throws IllegalAccessException, MissingMimeHeaderException, UnexpectedMimeValueException,
 			BEEPException {
@@ -159,31 +160,32 @@ public class DigestListenerTest {
 		digestsSent.put("2", "anotherDigest");
 
 		final SubscriberSessionImpl subSess =
-            new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
-                                      "barfoo", 1, 2, 0, sess);
+			new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
+				"barfoo", 1, 2, 0, sess);
 
-	    new NonStrictExpectations() {
-	        {
+		new NonStrictExpectations() {
+			{
 				message.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;
 				Utils.processDigestResponse(isa); result = dr;
 				dr.getMap(); result = statusMap;
 				message.getChannel(); result = channel;
-	        }
-	    };
+				subscriber.notifyDigestResponse(subSess, "1", DigestStatus.Confirmed); result = true;
+			}
+		};
 
-	    final DigestListener digestListener = new DigestListener(subSess, digestsSent);
-	    digestListener.receiveRPY(message);
+		final DigestListener digestListener = new DigestListener(subSess, digestsSent);
+		digestListener.receiveRPY(message);
 
-	    new VerificationsInOrder() {
-	        {
+		new VerificationsInOrder() {
+			{
+				subscriber.notifyDigestResponse(subSess, "1", DigestStatus.Confirmed);
 				Utils.createSyncMessage("1");
 				channel.sendMSG((OutputDataStream) any, null);
 				subSess.addAllDigests(digestsSent);
-				subscriber.notifyDigestResponse(subSess, dr.getMap());
-	        }
-	    };
+			}
+		};
 
-	    assertEquals(digestsSent, getDigestMap(subSess));
-    }
+		assertEquals(digestsSent, getDigestMap(subSess));
+	}
 }

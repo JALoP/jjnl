@@ -82,23 +82,37 @@ public class DigestListener implements ReplyListener {
 			final Set<String> nonces = statusMap.keySet();
 
 			for(final String nonce : nonces) {
+				log.trace("Processing: " + nonce);
 				if(this.digestsSent.containsKey(nonce)) {
-                                    // For each nonce in the statusMap, send a sync message and remove the nonce from the sent queue
-                                    final OutputDataStream ods = Utils.createSyncMessage(nonce);
-                                    message.getChannel().sendMSG(ods, this);
-                                    this.digestsSent.remove(nonce);
+					// Execute the notify digest callback which will take care of moving the record from temp to perm
+					if (this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, nonce, statusMap.get(nonce))) {
+						// For a confirmed digest, send a sync message and remove the nonce from the sent queue                                                                   
+						if(statusMap.get(nonce) == DigestStatus.Confirmed) {
+							final OutputDataStream ods = Utils.createSyncMessage(nonce);
+							message.getChannel().sendMSG(ods, this);
+						}
+						else {
+							log.warn("Non-confirmed digest received: " + nonce + ", " + statusMap.get(nonce));
+						}
+						// As long as we didn't get a fatal response, remove the digest from the sent list.
+						log.trace("Removing from digestsSent: " + nonce);
+						this.digestsSent.remove(nonce);
+						
+					}
+					else {
+						log.error("notifyDigestResponse failure: " + nonce + ", " + statusMap.get(nonce));
+						throw new AbortChannelException("Unrecoverable error in notifyDigestResponse");
+					}
+ 				}
+				else {
+					log.debug("Digest not found in digestsSent list: " + nonce);
 				}
 			}
 			// Add back in any digests that were sent but didn't receive a response
 			if(!this.digestsSent.isEmpty()) {
+				log.debug("Reading digests with no response.");
 				this.subscriberSession.addAllDigests(this.digestsSent);
 			}
-
-                        // Issue notifyDigestCallback for all messages found that we received a response to, and remove messages from map.
-                        this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, statusMap);
-
-
-
 		} catch (final BEEPException e) {
 			if(log.isEnabledFor(Level.ERROR)) {
 				log.error("Error receiving reply: " + e.getMessage());
