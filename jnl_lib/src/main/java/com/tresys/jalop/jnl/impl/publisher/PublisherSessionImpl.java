@@ -303,9 +303,20 @@ public class PublisherSessionImpl extends SessionImpl implements
 					if(shouldDigest) {
 						md.update(buffer, 0, bytesRead);
 					}
+					// Only add a new segment if we read some bytes.
+					if (bytesRead > 0) {
+						BufferSegment b = new BufferSegment(buffer, 0, bytesRead);
+						if (b == null) {
+							log.error("Failed to create BufferSegment.");
+						}
+						// Add BufferSegment to linked list for sending
+						ods.add(b);
+						buffer = new byte[BUFFER_SIZE]; 
+					}
+					else {
+						log.debug("Zero bytes read. Skipping segement add."); 
+					}
 
-					ods.add(new BufferSegment(buffer, 0, bytesRead));
-					buffer = new byte[BUFFER_SIZE];
 				}
 			}
 
