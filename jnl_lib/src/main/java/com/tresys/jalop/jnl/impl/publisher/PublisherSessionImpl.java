@@ -316,8 +316,8 @@ public class PublisherSessionImpl extends SessionImpl implements
 					else {
 						log.debug("Zero bytes read. Skipping segement add."); 
 					}
-
 				}
+				inStream.close();
 			}
 
 			ods.setComplete();

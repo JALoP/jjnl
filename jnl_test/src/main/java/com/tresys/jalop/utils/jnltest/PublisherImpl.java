@@ -348,6 +348,7 @@ public class PublisherImpl implements Publisher {
     	JSONObject status;
     	File statusFile;
     	BufferedOutputStream w;
+    	FileReader r;
 
     	final File nonceDir =
             new File(this.inputRoot,
@@ -362,7 +363,16 @@ public class PublisherImpl implements Publisher {
     			statusFile.createNewFile();
     			status = new JSONObject();
     		} else {
-    			status = (JSONObject) p.parse(new FileReader(statusFile));
+    			r = new FileReader(statusFile);
+				try {
+					status = (JSONObject)p.parse(r);
+				} catch (final ParseException e ) {
+					if (LOGGER.isInfoEnabled()) {
+						LOGGER.info("'" + STATUS_FILENAME + "' file");
+					}
+					status = new JSONObject();
+				}
+    			r.close();
     		}
 
     		status.putAll(statusMap);
@@ -373,11 +383,6 @@ public class PublisherImpl implements Publisher {
     		LOGGER.error("Failed to open status file for writing:"
                     + e.getMessage());
     		return false;
-        } catch (final ParseException e ) {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("'" + STATUS_FILENAME + "' file");
-            }
-            status = new JSONObject();
         } catch (final UnsupportedEncodingException e) {
         	LOGGER.error("cannot find UTF-8 encoder?");
         	return false;
