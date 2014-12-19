@@ -195,6 +195,10 @@ public abstract class SessionImpl implements Session {
 					ContextImpl.URI, false, Utils.DGST_CHAN_FORMAT_STR
 							+ this.channelNum);
 			this.setDigestChannel(digestChannel);
+
+			if(log.isDebugEnabled()) {
+				log.debug("Record type " + this.getRecordType() + ", Data channel " + this.getChannelNum() + ", digest channel " + digestChannel);
+			}
 		}
 		return digestChannel;
 	}

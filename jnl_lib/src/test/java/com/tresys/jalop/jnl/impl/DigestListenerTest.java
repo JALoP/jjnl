@@ -30,6 +30,7 @@ import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.IOException;
 
 import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.soap.MimeHeaders;
@@ -112,23 +113,33 @@ public class DigestListenerTest {
 	@Test
 	public void testDigestListenerReceiveRpy(final SubscriberSessionImpl subSess, final Message message, final Channel channel,
 			final InputDataStream ids, final InputDataStreamAdapter isa, final Subscriber subscriber)
-			throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+			throws IOException, MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
 
 		final Map<String, DigestStatus> statusMap = new HashMap<String, DigestStatus>();
 		statusMap.put("1", DigestStatus.Confirmed);
 		final DigestResponse dr = new DigestResponse(statusMap, new MimeHeaders());
-
 		final Map<String, String> digestsSent = new HashMap<String, String>();
 		digestsSent.put("1", "digest");
+
+		final String m = new String("confirmed=1");
+		final int digestChannel = 7;
+		final int msgno = 3045;
 
 		new NonStrictExpectations() {
 			{
 				message.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;
-				Utils.processDigestResponse(isa); result = dr;
+				isa.isComplete(); result = true;
+				isa.readMessage(); result = m;
+
+				Utils.processDigestResponse(isa, m); result = dr;
 				dr.getMap(); result = statusMap;
 				subSess.getSubscriber(); result = subscriber;
+
 				message.getChannel(); result = channel;
+				channel.getNumber(); result = digestChannel;
+				message.getMsgno(); result = msgno;
+
 				subscriber.notifyDigestResponse(subSess, "1", DigestStatus.Confirmed); result = true;
 			}
 		};
@@ -148,7 +159,7 @@ public class DigestListenerTest {
 	@Test
 	public void testDigestListenerAddsDigestsBackInReceiveRpy(final Message message, final InputDataStream ids, final Channel channel,
 			final InputDataStreamAdapter isa, final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
-			throws IllegalAccessException, MissingMimeHeaderException, UnexpectedMimeValueException,
+			throws IOException, IllegalAccessException, MissingMimeHeaderException, UnexpectedMimeValueException,
 			BEEPException {
 
 		final Map<String, DigestStatus> statusMap = new HashMap<String, DigestStatus>();
@@ -159,6 +170,10 @@ public class DigestListenerTest {
 		digestsSent.put("1", "digest");
 		digestsSent.put("2", "anotherDigest");
 
+		final String m = new String("confirmed=1");
+		final int digestChannel = 7;
+		final int msgno = 3045;
+
 		final SubscriberSessionImpl subSess =
 			new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 				"barfoo", 1, 2, 0, sess);
@@ -167,9 +182,16 @@ public class DigestListenerTest {
 			{
 				message.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;
-				Utils.processDigestResponse(isa); result = dr;
+				isa.isComplete(); result = true;
+				isa.readMessage(); result = m;
+
+				Utils.processDigestResponse(isa, m); result = dr;
 				dr.getMap(); result = statusMap;
+
 				message.getChannel(); result = channel;
+				channel.getNumber(); result = digestChannel;
+				message.getMsgno(); result = msgno;
+
 				subscriber.notifyDigestResponse(subSess, "1", DigestStatus.Confirmed); result = true;
 			}
 		};

@@ -714,7 +714,7 @@ public class SubscriberImpl implements Subscriber {
         boolean ret = true;
         LocalRecordInfo lri;
         
-        LOGGER.trace("notifyDigestResponse for nonce: " + nonce + ", status: " + status);
+        LOGGER.debug("notifyDigestResponse for nonce: " + nonce + ", status: " + status);
         // try to locate the provided nonce in the map of received digests
         synchronized (this.nonceMap) {
             lri = this.nonceMap.remove(nonce);

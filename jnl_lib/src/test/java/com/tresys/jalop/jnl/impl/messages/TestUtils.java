@@ -1343,17 +1343,17 @@ public class TestUtils {
 	@Test
 	public void testProcessDigestResponseWorks() throws Exception {
 
-		final String digests = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
+		final String messagePayload = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(Utils.CT_JALOP);
 		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST_RESP);
 		mh.setHeader(Utils.HDRS_COUNT, "3");
 
-		createDataStream(mh, digests);
+		createDataStream(mh, messagePayload);
 
 		final InputDataStreamAdapter ids = data.getInputStream();
 
-		final DigestResponse dr = Utils.processDigestResponse(ids);
+		final DigestResponse dr = Utils.processDigestResponse(ids, messagePayload);
 		assertNotNull(dr);
 
 		final HashMap<String, DigestStatus> digestsMap = (HashMap<String, DigestStatus>) dr.getMap();
@@ -1370,47 +1370,47 @@ public class TestUtils {
 	@Test(expected = MissingMimeHeaderException.class)
 	public void testProcessDigestResponseThrowsMissingMimeHeaderException() throws Exception {
 
-		final String digests = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
+		final String messagePayload = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(Utils.CT_JALOP);
 		mh.setHeader(Utils.HDRS_COUNT, "3");
 
-		createDataStream(mh, digests);
+		createDataStream(mh, messagePayload);
 
 		final InputDataStreamAdapter ids = data.getInputStream();
 
-		Utils.processDigestResponse(ids);
+		Utils.processDigestResponse(ids, messagePayload);
 	}
 
 	@Test(expected = UnexpectedMimeValueException.class)
 	public void testProcessDigestResponseThrowsUnexpectedMimeValueException() throws Exception {
 
-		final String digests = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
+		final String messagePayload = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(Utils.CT_JALOP);
 		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST);
 		mh.setHeader(Utils.HDRS_COUNT, "3");
 
-		createDataStream(mh, digests);
+		createDataStream(mh, messagePayload);
 
 		final InputDataStreamAdapter ids = data.getInputStream();
 
-		Utils.processDigestResponse(ids);
+		Utils.processDigestResponse(ids, messagePayload);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testProcessDigestResponseThrowsIllegalArgumenException() throws Exception {
 
-		final String digests = "nothing=12345\r\nnull=12346\r\nnil=12347";
+		final String messagePayload = "nothing=12345\r\nnull=12346\r\nnil=12347";
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(Utils.CT_JALOP);
 		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST_RESP);
 		mh.setHeader(Utils.HDRS_COUNT, "3");
 
-		createDataStream(mh, digests);
+		createDataStream(mh, messagePayload);
 
 		final InputDataStreamAdapter ids = data.getInputStream();
 
-		Utils.processDigestResponse(ids);
+		Utils.processDigestResponse(ids, messagePayload);
 	}
 }

@@ -835,17 +835,21 @@ public class Utils {
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
 	 *            message.
+	 * @param messagePayload 
+	 *            Holds the combined payload string for segmented
+	 *            messages.
 	 * @return an {@link DigestResponse}
 	 * @throws BEEPException
 	 *             If there is an error from the underlying BEEP connection.
 	 * @throws UnexpectedMimeValueException
 	 *             If the message contains illegal values for known MIME headers
 	 * @throws MissingMimeHeaderException
-	 *             If {@link Message} is missing a required MIME header.
+	 *             If {@link Message} is missing a required MIME
+	 *             header.
 	 */
 	static public DigestResponse processDigestResponse(
-			final InputDataStreamAdapter is) throws MissingMimeHeaderException,
-			UnexpectedMimeValueException, BEEPException {
+			final InputDataStreamAdapter is, String messagePayload) 
+				throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
 
 		final MimeHeaders[] headers = processMessageCommon(is,
 				MSG_DIGEST_RESP, HDRS_MESSAGE, HDRS_COUNT);
@@ -855,24 +859,17 @@ public class Utils {
 
 		final int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0].trim());
 
-		return new DigestResponse(getDigestStatuses(is, count), unknownHeaders);
+		return new DigestResponse(getDigestStatuses(is, count, messagePayload), unknownHeaders);
 
 	}
 
 	private static Map<String, DigestStatus> getDigestStatuses(
-			final InputDataStreamAdapter is, final int count) throws BEEPException {
+			final InputDataStreamAdapter is, final int count, String messagePayload) 
+				throws BEEPException {
 		final Map<String, DigestStatus> ret = new HashMap<String, DigestStatus>();
 		ret.clear();
-		final int numLeft = is.available();
-		final byte[] messageArray = new byte[numLeft];
-		try {
-			is.read(messageArray);
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
-		final String msgStr = new String(messageArray);
 
-		final String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
+		final String[] pairs = checkForEmptyString(messagePayload, "payload").split("\\s+|=");
 		if (pairs.length != count * 2) {
 			throw new IllegalArgumentException("The data provided does not match the count or is poorly formed");
 		}

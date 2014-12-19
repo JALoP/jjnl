@@ -24,6 +24,7 @@
 package com.tresys.jalop.jnl.impl;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.apache.log4j.Level;
@@ -42,6 +43,8 @@ import com.tresys.jalop.jnl.impl.messages.DigestResponse;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
 
+import java.io.IOException;
+
 /**
  * Listener class to be used for digest messages. This will
  * listen for replies after a message is sent.
@@ -53,13 +56,16 @@ public class DigestListener implements ReplyListener {
 	private final SubscriberSessionImpl subscriberSession;
 	private final Map<String, String> digestsSent;
 
+	// Map of partially received payloads, with key being associated data channel
+	private static Map<String, String> messagePayload = new HashMap<String, String>();
+
 	/**
 	 * Create a new {@link DigestListener}.
 	 *
 	 * @param subscriberSession
 	 *            The {@link SubscriberSessionImpl} associated with this listener.
 	 * @param digestsSent
-	 *            A Map of nonces to digests that have been sent to the publisher.
+	 *  		  A Map of nonces to digests that have been sent to the publisher.
 	 */
 	public DigestListener(final SubscriberSessionImpl subscriberSession, final Map<String, String> digestsSent) {
 		this.subscriberSession = subscriberSession;
@@ -69,49 +75,77 @@ public class DigestListener implements ReplyListener {
 	@Override
 	public void receiveRPY(final Message message) throws AbortChannelException {
 
-		if(log.isDebugEnabled()) {
-			log.debug("DigestListener receiveRPY");
-		}
-
 		final InputDataStreamAdapter data = message.getDataStream().getInputStream();
 
 		try {
-			final DigestResponse msg = Utils.processDigestResponse(data);
-			final Map<String, DigestStatus> statusMap = msg.getMap();
+			// Read the avaialable payload
+			final int numLeft = data.available();
+			final int digestChannel = message.getChannel().getNumber();
+			final int msgno = message.getMsgno();
+			final String key = digestChannel + "-" + msgno;
+			String newPayload = new String("");
 
-			final Set<String> nonces = statusMap.keySet();
+			log.debug("receiveRPY for channel " + digestChannel + ", msgno " + msgno + ", isComplete " + data.isComplete() + ", numLeft " + numLeft);
+			try {
+				newPayload = data.readMessage();
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+			log.trace("[" + newPayload + "]");
 
-			for(final String nonce : nonces) {
-				log.trace("Processing: " + nonce);
-				if(this.digestsSent.containsKey(nonce)) {
-					// Execute the notify digest callback which will take care of moving the record from temp to perm
-					if (this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, nonce, statusMap.get(nonce))) {
-						// For a confirmed digest, send a sync message and remove the nonce from the sent queue                                                                   
-						if(statusMap.get(nonce) == DigestStatus.Confirmed) {
-							final OutputDataStream ods = Utils.createSyncMessage(nonce);
-							message.getChannel().sendMSG(ods, this);
+			if (this.messagePayload.containsKey(key)) {
+				// Append payload to any previous partially received payloads and save
+				final String previousPayload = this.messagePayload.get(key); 
+				this.messagePayload.put(key, previousPayload + newPayload);
+			} else {
+				// Otherwise save the new payload
+				this.messagePayload.put(key, newPayload);
+			}
+
+			if (data.isComplete() == true) {
+				final DigestResponse msg = Utils.processDigestResponse(data, this.messagePayload.get(key)); 
+				final Map<String, DigestStatus> statusMap = msg.getMap();
+
+				final Set<String> nonces = statusMap.keySet();
+
+				for(final String nonce : nonces) {
+					log.trace("Processing: " + nonce);
+					if(this.digestsSent.containsKey(nonce)) {
+						// Execute the notify digest callback which will take care of moving the record from temp to perm
+						if (this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, nonce, statusMap.get(nonce))) {
+							// For a confirmed digest, send a sync message and remove the nonce from the sent queue 																  
+							if(statusMap.get(nonce) == DigestStatus.Confirmed) {
+								final OutputDataStream ods = Utils.createSyncMessage(nonce);
+								message.getChannel().sendMSG(ods, this);
+							}
+							else {
+								log.warn("Non-confirmed digest received: " + nonce + ", " + statusMap.get(nonce));
+							}
+							// As long as we didn't get a fatal response, remove the digest from the sent list.
+							log.trace("Removing from digestsSent: " + nonce);
+							this.digestsSent.remove(nonce);
+
 						}
 						else {
-							log.warn("Non-confirmed digest received: " + nonce + ", " + statusMap.get(nonce));
+							log.error("notifyDigestResponse failure: " + nonce + ", " + statusMap.get(nonce));
+							throw new AbortChannelException("Unrecoverable error in notifyDigestResponse");
 						}
-						// As long as we didn't get a fatal response, remove the digest from the sent list.
-						log.trace("Removing from digestsSent: " + nonce);
-						this.digestsSent.remove(nonce);
-						
 					}
 					else {
-						log.error("notifyDigestResponse failure: " + nonce + ", " + statusMap.get(nonce));
-						throw new AbortChannelException("Unrecoverable error in notifyDigestResponse");
+						log.debug("Digest not found in digestsSent list: " + nonce);
 					}
- 				}
-				else {
-					log.debug("Digest not found in digestsSent list: " + nonce);
 				}
+				// Add back in any digests that were sent but didn't receive a response
+				if(!this.digestsSent.isEmpty()) {
+					log.debug("Reading digests with no response.");
+					this.subscriberSession.addAllDigests(this.digestsSent);
+				}
+				// Complete message processed, so clear out the received message payload storage for this channel.
+				this.messagePayload.remove(key);
 			}
-			// Add back in any digests that were sent but didn't receive a response
-			if(!this.digestsSent.isEmpty()) {
-				log.debug("Reading digests with no response.");
-				this.subscriberSession.addAllDigests(this.digestsSent);
+			else {
+				log.debug("Partial RPY for channel " + digestChannel + ", msgno " + msgno + ", [" + this.messagePayload.get(key) + "]");
+				return;
 			}
 		} catch (final BEEPException e) {
 			if(log.isEnabledFor(Level.ERROR)) {
@@ -158,7 +192,7 @@ public class DigestListener implements ReplyListener {
 
 		//Received NUL from sync message - do nothing
 		if(log.isDebugEnabled()) {
-			log.debug("DigestListener received NUL.");
+			log.debug("DigestListener channel " + this.subscriberSession.getChannelNum() + " received NUL.");
 		}
 	}
 
