@@ -318,18 +318,13 @@ public class Utils {
 	 * {@link OutputDataStream#setComplete()} called on it since a 'subscribe'
 	 * message contains no payload.
 	 *
-	 * @param nonce
-	 *            The nonce to send in the 'subscribe' message. This must be
-	 *            non-null and contain at least one non-whitespace character.
 	 * @return The {@link OutputDataStream}.
 	 */
-	static public OutputDataStream createSubscribeMessage(String nonce) {
-		nonce = checkForEmptyString(nonce, HDRS_NONCE);
+	static public OutputDataStream createSubscribeMessage() {
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
                 headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE);
-		headers.setHeader(HDRS_NONCE, nonce);
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
@@ -527,20 +522,12 @@ public class Utils {
 			final InputDataStreamAdapter is) throws BEEPException,
 			MissingMimeHeaderException, UnexpectedMimeValueException {
 		final MimeHeaders[] headers = processMessageCommon(is, MSG_SUBSCRIBE,
-					HDRS_MESSAGE, HDRS_NONCE);
+					HDRS_MESSAGE);
 	
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
 
-		String nonce;
-		if (knownHeaders.getHeader(HDRS_NONCE) == null) {
-			throw new MissingMimeHeaderException(HDRS_NONCE);
-		}
-		nonce = knownHeaders.getHeader(HDRS_NONCE)[0].trim();
-		if (nonce.length() == 0) {
-			throw new UnexpectedMimeValueException(HDRS_NONCE,
-					"non-empty-string", nonce);
-		}
+		String nonce = "0";
 		return new SubscribeMessage(nonce, unknownHeaders);
 	}
 

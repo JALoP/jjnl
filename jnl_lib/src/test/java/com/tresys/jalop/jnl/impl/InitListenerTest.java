@@ -171,7 +171,7 @@ public class InitListenerTest {
                 contextImpl.getDefaultPendingDigestMax(); result = 1;
                 contextImpl.getDefaultDigestTimeout(); result = 1;
                 channel.getSession(); result = sess;
-                Utils.createSubscribeMessage(anyString); result = ods;
+                Utils.createSubscribeMessage(); result = ods;
             }
         };
 

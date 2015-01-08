@@ -112,7 +112,6 @@ public class InitListener implements ReplyListener {
 			}
 
 			if (Role.Subscriber.equals(this.role)) {
-
 				final Subscriber subscriber = contextImpl.getSubscriber();
 				final SubscriberSessionImpl sessionImpl = new SubscriberSessionImpl(
 						this.address, this.recordType, subscriber, msg.getDigest(),
@@ -124,7 +123,6 @@ public class InitListener implements ReplyListener {
 
 				final SubscribeRequest request = subscriber.getSubscribeRequest(sessionImpl);
 				final OutputDataStream ods;
-
 				if(request.getResumeOffset() > 0 && RecordType.Journal.equals(this.recordType)) {
 					if(log.isDebugEnabled()) {
 						log.debug("Sending a journal resume message.");
@@ -134,7 +132,7 @@ public class InitListener implements ReplyListener {
 					sessionImpl.setJournalResumeOffset(request.getResumeOffset());
 					ods = Utils.createJournalResumeMessage(request.getNonce(), request.getResumeOffset());
 				} else {
-					ods = Utils.createSubscribeMessage(request.getNonce());
+					ods = Utils.createSubscribeMessage();
 				}
 
 				message.getChannel().sendMSG(ods, sessionImpl.getListener());

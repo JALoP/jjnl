@@ -899,7 +899,7 @@ public class TestUtils {
 			NoSuchFieldException, IllegalArgumentException,
 			IllegalAccessException {
 
-		final OutputDataStream ods = Utils.createSubscribeMessage("0");
+		final OutputDataStream ods = Utils.createSubscribeMessage();
 		assertTrue(ods.isComplete());
 
 		final Field headers = ods.getClass().getDeclaredField("mimeHeaders");
@@ -910,7 +910,6 @@ public class TestUtils {
 
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
 				Utils.MSG_SUBSCRIBE);
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_NONCE), "0");
 	}
 
 	@Test
@@ -929,39 +928,6 @@ public class TestUtils {
 		final SubscribeMessage msg = Utils.processSubscribe(ids);
 
 		assertEquals(msg.getNonce(), "0");
-	}
-
-	@Test(expected = MissingMimeHeaderException.class)
-	public void testProcessSubscribeThrowsExceptionWithNoNonce()
-			throws Exception {
-
-		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
-				Utils.CT_JALOP,
-				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
-
-		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
-
-		createDataStream(headers);
-
-		final InputDataStreamAdapter ids = data.getInputStream();
-		Utils.processSubscribe(ids);
-	}
-
-	@Test(expected = UnexpectedMimeValueException.class)
-	public void testProcessSubscribeThrowsExceptionWithBlankNonce()
-			throws Exception {
-
-		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
-				Utils.CT_JALOP,
-				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
-
-		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_SUBSCRIBE);
-		headers.setHeader(Utils.HDRS_NONCE, "");
-
-		createDataStream(headers);
-
-		final InputDataStreamAdapter ids = data.getInputStream();
-		Utils.processSubscribe(ids);
 	}
 
 	@Test
