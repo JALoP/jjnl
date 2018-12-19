@@ -41,8 +41,7 @@ import java.util.Map;
 
 import javax.xml.soap.MimeHeaders;
 
-import mockit.Mock;
-import mockit.Mockit;
+import mockit.*;
 
 import org.beepcore.beep.core.InputDataStream;
 import org.beepcore.beep.core.InputDataStreamAdapter;
@@ -1186,7 +1185,7 @@ public class TestUtils {
 		digests.put("1", "123456789abcdef");
 		digests.put("2", "abcdef123456789");
 
-		Mockit.setUpMock(OutputDataStream.class, new MockOutputDataStream());
+		new MockResponseOutputDataStream();
 
 		final OutputDataStream ods = Utils.createDigestMessage(digests);
 		assertNotNull(ods);
@@ -1198,7 +1197,7 @@ public class TestUtils {
 		final Map<String, String> digests = new HashMap<String, String>();
 		digests.put("", "123456789abcdef");
 
-		Mockit.setUpMock(OutputDataStream.class, new MockOutputDataStream());
+		new MockResponseOutputDataStream();
 
 		Utils.createDigestMessage(digests);
 	}
@@ -1208,7 +1207,7 @@ public class TestUtils {
 		final Map<String, String> digests = new HashMap<String, String>();
 		digests.put("1", "");
 
-		Mockit.setUpMock(OutputDataStream.class, new MockOutputDataStream());
+		new MockResponseOutputDataStream();
 
 		Utils.createDigestMessage(digests);
 	}
@@ -1269,7 +1268,7 @@ public class TestUtils {
 		Utils.processDigestMessage(ids);
 	}
 
-	public static class MockResponseOutputDataStream {
+	public static class MockResponseOutputDataStream extends MockUp<OutputDataStream> {
 		@Mock
 		public void $init(final org.beepcore.beep.core.MimeHeaders mh, final BufferSegment bs) throws Exception {
 			assertEquals(Utils.CT_JALOP, mh.getContentType());
@@ -1287,7 +1286,7 @@ public class TestUtils {
 		digests.put("12346", DigestStatus.Invalid);
 		digests.put("12347", DigestStatus.Unknown);
 
-		Mockit.setUpMock(OutputDataStream.class, new MockResponseOutputDataStream());
+		new MockResponseOutputDataStream();
 
 		final OutputDataStream ods = Utils.createDigestResponse(digests);
 		assertNotNull(ods);
@@ -1301,7 +1300,7 @@ public class TestUtils {
 		digests.put("nothing", DigestStatus.Invalid);
 		digests.put("blah", DigestStatus.Unknown);
 
-		Mockit.setUpMock(OutputDataStream.class, new MockResponseOutputDataStream());
+		new MockResponseOutputDataStream();
 
 		Utils.createDigestResponse(digests);
 	}

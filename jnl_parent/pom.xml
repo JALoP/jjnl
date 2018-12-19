@@ -3,7 +3,7 @@
   <groupId>com.tresys.jalop.jnl</groupId>
   <artifactId>parent</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.0</version> 
+  <version>1.0.0</version>
   <name>Java JALoP Network Library Parent Project</name>
   <url>http://maven.apache.org</url>
   <properties>
@@ -43,9 +43,15 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>com.googlecode.jmockit</groupId>
+      <groupId>org.jmockit</groupId>
+      <artifactId>jmockit</artifactId>
+      <version>1.22</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmockit</groupId>
       <artifactId>jmockit-coverage</artifactId>
-      <version>0.999.15</version>
+      <version>1.9</version>
       <scope>test</scope>
     </dependency>
     <dependency>
