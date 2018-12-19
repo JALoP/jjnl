@@ -115,7 +115,7 @@ public class SessionImplTest {
 
 	@Test
 	public void testIsOkFalseWhenInactive(@Mocked final Subscriber subscriber,
-			final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
 				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
