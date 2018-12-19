@@ -40,11 +40,7 @@ import java.util.Set;
 import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.soap.MimeHeaders;
 
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -126,7 +122,7 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testConstructorWorks(final ContextImpl contextImpl, final InetAddress address)
+	public void testConstructorWorks(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address)
 			throws IllegalAccessException {
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 		assertEquals(contextImpl, contextImplField.get(profile));
@@ -134,8 +130,8 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testAdvertiseProfileTrueWhenEncrypted(final Session sess, final SessionTuningProperties tuning,
-			final ContextImpl contextImpl, final InetAddress address) throws BEEPException {
+	public void testAdvertiseProfileTrueWhenEncrypted(@Mocked final Session sess, @Mocked final SessionTuningProperties tuning,
+			@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address) throws BEEPException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 
@@ -150,8 +146,8 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testAdvertiseProfileFalseWhenNotEncrypted(final Session sess, final SessionTuningProperties tuning,
-			final ContextImpl contextImpl, final InetAddress address) throws BEEPException {
+	public void testAdvertiseProfileFalseWhenNotEncrypted(@Mocked final Session sess, @Mocked final SessionTuningProperties tuning,
+			@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address) throws BEEPException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 
@@ -166,14 +162,14 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testCloseChannel(final ContextImpl contextImpl, final InetAddress address, final Channel channel)
+	public void testCloseChannel(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final Channel channel)
 			throws BEEPException {
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 		profile.closeChannel(channel);
 	}
 
 	@Test
-	public void testStartChannelWorksWithNullData(final ContextImpl contextImpl, final InetAddress address, final Channel channel)
+	public void testStartChannelWorksWithNullData(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final Channel channel)
 			throws StartChannelException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -187,8 +183,8 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testStartChannelWorksWithDataAsSubscriber(final ContextImpl contextImpl, final InetAddress address, final Channel channel,
-			final SubscriberSessionImpl subSess)
+	public void testStartChannelWorksWithDataAsSubscriber(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final Channel channel,
+			@Mocked final SubscriberSessionImpl subSess)
 			throws StartChannelException, IllegalAccessException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -220,8 +216,8 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testStartChannelWorksWithDataAsPublisher(final ContextImpl contextImpl, final InetAddress address, final Channel channel,
-			final PublisherSessionImpl pubSess)
+	public void testStartChannelWorksWithDataAsPublisher(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final Channel channel,
+			@Mocked final PublisherSessionImpl pubSess)
 			throws StartChannelException, IllegalAccessException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -244,7 +240,7 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testInitWorks(final ContextImpl contextImpl, final InetAddress address, final ProfileConfiguration profileConfig)
+	public void testInitWorks(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final ProfileConfiguration profileConfig)
 			throws BEEPException, IllegalAccessException {
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 		profile.init("uri", profileConfig);
@@ -253,10 +249,10 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testReceiveMsgWorksAsSubscriber(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel, final TCPSession sess,
-			final OutputDataStream ods, final Socket socket, final ConnectionHandler connectionHandler, final Subscriber subscriber,
-			final SubscribeRequest request)
+	public void testReceiveMsgWorksAsSubscriber(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final MessageMSG msg,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final TCPSession sess,
+			@Mocked final OutputDataStream ods, @Mocked final Socket socket, @Mocked final ConnectionHandler connectionHandler, @Mocked final Subscriber subscriber,
+			@Mocked final SubscribeRequest request)
 			throws BEEPException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -302,10 +298,10 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testReceiveMsgSendsJournalResume(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel, final TCPSession sess,
-			final OutputDataStream ods, final Socket socket, final ConnectionHandler connectionHandler, final Subscriber subscriber,
-			final SubscribeRequest request, final InputStream is)
+	public void testReceiveMsgSendsJournalResume(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final MessageMSG msg,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final TCPSession sess,
+			@Mocked final OutputDataStream ods, @Mocked final Socket socket, @Mocked final ConnectionHandler connectionHandler, @Mocked final Subscriber subscriber,
+			@Mocked final SubscribeRequest request, @Mocked final InputStream is)
 			throws BEEPException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -354,9 +350,9 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testReceiveMsgWorksAsPublisher(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel, final TCPSession sess,
-			final OutputDataStream ods, final Socket socket, final ConnectionHandler connectionHandler, final Publisher publisher)
+	public void testReceiveMsgWorksAsPublisher(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final MessageMSG msg,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final TCPSession sess,
+			@Mocked final OutputDataStream ods, @Mocked final Socket socket, @Mocked final ConnectionHandler connectionHandler, @Mocked final Publisher publisher)
 			throws BEEPException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -397,9 +393,9 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testReceiveMsgSendsInitNack(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel, final TCPSession sess,
-			final OutputDataStream ods, final Socket socket, final ConnectionHandler connectionHandler, final Publisher publisher)
+	public void testReceiveMsgSendsInitNack(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final MessageMSG msg,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final TCPSession sess,
+			@Mocked final OutputDataStream ods, @Mocked final Socket socket, @Mocked final ConnectionHandler connectionHandler, @Mocked final Publisher publisher)
 			throws BEEPException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -438,9 +434,9 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testReceiveMsgSendsInitNackForBadEncoding(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel, final TCPSession sess,
-			final OutputDataStream ods, final Socket socket, final ConnectionHandler connectionHandler, final Publisher publisher)
+	public void testReceiveMsgSendsInitNackForBadEncoding(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final MessageMSG msg,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final TCPSession sess,
+			@Mocked final OutputDataStream ods, @Mocked final Socket socket, @Mocked final ConnectionHandler connectionHandler, @Mocked final Publisher publisher)
 			throws BEEPException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -480,9 +476,9 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testReceiveMsgSendsInitNackForBadDigest(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel, final TCPSession sess,
-			final OutputDataStream ods, final Socket socket, final ConnectionHandler connectionHandler, final Publisher publisher)
+	public void testReceiveMsgSendsInitNackForBadDigest(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final MessageMSG msg,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final TCPSession sess,
+			@Mocked final OutputDataStream ods, @Mocked final Socket socket, @Mocked final ConnectionHandler connectionHandler, @Mocked final Publisher publisher)
 			throws BEEPException, JNLException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
@@ -522,7 +518,7 @@ public class ListenerProfileTest {
 	}
 
 	@Test
-	public void testSendErrWorks(final ContextImpl contextImpl, final InetAddress address, final MessageMSG msg)
+	public void testSendErrWorks(@Mocked final ContextImpl contextImpl, @Mocked final InetAddress address, @Mocked final MessageMSG msg)
 			throws BEEPException {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);

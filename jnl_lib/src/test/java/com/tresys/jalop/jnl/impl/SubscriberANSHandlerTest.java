@@ -39,12 +39,7 @@ import java.util.Vector;
 
 import javax.xml.soap.MimeHeader;
 
-import mockit.Deencapsulation;
-import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.NonStrictExpectations;
-import mockit.Verifications;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -80,8 +75,8 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testSubscriberANSHandlerWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess) throws Exception {
+	public void testSubscriberANSHandlerWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess) throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 	}
@@ -131,8 +126,8 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testReceiveANSWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final Message msg)
+	public void testReceiveANSWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final Message msg)
 			throws Exception {
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
@@ -151,9 +146,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testDispatcherRunLogWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final Message msg, final InputDataStreamAdapter dsa)
+	public void testDispatcherRunLogWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
 			throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
@@ -215,9 +210,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testDispatcherRunLogRecordWorksNoPayload(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final Message msg, final InputDataStreamAdapter dsa)
+	public void testDispatcherRunLogRecordWorksNoPayload(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
 			throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
@@ -278,9 +273,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testDispatcherRunAuditRecordWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final Message msg, final InputDataStreamAdapter dsa)
+	public void testDispatcherRunAuditRecordWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
 			throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
@@ -342,9 +337,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testDispatcherRunJournalRecordWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final Message msg, final InputDataStreamAdapter dsa)
+	public void testDispatcherRunJournalRecordWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
 			throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
@@ -406,9 +401,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testDispatcherRunJournalWithResumeWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final Message msg, final InputDataStreamAdapter dsa, final InputStream is)
+	public void testDispatcherRunJournalWithResumeWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa, @Mocked final InputStream is)
 			throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
@@ -462,9 +457,9 @@ public class SubscriberANSHandlerTest {
 
 	@Test
 	public void testDispatcherRunLogRecordThrowsErrorWithDataAfterLastBreak(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final Message msg,
-			final InputDataStreamAdapter dsa) throws Exception {
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final Message msg,
+			@Mocked final InputDataStreamAdapter dsa) throws Exception {
 
 		final FakeGoodSubscriber sub = new FakeGoodSubscriber();
 
@@ -531,9 +526,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testDispatcherRunThrowsExceptionOnUnknownType(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final Message msg, final InputDataStreamAdapter dsa)
+	public void testDispatcherRunThrowsExceptionOnUnknownType(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
@@ -567,7 +562,7 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IncompleteRecordException.class)
 	public void testGetRecordDigestThrowsExceptionWhenPayloadNotComplete(
-			final MessageDigest md, final SubscriberSessionImpl subsess, final InputDataStream ds)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 
@@ -577,7 +572,7 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IncompleteRecordException.class)
 	public void testGetRecordDigestThrowsExceptionWhenPayloadNotCorrect(
-			final MessageDigest md, final SubscriberSessionImpl subsess, final InputDataStream ds)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds)
 			throws Exception {
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
@@ -597,8 +592,8 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testGetRecordDigestWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds) throws Exception {
+	public void testGetRecordDigestWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds) throws Exception {
 
 		new Expectations() {
 			byte[] b = "DIGEST".getBytes();
@@ -626,8 +621,8 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test(expected = AbortChannelException.class)
-	public void testReceiveRPYThrowsException(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final Message msg)
+	public void testReceiveRPYThrowsException(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final Message msg)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
@@ -635,8 +630,8 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test(expected = AbortChannelException.class)
-	public void testReceiveERRThrowsException(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final Message msg)
+	public void testReceiveERRThrowsException(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final Message msg)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
@@ -644,8 +639,8 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testReceiveNULDoesNothing(final MessageDigest md, final Channel channel,
-			final SubscriberSessionImpl subsess, final Message msg)
+	public void testReceiveNULDoesNothing(@Mocked final MessageDigest md, @Mocked final Channel channel,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final Message msg)
 			throws BEEPException {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
@@ -653,8 +648,8 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testJalopDataStreamWorks(final MessageDigest md, final InputDataStream ds,
-			final SubscriberSessionImpl subsess) throws Exception {
+	public void testJalopDataStreamWorks(@Mocked final MessageDigest md, @Mocked final InputDataStream ds,
+			@Mocked final SubscriberSessionImpl subsess) throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
 		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(1234, ds, md);
@@ -662,9 +657,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testJalopDataStreamReadWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final InputDataStreamAdapter is) throws Exception {
+	public void testJalopDataStreamReadWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final InputDataStreamAdapter is) throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
 			@Mock
@@ -723,8 +718,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test
 	public void testJalopDataStreamReadReturnsNegativeWhenFinished(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final InputDataStreamAdapter is)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
 			throws Exception {
 
 		new Expectations() {
@@ -752,8 +747,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadPayloadNotCorrectWhenBREA(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final InputDataStreamAdapter is)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
 			throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
@@ -812,8 +807,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadThrowsIOExceptionUponFailure(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final InputDataStreamAdapter is)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
 			throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
@@ -839,9 +834,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testJalopDataStreamReadByteArrayOffsetWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final InputDataStreamAdapter is) throws Exception {
+	public void testJalopDataStreamReadByteArrayOffsetWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final InputDataStreamAdapter is) throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
 
@@ -896,8 +891,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test
 	public void testJalopDataStreamReadByteArrayOffsetWorksLengthLargerThanPayload(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final InputDataStreamAdapter is)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
 			throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
@@ -953,8 +948,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadByteArrayPayloadIncorrectWhenRcvBREA(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final InputDataStreamAdapter is)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
 			throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
@@ -1010,8 +1005,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadByteArrayThrowsIOExceptionUponFailure(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final InputDataStreamAdapter is)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
 			throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
@@ -1039,8 +1034,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test
 	public void testJalopDataStreamReadByteArrayOffsetWorksWithDataSizeLargerThanBuffer(
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds, final InputDataStreamAdapter is)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
 			throws Exception {
 		new MockUp<InputDataStreamAdapter>() {
 			int count = 0;
@@ -1106,9 +1101,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testJalopDataStreamFlushWorks(final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds,
-			final InputDataStreamAdapter is) throws Exception {
+	public void testJalopDataStreamFlushWorks(@Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
+			@Mocked final InputDataStreamAdapter is) throws Exception {
 
 		new MockUp<InputDataStreamAdapter>() {
 			@Mock
@@ -1148,7 +1143,7 @@ public class SubscriberANSHandlerTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testJalopDataStreamThrowsExceptionWithDataSizeLessThanZero(
-			final MessageDigest md, final SubscriberSessionImpl subsess, final InputDataStream ds)
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
@@ -1156,9 +1151,9 @@ public class SubscriberANSHandlerTest {
 	}
 
 	@Test
-	public void testGetAdditionalHeadersWorks(final InputDataStreamAdapter dsa,
-			final MessageDigest md, final SubscriberSessionImpl subsess,
-			final InputDataStream ds) throws Exception {
+	public void testGetAdditionalHeadersWorks(@Mocked final InputDataStreamAdapter dsa,
+			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
+			@Mocked final InputDataStream ds) throws Exception {
 
 		final Vector<String> v = new Vector<String>();
 		v.add("JAL-Application-Metadata-Length");
@@ -1188,8 +1183,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test
 	public void testGetAdditionalHeadersWorksWithBlankValue(
-			final InputDataStreamAdapter dsa, final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds)
+			@Mocked final InputDataStreamAdapter dsa, @Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds)
 			throws Exception {
 
 		final Vector<String> v = new Vector<String>();
@@ -1217,8 +1212,8 @@ public class SubscriberANSHandlerTest {
 
 	@Test
 	public void testGetAdditionalHeadersWorksWithBlankName(
-			final InputDataStreamAdapter dsa, final MessageDigest md,
-			final SubscriberSessionImpl subsess, final InputDataStream ds)
+			@Mocked final InputDataStreamAdapter dsa, @Mocked final MessageDigest md,
+			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds)
 			throws Exception {
 
 		final Vector<String> v = new Vector<String>();

@@ -26,7 +26,7 @@ package com.tresys.jalop.jnl.impl;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import mockit.NonStrictExpectations;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -59,7 +59,7 @@ public class JNLStartChannelListenerTest {
 	}
 
 	@Test
-	public void testAdvertiseProfileTrueWhenEncrypted(final Session sess, final SessionTuningProperties tuning) throws BEEPException {
+	public void testAdvertiseProfileTrueWhenEncrypted(@Mocked final Session sess, @Mocked final SessionTuningProperties tuning) throws BEEPException {
 		final JNLStartChannelListener jscl = new JNLStartChannelListener();
 
 		new NonStrictExpectations() {
@@ -73,7 +73,7 @@ public class JNLStartChannelListenerTest {
 	}
 
 	@Test
-	public void testAdvertiseProfileFalseWhenNotEncrypted(final Session sess, final SessionTuningProperties tuning) throws BEEPException {
+	public void testAdvertiseProfileFalseWhenNotEncrypted(@Mocked final Session sess, @Mocked final SessionTuningProperties tuning) throws BEEPException {
 		final JNLStartChannelListener jscl = new JNLStartChannelListener();
 
 		new NonStrictExpectations() {
@@ -87,13 +87,13 @@ public class JNLStartChannelListenerTest {
 	}
 
 	@Test
-	public void testCloseChannelWorks(final Session sess, final Channel channel) throws BEEPException {
+	public void testCloseChannelWorks(@Mocked final Session sess, @Mocked final Channel channel) throws BEEPException {
 		final JNLStartChannelListener jscl = new JNLStartChannelListener();
 		jscl.closeChannel(channel);
 	}
 
 	@Test(expected = StartChannelException.class)
-	public void testStartChannelThrowsException(final Session sess, final Channel channel) throws StartChannelException {
+	public void testStartChannelThrowsException(@Mocked final Session sess, @Mocked final Channel channel) throws StartChannelException {
 		final JNLStartChannelListener jscl = new JNLStartChannelListener();
 		jscl.startChannel(channel, "", "");
 	}

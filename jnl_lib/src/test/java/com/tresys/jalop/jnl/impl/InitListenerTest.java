@@ -30,11 +30,7 @@ import java.util.LinkedList;
 import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.soap.MimeHeaders;
 
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -77,19 +73,19 @@ public class InitListenerTest {
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionOnReceiveNul(final InetAddress address, final ContextImpl contextImpl, final Message message) throws AbortChannelException {
+    public void testInitListenerThrowsExceptionOnReceiveNul(@Mocked final InetAddress address, @Mocked final ContextImpl contextImpl, @Mocked final Message message) throws AbortChannelException {
         final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveNUL(message);
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionOnReceiveAns(final InetAddress address, final ContextImpl contextImpl, final Message message) throws AbortChannelException {
+    public void testInitListenerThrowsExceptionOnReceiveAns(@Mocked final InetAddress address, @Mocked final ContextImpl contextImpl, @Mocked final Message message) throws AbortChannelException {
         final InitListener initListener = new InitListener(address, Role.Subscriber, RecordType.Audit, contextImpl);
         initListener.receiveANS(message);
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionForInitAckWithIllegalDigest(final InetAddress address, final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+    public void testInitListenerThrowsExceptionForInitAckWithIllegalDigest(@Mocked final InetAddress address, @Mocked final ContextImpl contextImpl, @Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final InitAckMessage iam = new InitAckMessage("foo", "bar", new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
         allowedDigests.add("other");
@@ -113,7 +109,7 @@ public class InitListenerTest {
     }
 
     @Test (expected = AbortChannelException.class)
-    public void testInitListenerThrowsExceptionForInitAckWithIllegalEncoding(final InetAddress address, final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+    public void testInitListenerThrowsExceptionForInitAckWithIllegalEncoding(@Mocked final InetAddress address, @Mocked final ContextImpl contextImpl, @Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final InitAckMessage iam = new InitAckMessage("foo", "bar", new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
         allowedDigests.add("other");
@@ -135,12 +131,12 @@ public class InitListenerTest {
     }
 
     @Test
-    public void testInitListenerSendsSubscribeRequest(final ContextImpl contextImpl,
-            final InputDataStream ids, final InputDataStreamAdapter isa,
-            final Message msg, final Subscriber subscriber,
-            final SubscribeRequest subRequest, final OutputDataStream ods,
-            final Channel channel, final Session sess,
-            final ReplyListener rpyListener, final InetAddress address) throws BEEPException, JNLException, InterruptedException {
+    public void testInitListenerSendsSubscribeRequest(@Mocked final ContextImpl contextImpl,
+            @Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa,
+            @Mocked final Message msg, @Mocked final Subscriber subscriber,
+            @Mocked final SubscribeRequest subRequest, @Mocked final OutputDataStream ods,
+            @Mocked final Channel channel, @Mocked final Session sess,
+            @Mocked final ReplyListener rpyListener, @Mocked final InetAddress address) throws BEEPException, JNLException, InterruptedException {
         final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
 
         final LinkedList<String> allowedDigests = new LinkedList<String>();
@@ -186,12 +182,12 @@ public class InitListenerTest {
     }
 
     @Test
-    public void testInitListenerSendsJournalResume(final ContextImpl contextImpl,
-            final InputDataStream ids, final InputDataStreamAdapter isa,
-            final Message msg, final Subscriber subscriber,
-            final SubscribeRequest subRequest, final OutputDataStream ods,
-            final Channel channel, final Session sess,
-            final ReplyListener rpyListener, final InetAddress address) throws BEEPException, JNLException, InterruptedException {
+    public void testInitListenerSendsJournalResume(@Mocked final ContextImpl contextImpl,
+            @Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa,
+            @Mocked final Message msg, @Mocked final Subscriber subscriber,
+            @Mocked final SubscribeRequest subRequest, @Mocked final OutputDataStream ods,
+            @Mocked final Channel channel, @Mocked final Session sess,
+            @Mocked final ReplyListener rpyListener, @Mocked final InetAddress address) throws BEEPException, JNLException, InterruptedException {
 
 		final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
@@ -237,8 +233,8 @@ public class InitListenerTest {
         };
     }
 
-    public void testReceiveErrWorks(final ContextImpl contextImpl, final InputDataStream ids, final InputDataStreamAdapter isa, final Message msg,
-			final InetAddress address, final Channel channel) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
+    public void testReceiveErrWorks(@Mocked final ContextImpl contextImpl, @Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Message msg,
+			@Mocked final InetAddress address, @Mocked final Channel channel) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final LinkedList<ConnectError> errors = new LinkedList<ConnectError>();
         errors.add(ConnectError.UnauthorizedMode);
         final InitNackMessage inm = new InitNackMessage(errors, new MimeHeaders());
@@ -261,12 +257,12 @@ public class InitListenerTest {
     }
 
 	@Test
-	public void testReceiveRpyWorksForPublisher(final ContextImpl contextImpl,
-			final InputDataStream ids, final InputDataStreamAdapter isa,
-			final Message msg, final Publisher publisher, final Session sess,
-			final SubscribeRequest subRequest, final OutputDataStream ods,
-			final Channel channel, final PublisherSessionImpl pubSess,
-			final ReplyListener rpyListener, final InetAddress address)
+	public void testReceiveRpyWorksForPublisher(@Mocked final ContextImpl contextImpl,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa,
+			@Mocked final Message msg, @Mocked final Publisher publisher, @Mocked final Session sess,
+			@Mocked final SubscribeRequest subRequest, @Mocked final OutputDataStream ods,
+			@Mocked final Channel channel, @Mocked final PublisherSessionImpl pubSess,
+			@Mocked final ReplyListener rpyListener, @Mocked final InetAddress address)
 			throws BEEPException, JNLException {
 
 		final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());

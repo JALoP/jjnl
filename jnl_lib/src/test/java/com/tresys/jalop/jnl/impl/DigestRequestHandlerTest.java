@@ -33,9 +33,7 @@ import java.util.Map;
 
 import javax.xml.soap.MimeHeaders;
 
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -72,7 +70,7 @@ public class DigestRequestHandlerTest {
 	}
 
 	@Test
-	public void testDigestRequestHandlerWorks(final ContextImpl contextImpl, final PublisherSessionImpl sess) {
+	public void testDigestRequestHandlerWorks(@Mocked final ContextImpl contextImpl, @Mocked final PublisherSessionImpl sess) {
 		final DigestRequestHandler drh = new DigestRequestHandler(RecordType.Audit, contextImpl, sess);
 		assertEquals(contextImpl, drh.contextImpl);
 		assertEquals(RecordType.Audit, drh.recordType);
@@ -81,11 +79,11 @@ public class DigestRequestHandlerTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testReceiveMSGWorks(final ContextImpl contextImpl, final MessageMSG msg,
-			final Publisher publisher, final DigestMessage digestMessage,
-			final PublisherSessionImpl publisherSessionImpl, final Session sess,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel,
-			final OutputDataStream ods)
+	public void testReceiveMSGWorks(@Mocked final ContextImpl contextImpl, @Mocked final MessageMSG msg,
+			@Mocked final Publisher publisher, @Mocked final DigestMessage digestMessage,
+			@Mocked final PublisherSessionImpl publisherSessionImpl, @Mocked final Session sess,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel,
+			@Mocked final OutputDataStream ods)
 			throws JNLException, SecurityException, NoSuchMethodException, InstantiationException,
 			IllegalAccessException, InvocationTargetException, BEEPException {
 
@@ -123,10 +121,10 @@ public class DigestRequestHandlerTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testReceiveMSGSetsInvalid(final ContextImpl contextImpl, final MessageMSG msg,
-			final Publisher publisher, final DigestMessage digestMessage,
-			final PublisherSessionImpl publisherSessionImpl, final Session sess,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Channel channel)
+	public void testReceiveMSGSetsInvalid(@Mocked final ContextImpl contextImpl, @Mocked final MessageMSG msg,
+			@Mocked final Publisher publisher, @Mocked final DigestMessage digestMessage,
+			@Mocked final PublisherSessionImpl publisherSessionImpl, @Mocked final Session sess,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel)
 			throws JNLException, SecurityException, NoSuchMethodException, InstantiationException,
 			IllegalAccessException, InvocationTargetException, BEEPException {
 
@@ -162,9 +160,9 @@ public class DigestRequestHandlerTest {
 	}
 
 	@Test
-	public void testReceiveMSGWorksForSync(final ContextImpl contextImpl, final MessageMSG msg,
-			final Publisher publisher, final PublisherSessionImpl publisherSessionImpl,
-			final InputDataStream ids, final InputDataStreamAdapter isa)
+	public void testReceiveMSGWorksForSync(@Mocked final ContextImpl contextImpl, @Mocked final MessageMSG msg,
+			@Mocked final Publisher publisher, @Mocked final PublisherSessionImpl publisherSessionImpl,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa)
 			throws JNLException, SecurityException, NoSuchMethodException, InstantiationException,
 			IllegalAccessException, InvocationTargetException, BEEPException {
 
