@@ -28,8 +28,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Field;
 
-import mockit.NonStrictExpectations;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -68,7 +67,7 @@ public class DigestInitHandlerTest {
 	}
 
 	@Test
-	public void testConstructorWorks(final ContextImpl contextImpl, final SessionImpl sess)
+	public void testConstructorWorks(@Mocked final ContextImpl contextImpl, @Mocked final SessionImpl sess)
 			throws IllegalArgumentException, IllegalAccessException {
 
 		final DigestInitHandler dih = new DigestInitHandler(sess, contextImpl);
@@ -77,8 +76,8 @@ public class DigestInitHandlerTest {
 	}
 
 	@Test
-	public void testReceiveMSGWorks(final ContextImpl contextImpl, final SessionImpl sess,
-			final MessageMSG message, final Channel channel) throws BEEPException {
+	public void testReceiveMSGWorks(@Mocked final ContextImpl contextImpl, @Mocked final SessionImpl sess,
+			@Mocked final MessageMSG message, @Mocked final Channel channel) throws BEEPException {
 
 		final DigestInitHandler dih = new DigestInitHandler(sess, contextImpl);
 
@@ -100,7 +99,7 @@ public class DigestInitHandlerTest {
 	}
 
 	@Test
-	public void testReceiveMSGSendsErrForNonPiggyback(final ContextImpl contextImpl, final SessionImpl sess, final MessageMSG message)
+	public void testReceiveMSGSendsErrForNonPiggyback(@Mocked final ContextImpl contextImpl, @Mocked final SessionImpl sess, @Mocked final MessageMSG message)
 			throws BEEPException {
 
 		final DigestInitHandler dih = new DigestInitHandler(sess, contextImpl);
@@ -121,8 +120,8 @@ public class DigestInitHandlerTest {
 	}
 
 	@Test
-	public void testReceiveMSGSetsRequestHandlerForPublisher(final ContextImpl contextImpl, final PublisherSessionImpl sess,
-			final MessageMSG message, final Channel channel) throws BEEPException {
+	public void testReceiveMSGSetsRequestHandlerForPublisher(@Mocked final ContextImpl contextImpl, @Mocked final PublisherSessionImpl sess,
+			@Mocked final MessageMSG message, @Mocked final Channel channel) throws BEEPException {
 
 		final DigestInitHandler dih = new DigestInitHandler(sess, contextImpl);
 

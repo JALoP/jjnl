@@ -30,6 +30,8 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import mockit.*;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,7 +56,7 @@ public class ConnectionRequestTest {
     }
 
     @Test
-	public void testConnectionRequestConstructorWorks(final InetAddress address) throws JNLException {
+	public void testConnectionRequestConstructorWorks(@Mocked final InetAddress address) throws JNLException {
 		final ConnectionRequestImpl cr = new ConnectionRequestImpl(address, RecordType.Log, 1, encodings, digests, Role.Publisher, "agent");
 		assertEquals(address, cr.getAddress());
 		assertEquals(RecordType.Log, cr.getRecordType());
@@ -66,12 +68,12 @@ public class ConnectionRequestTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public void testConstructorThrowsExceptionWithUnsetRecordType(final InetAddress address) throws JNLException {
+	public void testConstructorThrowsExceptionWithUnsetRecordType(@Mocked final InetAddress address) throws JNLException {
 		new ConnectionRequestImpl(address, RecordType.Unset, 1, encodings, digests, Role.Publisher, "agent");
 	}
 
 	@Test
-	public void testSetSelectedWorks(final InetAddress address) throws JNLException {
+	public void testSetSelectedWorks(@Mocked final InetAddress address) throws JNLException {
 		final ConnectionRequestImpl cr = new ConnectionRequestImpl(address, RecordType.Log, 1, encodings, digests, Role.Publisher, "agent");
 		cr.setSelectedMessageDigest(digests.get(0));
 		cr.setSelectedXmlEncoding(encodings.get(0));

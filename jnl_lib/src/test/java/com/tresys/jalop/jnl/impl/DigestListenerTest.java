@@ -35,10 +35,7 @@ import java.io.IOException;
 import javax.xml.crypto.dsig.DigestMethod;
 import javax.xml.soap.MimeHeaders;
 
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import mockit.Verifications;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -87,7 +84,7 @@ public class DigestListenerTest {
 	}
 
 	@Test (expected = AbortChannelException.class)
-	public void testDigestListenerReceiveErr(final SubscriberSessionImpl subSess, final Message message)
+	public void testDigestListenerReceiveErr(@Mocked final SubscriberSessionImpl subSess, @Mocked final Message message)
 			throws AbortChannelException {
 		final Map<String, String> map = new HashMap<String, String>();
 		final DigestListener digestListener = new DigestListener(subSess, map);
@@ -95,7 +92,7 @@ public class DigestListenerTest {
 	}
 
 	@Test (expected = AbortChannelException.class)
-	public void testDigestListenerThrowsExceptionOnReceiveAns(final SubscriberSessionImpl subSess, final Message message)
+	public void testDigestListenerThrowsExceptionOnReceiveAns(@Mocked final SubscriberSessionImpl subSess, @Mocked final Message message)
 			throws AbortChannelException {
 		final Map<String, String> map = new HashMap<String, String>();
 		final DigestListener digestListener = new DigestListener(subSess, map);
@@ -103,7 +100,7 @@ public class DigestListenerTest {
 	}
 
 	@Test
-	public void testDigestListenerDoesNothingOnReceiveNul(final SubscriberSessionImpl subSess, final Message message)
+	public void testDigestListenerDoesNothingOnReceiveNul(@Mocked final SubscriberSessionImpl subSess, @Mocked final Message message)
 			throws AbortChannelException {
 		final Map<String, String> map = new HashMap<String, String>();
 		final DigestListener digestListener = new DigestListener(subSess, map);
@@ -111,8 +108,8 @@ public class DigestListenerTest {
 	}
 
 	@Test
-	public void testDigestListenerReceiveRpy(final SubscriberSessionImpl subSess, final Message message, final Channel channel,
-			final InputDataStream ids, final InputDataStreamAdapter isa, final Subscriber subscriber)
+	public void testDigestListenerReceiveRpy(@Mocked final SubscriberSessionImpl subSess, @Mocked final Message message, @Mocked final Channel channel,
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Subscriber subscriber)
 			throws IOException, MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
 
 		final Map<String, DigestStatus> statusMap = new HashMap<String, DigestStatus>();
@@ -157,8 +154,8 @@ public class DigestListenerTest {
 	}
 
 	@Test
-	public void testDigestListenerAddsDigestsBackInReceiveRpy(final Message message, final InputDataStream ids, final Channel channel,
-			final InputDataStreamAdapter isa, final Subscriber subscriber, final org.beepcore.beep.core.Session sess, final InetAddress address)
+	public void testDigestListenerAddsDigestsBackInReceiveRpy(@Mocked final Message message, @Mocked final InputDataStream ids, @Mocked final Channel channel,
+			@Mocked final InputDataStreamAdapter isa, @Mocked final Subscriber subscriber, @Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
 			throws IOException, IllegalAccessException, MissingMimeHeaderException, UnexpectedMimeValueException,
 			BEEPException {
 

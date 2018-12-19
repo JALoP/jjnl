@@ -35,9 +35,7 @@ import java.security.MessageDigest;
 
 import javax.xml.soap.MimeHeaders;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -76,7 +74,7 @@ public class PublisherRequestHandlerTest {
 	}
 
 	@Test
-	public void testPublisherRequestHandlerWorks(final ContextImpl contextImpl) {
+	public void testPublisherRequestHandlerWorks(@Mocked final ContextImpl contextImpl) {
 
 		final PublisherRequestHandler prh =
 			new PublisherRequestHandler(RecordType.Log, contextImpl);
@@ -156,7 +154,7 @@ public class PublisherRequestHandlerTest {
 	}
 */
 	@Test
-	public void testSendErrWorks(final ContextImpl contextImpl, final MessageMSG message)
+	public void testSendErrWorks(@Mocked final ContextImpl contextImpl, @Mocked final MessageMSG message)
 			throws BEEPException {
 		final PublisherRequestHandler prh =
 			new PublisherRequestHandler(RecordType.Log, contextImpl);

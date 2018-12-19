@@ -34,8 +34,7 @@ import java.util.Map;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
-import mockit.Expectations;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -81,8 +80,8 @@ public class PublisherSessionImplTest {
 	}
 
 	@Test
-	public void testConstructorWorks(final InetAddress address, final ContextImpl contextImpl,
-			final Publisher publisher, final org.beepcore.beep.core.Session sess)
+	public void testConstructorWorks(@Mocked final InetAddress address, @Mocked final ContextImpl contextImpl,
+			@Mocked final Publisher publisher, @Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
@@ -99,15 +98,15 @@ public class PublisherSessionImplTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testConstructorThrowsExceptionForNullPublisher(final ContextImpl contextImpl,
-			final org.beepcore.beep.core.Session sess, final InetAddress address) {
+	public void testConstructorThrowsExceptionForNullPublisher(@Mocked final ContextImpl contextImpl,
+			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
 		new PublisherSessionImpl(address, RecordType.Log, null,
 				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
 	}
 
 	@Test
-	public void testRunWorks(final ContextImpl contextImpl, final Publisher publisher,
-			final org.beepcore.beep.core.Session sess, final InetAddress address, final Channel channel)
+	public void testRunWorks(@Mocked final ContextImpl contextImpl, @Mocked final Publisher publisher,
+			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address, @Mocked final Channel channel)
 			throws BEEPException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
@@ -130,8 +129,8 @@ public class PublisherSessionImplTest {
 	}
 
 	@Test
-	public final void testAddDigestWorks(final ContextImpl contextImpl, final Publisher publisher,
-			final org.beepcore.beep.core.Session sess, final InetAddress address)
+	public final void testAddDigestWorks(@Mocked final ContextImpl contextImpl, @Mocked final Publisher publisher,
+			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
 			throws JNLException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
@@ -145,8 +144,8 @@ public class PublisherSessionImplTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testAddDigestThrowsExceptionWithDuplicate(final ContextImpl contextImpl,
-			final Publisher publisher, final org.beepcore.beep.core.Session sess, final InetAddress address)
+	public final void testAddDigestThrowsExceptionWithDuplicate(@Mocked final ContextImpl contextImpl,
+			@Mocked final Publisher publisher, @Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
 			throws JNLException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
@@ -158,8 +157,8 @@ public class PublisherSessionImplTest {
 	}
 
 	@Test
-	public final void testFetchAndRemoveWorks(final ContextImpl contextImpl,final Publisher publisher,
-			final org.beepcore.beep.core.Session sess, final InetAddress address)
+	public final void testFetchAndRemoveWorks(@Mocked final ContextImpl contextImpl,@Mocked final Publisher publisher,
+			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
 			throws JNLException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,

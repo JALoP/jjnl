@@ -38,9 +38,7 @@ import java.util.Map;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import mockit.VerificationsInOrder;
+import mockit.*;
 
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
@@ -142,8 +140,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWithoutPublisher(final Subscriber subscriber,
-            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+    public final void testContextImplConstructorWithoutPublisher(@Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
         assertEquals(null, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
@@ -166,8 +164,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithoutSubscriber(final Publisher publisher,
-            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+    public final void testContextImplConstructorWorksWithoutSubscriber(@Mocked final Publisher publisher,
+            @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(publisher, null, connectionHandler, 100, 150, null, digests, encodings, null);
         assertEquals(publisher, c.getPublisher());
         assertEquals(null, c.getSubscriber());
@@ -189,7 +187,7 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithoutConnectionHandler(final Publisher publisher, final Subscriber subscriber)
+    public final void testContextImplConstructorWorksWithoutConnectionHandler(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber)
             throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, null, 100, 150, null, digests, encodings, null);
         assertEquals(publisher, c.getPublisher());
@@ -212,8 +210,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithTlsRequired(final Publisher publisher, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler, final ProfileConfiguration sslProfile) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+    public final void testContextImplConstructorWorksWithTlsRequired(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler, @Mocked final ProfileConfiguration sslProfile) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, digests, encodings, sslProfile);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
@@ -235,8 +233,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksNullDigests(final Publisher publisher, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+    public final void testContextImplConstructorWorksNullDigests(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, null, encodings, null);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
@@ -261,8 +259,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithEmptyDigests(final Publisher publisher, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+    public final void testContextImplConstructorWorksWithEmptyDigests(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         digests.clear();
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, digests, encodings, null);
         assertEquals(publisher, c.getPublisher());
@@ -289,8 +287,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksWithNullEncodings(final Publisher publisher, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+    public final void testContextImplConstructorWorksWithNullEncodings(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, digests, null, null);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
@@ -315,8 +313,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testContextImplConstructorWorksEmptyEncodings(final Publisher publisher, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+    public final void testContextImplConstructorWorksEmptyEncodings(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         encodings.clear();
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, digests, encodings, null);
         assertEquals(publisher, c.getPublisher());
@@ -342,40 +340,40 @@ public class ContextImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForZeroDigestTimeout(final Publisher publisher,
-            final Subscriber subscriber, final ConnectionHandler connectionHandler) throws BEEPException {
+    public final void testContextImplConstructorThrowsExceptionForZeroDigestTimeout(@Mocked final Publisher publisher,
+            @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler) throws BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 0, 150, null, digests, encodings, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForNegativeDigestTimeout(final Publisher publisher,
-            final Subscriber subscriber, final ConnectionHandler connectionHandler) throws BEEPException {
+    public final void testContextImplConstructorThrowsExceptionForNegativeDigestTimeout(@Mocked final Publisher publisher,
+            @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler) throws BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, -1, 150, null, digests, encodings, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForZeroDigestMax(final Publisher publisher,
-            final Subscriber subscriber, final ConnectionHandler connectionHandler) throws BEEPException {
+    public final void testContextImplConstructorThrowsExceptionForZeroDigestMax(@Mocked final Publisher publisher,
+            @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler) throws BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 0, null, digests, encodings, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testContextImplConstructorThrowsExceptionForNegativeDigestMax(final Publisher publisher,
-            final Subscriber subscriber, final ConnectionHandler connectionHandler) throws BEEPException {
+    public final void testContextImplConstructorThrowsExceptionForNegativeDigestMax(@Mocked final Publisher publisher,
+            @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler) throws BEEPException {
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, -1, null, digests, encodings, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public final void testContextImplConstructorThrowsExceptionWhenSubscribeAndPublisherAreNull(
-            final ConnectionHandler connectionHandler) throws BEEPException {
+            @Mocked final ConnectionHandler connectionHandler) throws BEEPException {
         final ContextImpl c = new ContextImpl(null, null, connectionHandler, 100, 10, null, digests, encodings, null);
 
     }
 
     @Test
-    public final void testAddSessionsWorksForSubscriber(final org.beepcore.beep.core.Session sess,
-            final SubscriberSessionImpl subSess, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler) throws JNLException, IllegalAccessException, BEEPException {
+    public final void testAddSessionsWorksForSubscriber(@Mocked final org.beepcore.beep.core.Session sess,
+            @Mocked final SubscriberSessionImpl subSess, @Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler) throws JNLException, IllegalAccessException, BEEPException {
 
         final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, null, digests, encodings, null);
         c.addSession(sess, subSess);
@@ -388,9 +386,9 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testAddSessionsWorksForPublisher(final org.beepcore.beep.core.Session sess,
-            final PublisherSessionImpl pubSess, final Publisher publisher,
-            final ConnectionHandler connectionHandler) throws JNLException, IllegalAccessException, BEEPException {
+    public final void testAddSessionsWorksForPublisher(@Mocked final org.beepcore.beep.core.Session sess,
+            @Mocked final PublisherSessionImpl pubSess, @Mocked final Publisher publisher,
+            @Mocked final ConnectionHandler connectionHandler) throws JNLException, IllegalAccessException, BEEPException {
 
         final ContextImpl c = new ContextImpl(publisher, null, connectionHandler, 100, 10, null, digests, encodings, null);
         c.addSession(sess, pubSess);
@@ -403,8 +401,8 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testAddSessionsAddsToExistingMap(final InetAddress address, final org.beepcore.beep.core.Session sess,
-            final Subscriber subscriber, final ConnectionHandler connectionHandler)
+    public final void testAddSessionsAddsToExistingMap(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+            @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler)
             throws JNLException, IllegalAccessException, BEEPException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, null, digests, encodings, null);
@@ -421,8 +419,8 @@ public class ContextImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testAddSessionThrowsExceptionWithUnsetRecordType(final InetAddress address, final org.beepcore.beep.core.Session sess, final Subscriber subscriber,
-            final ConnectionHandler connectionHandler) throws JNLException, BEEPException {
+    public final void testAddSessionThrowsExceptionWithUnsetRecordType(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess, @Mocked final Subscriber subscriber,
+            @Mocked final ConnectionHandler connectionHandler) throws JNLException, BEEPException {
 
     	final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, null, digests, encodings, null);
         final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Unset, null, null, null, 0, 0, 1, sess);
@@ -430,8 +428,8 @@ public class ContextImplTest {
     }
 
     @Test(expected = JNLException.class)
-    public final void testAddSessionsFailsWithDuplicateRecordType(final InetAddress address, final org.beepcore.beep.core.Session sess,
-            final Subscriber subscriber, final ConnectionHandler connectionHandler)
+    public final void testAddSessionsFailsWithDuplicateRecordType(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+            @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler)
             throws JNLException, IllegalAccessException, BEEPException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, null, digests, encodings, null);
@@ -442,8 +440,8 @@ public class ContextImplTest {
     }
 
     @Test
-	public final void testFindSubscriberSessionWorks(final InetAddress address, final org.beepcore.beep.core.Session sess,
-            final Subscriber subscriber) throws BEEPException, JNLException {
+	public final void testFindSubscriberSessionWorks(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+            @Mocked final Subscriber subscriber) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
@@ -456,8 +454,8 @@ public class ContextImplTest {
     }
 
 	@Test(expected = JNLException.class)
-	public final void testFindSubscriberSessionThrowsExceptionIfNoSessInMap(final InetAddress address, final org.beepcore.beep.core.Session sess,
-	        final Subscriber subscriber) throws BEEPException, JNLException {
+	public final void testFindSubscriberSessionThrowsExceptionIfNoSessInMap(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	        @Mocked final Subscriber subscriber) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
@@ -465,8 +463,8 @@ public class ContextImplTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testFindSubscriberSessionThrowsExceptionIfNoneFound(final InetAddress address, final org.beepcore.beep.core.Session sess,
-	        final Subscriber subscriber) throws BEEPException, JNLException {
+	public final void testFindSubscriberSessionThrowsExceptionIfNoneFound(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	        @Mocked final Subscriber subscriber) throws BEEPException, JNLException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
 		final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256,
@@ -476,8 +474,8 @@ public class ContextImplTest {
     }
 
 	@Test
-	public final void testFindPublisherSessionWorks(final InetAddress address, final org.beepcore.beep.core.Session sess,
-	        final Publisher publisher) throws BEEPException, JNLException {
+	public final void testFindPublisherSessionWorks(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	        @Mocked final Publisher publisher) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
@@ -490,8 +488,8 @@ public class ContextImplTest {
     }
 
 	@Test(expected = JNLException.class)
-	public final void testFindPublisherSessionThrowsExceptionIfNoSessInMap(final InetAddress address, final org.beepcore.beep.core.Session sess,
-	        final Publisher publisher) throws BEEPException, JNLException {
+	public final void testFindPublisherSessionThrowsExceptionIfNoSessInMap(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	        @Mocked final Publisher publisher) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
@@ -499,8 +497,8 @@ public class ContextImplTest {
     }
 
     @Test(expected = JNLException.class)
-    public final void testFindPublisherSessionThrowsExceptionIfNoneFound(final InetAddress address, final org.beepcore.beep.core.Session sess,
-            final Publisher publisher) throws BEEPException, JNLException {
+    public final void testFindPublisherSessionThrowsExceptionIfNoneFound(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+            @Mocked final Publisher publisher) throws BEEPException, JNLException {
 
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
 		final PublisherSessionImpl pubSess = new PublisherSessionImpl(address, RecordType.Log, publisher, DigestMethod.SHA256, "bar",
@@ -509,8 +507,8 @@ public class ContextImplTest {
 		c.findPublisherSession(sess, 1);
     }
 
-    public final void testListenWorks(final ConnectionHandler connectionHandler, final Subscriber subscriber,
-			final TCPSession session, final TCPSessionCreator tcpSessionCreator)
+    public final void testListenWorks(@Mocked final ConnectionHandler connectionHandler, @Mocked final Subscriber subscriber,
+			@Mocked final TCPSession session, @Mocked final TCPSessionCreator tcpSessionCreator)
 			throws BEEPException, UnknownHostException, JNLException, InterruptedException, IllegalAccessException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
@@ -540,21 +538,21 @@ public class ContextImplTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testListenThrowsExceptionWithNoConnectionHandler(final Subscriber subscriber)
+	public final void testListenThrowsExceptionWithNoConnectionHandler(@Mocked final Subscriber subscriber)
 			throws BEEPException, IllegalArgumentException, UnknownHostException, JNLException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 		c.listen(InetAddress.getByName("localhost"), 0);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public final void testListenThrowsExceptionWithNullInetAddress(final ConnectionHandler connectionHandler, final Subscriber subscriber)
+	public final void testListenThrowsExceptionWithNullInetAddress(@Mocked final ConnectionHandler connectionHandler, @Mocked final Subscriber subscriber)
 			throws BEEPException, IllegalArgumentException, UnknownHostException, JNLException {
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
 		c.listen(null, 0);
 	}
 
 	@Test(expected = ConnectionException.class)
-	public final void testListenThrowsExceptionWhenConnected(final ConnectionHandler connectionHandler, final Subscriber subscriber)
+	public final void testListenThrowsExceptionWhenConnected(@Mocked final ConnectionHandler connectionHandler, @Mocked final Subscriber subscriber)
 			throws BEEPException, UnknownHostException, JNLException, IllegalAccessException {
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
 		connectionStateField.set(c, ConnectionState.CONNECTED);
@@ -563,9 +561,9 @@ public class ContextImplTest {
 
 	@SuppressWarnings({ "unchecked" })
 	@Test
-	public final void testSubscribeWorks(final Subscriber subscriber,
-			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator,
-			final OutputDataStream ods)
+	public final void testSubscribeWorks(@Mocked final Subscriber subscriber,
+			@Mocked final TCPSession session, @Mocked final Channel channel, @Mocked final TCPSessionCreator tcpSessionCreator,
+			@Mocked final OutputDataStream ods)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
@@ -596,7 +594,7 @@ public class ContextImplTest {
 	}
 
 	@Test(expected = ConnectionException.class)
-	public final void testSubscribeThrowsExceptionIfAlreadyConnected(final Subscriber subscriber)
+	public final void testSubscribeThrowsExceptionIfAlreadyConnected(@Mocked final Subscriber subscriber)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 		connectionStateField.set(c, ConnectionState.CONNECTED);
@@ -604,22 +602,22 @@ public class ContextImplTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testSubscribeThrowsExceptionWithNullSubscriber(final Publisher publisher)
+	public final void testSubscribeThrowsExceptionWithNullSubscriber(@Mocked final Publisher publisher)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
 		c.subscribe(InetAddress.getByName("localhost"), 0, Mode.Live, RecordType.Log);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public final void testSubscribeThrowsExceptionWithNullAddress(final Subscriber subscriber)
+	public final void testSubscribeThrowsExceptionWithNullAddress(@Mocked final Subscriber subscriber)
 			throws IllegalAccessException, JNLException, BEEPException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 		c.subscribe(null, 0, Mode.Archive, RecordType.Log);
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testSubscribeThrowsExceptionWithUnsetRecordType(final Subscriber subscriber,
-			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator)
+	public final void testSubscribeThrowsExceptionWithUnsetRecordType(@Mocked final Subscriber subscriber,
+			@Mocked final TCPSession session, @Mocked final Channel channel, @Mocked final TCPSessionCreator tcpSessionCreator)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 
@@ -636,9 +634,9 @@ public class ContextImplTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public final void testPublishWorks(final Publisher publisher,
-			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator,
-			final OutputDataStream ods)
+	public final void testPublishWorks(@Mocked final Publisher publisher,
+			@Mocked final TCPSession session, @Mocked final Channel channel, @Mocked final TCPSessionCreator tcpSessionCreator,
+			@Mocked final OutputDataStream ods)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
@@ -669,7 +667,7 @@ public class ContextImplTest {
 	}
 
 	@Test(expected = ConnectionException.class)
-	public final void testPublishThrowsExceptionIfAlreadyConnected(final Publisher publisher)
+	public final void testPublishThrowsExceptionIfAlreadyConnected(@Mocked final Publisher publisher)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
 		connectionStateField.set(c, ConnectionState.CONNECTED);
@@ -677,22 +675,22 @@ public class ContextImplTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testPublishThrowsExceptionWithNullPublisher(final Subscriber subscriber)
+	public final void testPublishThrowsExceptionWithNullPublisher(@Mocked final Subscriber subscriber)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 		c.publish(InetAddress.getByName("localhost"), 0, Mode.Archive, RecordType.Log);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public final void testPublishThrowsExceptionWithNullAddress(final Publisher publisher)
+	public final void testPublishThrowsExceptionWithNullAddress(@Mocked final Publisher publisher)
 			throws IllegalAccessException, JNLException, BEEPException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
 		c.publish(null, 0, Mode.Live, RecordType.Log);
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testPublishThrowsExceptionWithUnsetRecordType(final Publisher publisher,
-			final TCPSession session, final Channel channel, final TCPSessionCreator tcpSessionCreator)
+	public final void testPublishThrowsExceptionWithUnsetRecordType(@Mocked final Publisher publisher,
+			@Mocked final TCPSession session, @Mocked final Channel channel, @Mocked final TCPSessionCreator tcpSessionCreator)
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
 
