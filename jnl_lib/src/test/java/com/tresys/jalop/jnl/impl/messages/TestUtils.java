@@ -67,6 +67,9 @@ public class TestUtils {
 	protected InputDataStream data;
 	private static Field odsMimeHeaders;
 
+        @Injectable
+        private MockResponseOutputDataStream mockedOutputStream;
+
     @BeforeClass
 	public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
 	    TestUtils.odsMimeHeaders = OutputDataStream.class.getDeclaredField("mimeHeaders");
@@ -1185,9 +1188,8 @@ public class TestUtils {
 		digests.put("1", "123456789abcdef");
 		digests.put("2", "abcdef123456789");
 
-		new MockResponseOutputDataStream();
-
 		final OutputDataStream ods = Utils.createDigestMessage(digests);
+		mockedOutputStream = new MockResponseOutputDataStream();
 		assertNotNull(ods);
 		assertTrue(ods.isComplete());
 	}
@@ -1197,7 +1199,7 @@ public class TestUtils {
 		final Map<String, String> digests = new HashMap<String, String>();
 		digests.put("", "123456789abcdef");
 
-		new MockResponseOutputDataStream();
+		mockedOutputStream = new MockResponseOutputDataStream();
 
 		Utils.createDigestMessage(digests);
 	}
@@ -1207,7 +1209,7 @@ public class TestUtils {
 		final Map<String, String> digests = new HashMap<String, String>();
 		digests.put("1", "");
 
-		new MockResponseOutputDataStream();
+		mockedOutputStream = new MockResponseOutputDataStream();
 
 		Utils.createDigestMessage(digests);
 	}
@@ -1268,13 +1270,14 @@ public class TestUtils {
 		Utils.processDigestMessage(ids);
 	}
 
-	public static class MockResponseOutputDataStream extends MockUp<OutputDataStream> {
+	public final class MockResponseOutputDataStream extends MockUp<OutputDataStream> {
 		@Mock
 		public void $init(final org.beepcore.beep.core.MimeHeaders mh, final BufferSegment bs) throws Exception {
 			assertEquals(Utils.CT_JALOP, mh.getContentType());
 			assertEquals(Utils.MSG_DIGEST_RESP, mh.getHeaderValue(Utils.HDRS_MESSAGE));
 			assertEquals("3", mh.getHeaderValue(Utils.HDRS_COUNT));
-			final String digests = "Invalid=12346\r\nUnknown=12347\r\nConfirmed=12345\r\n";
+
+			final String digests = "Confirmed=12345\r\nInvalid=12346\r\nUnknown=12347\r\n";
 			assertEquals(digests, new String(bs.getData()));
 		}
 	}
@@ -1286,7 +1289,7 @@ public class TestUtils {
 		digests.put("12346", DigestStatus.Invalid);
 		digests.put("12347", DigestStatus.Unknown);
 
-		new MockResponseOutputDataStream();
+		mockedOutputStream = new MockResponseOutputDataStream();
 
 		final OutputDataStream ods = Utils.createDigestResponse(digests);
 		assertNotNull(ods);
@@ -1300,7 +1303,7 @@ public class TestUtils {
 		digests.put("nothing", DigestStatus.Invalid);
 		digests.put("blah", DigestStatus.Unknown);
 
-		new MockResponseOutputDataStream();
+		mockedOutputStream = new MockResponseOutputDataStream();
 
 		Utils.createDigestResponse(digests);
 	}

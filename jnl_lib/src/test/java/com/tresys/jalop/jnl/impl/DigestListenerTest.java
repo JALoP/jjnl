@@ -130,7 +130,8 @@ public class DigestListenerTest {
 				isa.readMessage(); result = m;
 
 				Utils.processDigestResponse(isa, m); result = dr;
-				dr.getMap(); result = statusMap;
+				//dr.getMap(); result = statusMap;
+
 				subSess.getSubscriber(); result = subscriber;
 
 				message.getChannel(); result = channel;
@@ -183,7 +184,7 @@ public class DigestListenerTest {
 				isa.readMessage(); result = m;
 
 				Utils.processDigestResponse(isa, m); result = dr;
-				dr.getMap(); result = statusMap;
+				//dr.getMap(); result = statusMap;
 
 				message.getChannel(); result = channel;
 				channel.getNumber(); result = digestChannel;
