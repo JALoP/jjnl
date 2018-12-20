@@ -35,7 +35,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import mockit.NonStrictExpectations;
+import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -98,7 +98,7 @@ public class ConnectionHandlerImplTest {
 	}
 
 	@Test
-	public void testHandleConnectionRequestNoErrors(final ConnectionRequest connRequest)
+	public void testHandleConnectionRequestNoErrors(@Mocked final ConnectionRequest connRequest)
 			throws UnknownHostException, IllegalAccessException {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
@@ -116,7 +116,7 @@ public class ConnectionHandlerImplTest {
 	}
 
 	@Test
-	public void testHandleConnectionRequestErrorWhenWrongAddress(final ConnectionRequest connRequest, final InetAddress address)
+	public void testHandleConnectionRequestErrorWhenWrongAddress(@Mocked final ConnectionRequest connRequest, @Mocked final InetAddress address)
 			throws UnknownHostException, IllegalAccessException {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
@@ -132,7 +132,7 @@ public class ConnectionHandlerImplTest {
 	}
 
 	@Test
-	public void testHandleConnectionRequestErrorWhenWrongRolePub(final ConnectionRequest connRequest)
+	public void testHandleConnectionRequestErrorWhenWrongRolePub(@Mocked final ConnectionRequest connRequest)
 			throws UnknownHostException, IllegalAccessException {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
@@ -149,7 +149,7 @@ public class ConnectionHandlerImplTest {
 	}
 
 	@Test
-	public void testHandleConnectionRequestErrorWhenWrongRoleSub(final ConnectionRequest connRequest)
+	public void testHandleConnectionRequestErrorWhenWrongRoleSub(@Mocked final ConnectionRequest connRequest)
 			throws UnknownHostException, IllegalAccessException {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(subPeerConfigs);
@@ -166,7 +166,7 @@ public class ConnectionHandlerImplTest {
 	}
 
 	@Test
-	public void testHandleConnectionRequestErrorWhenWrongRecPub(final ConnectionRequest connRequest)
+	public void testHandleConnectionRequestErrorWhenWrongRecPub(@Mocked final ConnectionRequest connRequest)
 			throws UnknownHostException, IllegalAccessException {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
@@ -184,7 +184,7 @@ public class ConnectionHandlerImplTest {
 	}
 
 	@Test
-	public void testHandleConnectionRequestErrorWhenWrongRecSub(final ConnectionRequest connRequest)
+	public void testHandleConnectionRequestErrorWhenWrongRecSub(@Mocked final ConnectionRequest connRequest)
 			throws UnknownHostException, IllegalAccessException {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(subPeerConfigs);
