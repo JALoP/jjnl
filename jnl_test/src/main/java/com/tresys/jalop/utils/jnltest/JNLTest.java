@@ -203,6 +203,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
             synchronized(this) {
                 try {
                     this.wait(config.getSessionTimeout());
+                    this.logger.info("Session timeout exceeded");
                 } catch (final InterruptedException e) {
                     this.logger.info("Someone woke us up");
                 }
