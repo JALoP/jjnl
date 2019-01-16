@@ -5,6 +5,7 @@
   	"sessionTimeout": "00:20:00",
   	"dataClass": [ "audit", "log" ],
   	"input": "./input",
+	"mode": "archive",
   }
   "ssl": {
     "Key Algorithm": "SunX509", 

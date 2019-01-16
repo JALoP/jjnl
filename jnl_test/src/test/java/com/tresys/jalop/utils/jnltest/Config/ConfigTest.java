@@ -78,6 +78,7 @@ public class ConfigTest {
         pub.put("dataClass", dataClassArray);
 	    pub.put("input", "./input");
 	    pub.put("sessionTimeout", "00:00:00");
+	pub.put("mode", "Live");
 
 	    listener = new JSONObject();
 	    listener.put("pendingDigestMax", 128);

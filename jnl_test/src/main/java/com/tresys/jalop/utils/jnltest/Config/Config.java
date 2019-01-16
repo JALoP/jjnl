@@ -422,6 +422,7 @@ public class Config {
         handleDataClass(publisher);
 		setRole(Role.Publisher);
 		setInputPath(new File(itemAsString(INPUT, publisher, true)));
+		setMode(itemAsString(MODE, publisher, true));
 	}
 
 	/**
