@@ -21,11 +21,11 @@
     "Key Algorithm": "SunX509",
     "Key Store Passphrase": "changeit",
     "Key Store Data Type": "file",
-    "Key Store": "listener/server.jks",
+    "Key Store": "keystore/server.jks",
 
     "Trust Algorithm": "SunX509",
     "Trust Store Passphrase": "changeit",
     "Trust Store Data Type": "file",
-    "Trust Store": "listener/remotes.jks",
+    "Trust Store": "keystore/remotes.jks",
   }
 }
