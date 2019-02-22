@@ -38,20 +38,20 @@ public class DigestMessage extends Message {
 
 	/**
 	 * Create a new {@link DigestMessage}
-	 * 
+	 *
 	 * @param nonce
 	 *            The map of nonces and digests sent in the message.
 	 * @param otherHeaders
 	 *            Any additional headers sent as part of this message.
 	 */
-	DigestMessage(Map<String, String> map, MimeHeaders otherHeaders) {
+	public DigestMessage(Map<String, String> map, MimeHeaders otherHeaders) {
 		super(otherHeaders);
 		this.digestMap = map;
 	}
 
 	/**
 	 * Get the map of nonces and digests in this message.
-	 * 
+	 *
 	 * @return the map
 	 */
 	public Map<String, String> getMap() {

@@ -63,7 +63,7 @@ import com.tresys.jalop.utils.jnltest.Config.PeerConfig;
 /**
  * Main class for JNLTest
  */
-public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
+public class JNLTest implements Subscriber, Publisher, ConnectionHandler, JNLTestInterface {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(JNLTest.class);
 	/**
@@ -107,42 +107,48 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	/**
 	 * @return the latestLogNONCE
 	 */
-	public long getLatestLogNONCE() {
+	@Override
+    public long getLatestLogNONCE() {
 		return latestLogNONCE;
 	}
 
 	/**
 	 * @param latestLogNONCE the latestLogNONCE to set
 	 */
-	public void setLatestLogNONCE(final long latestLogNONCE) {
+	@Override
+    public void setLatestLogNONCE(final long latestLogNONCE) {
 		this.latestLogNONCE = latestLogNONCE;
 	}
 
 	/**
 	 * @return the latestAuditNONCE
 	 */
-	public long getLatestAuditNONCE() {
+	@Override
+    public long getLatestAuditNONCE() {
 		return latestAuditNONCE;
 	}
 
 	/**
 	 * @param latestAuditNONCE the latestAuditNONCE to set
 	 */
-	public void setLatestAuditNONCE(final long latestAuditNONCE) {
+	@Override
+    public void setLatestAuditNONCE(final long latestAuditNONCE) {
 		this.latestAuditNONCE = latestAuditNONCE;
 	}
 
 	/**
 	 * @return the latestJournalNONCE
 	 */
-	public long getLatestJournalNONCE() {
+	@Override
+    public long getLatestJournalNONCE() {
 		return latestJournalNONCE;
 	}
 
 	/**
 	 * @param latestJournalNONCE the latestJournalNONCE to set
 	 */
-	public void setLatestJournalNONCE(final long latestJournalNONCE) {
+	@Override
+    public void setLatestJournalNONCE(final long latestJournalNONCE) {
 		this.latestJournalNONCE = latestJournalNONCE;
 	}
 
@@ -164,6 +170,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 		Config config;
 		try {
 			config = Config.parse(args[0]);
+
 		} catch (final IOException e) {
 			System.err.println("Caught IO exception: " + e.getMessage());
 			System.exit(1);

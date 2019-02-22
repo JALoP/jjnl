@@ -34,7 +34,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -224,7 +222,7 @@ public class SubscriberImpl implements Subscriber {
     InputStream journalInputStream = null;
 
     /** The JNLTest associated with this SubscriberImpl. */
-    private final JNLTest jnlTest;
+    private final JNLTestInterface jnlTest;
 
     /**
      * FileFilter to get all sub-directories that match the nonce
@@ -310,7 +308,7 @@ public class SubscriberImpl implements Subscriber {
      *          The {@link InetAddress} of the remote.
      */
     public SubscriberImpl(final RecordType recordType, final File outputRoot,
-            final InetAddress remoteAddr, final JNLTest jnlTest) {
+            final InetAddress remoteAddr, final JNLTestInterface jnlTest) {
         this.recordType = recordType;
         this.remoteIp = remoteAddr.getHostAddress();
         this.jnlTest = jnlTest;
@@ -713,7 +711,7 @@ public class SubscriberImpl implements Subscriber {
                                     final String nonce, final DigestStatus status) {
         boolean ret = true;
         LocalRecordInfo lri;
-        
+
         LOGGER.debug("notifyDigestResponse for nonce: " + nonce + ", status: " + status);
         // try to locate the provided nonce in the map of received digests
         synchronized (this.nonceMap) {
@@ -737,12 +735,12 @@ public class SubscriberImpl implements Subscriber {
                 LOGGER.error("Undefined confirmation status for nonce: " + nonce);
                 return false;
             }
-            
+
             // Store off the status for the record - still in temp
             if (!dumpStatus(lri.statusFile, lri.status)) {
                 ret = false;
             }
-            
+
             // If the digest is confirmed, go ahead and move the record from temp directory
             // Otherwise record stays in temp
             if(DigestStatus.Confirmed.equals(status)) {
