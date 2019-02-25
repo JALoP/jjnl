@@ -80,23 +80,11 @@ public class HttpUtils {
     public static final String DEFAULT_CONTENT_TYPE =
             "application/octet-stream";
 
-        /**
-         * The default <code>DataStream</code> content transfer encoding
-         * ("binary").
-         */
-        public static final String DEFAULT_CONTENT_TRANSFER_ENCODING = "binary";
-
-
-        /**
-         *
-         */
-        public static final String CONTENT_TYPE = "Content-Type";
-
-        /**
-         *
-         */
-        public static final String CONTENT_TRANSFER_ENCODING =
-            "Content-Transfer-Encoding";
+    /**
+     * The default <code>DataStream</code> content transfer encoding
+     * ("binary").
+     */
+    public static final String DEFAULT_CONTENT_TRANSFER_ENCODING = "binary";
 
     public static final String MSG_DIGEST = "digest";
     public static final String MSG_DIGEST_RESP = "digest-response";
@@ -890,8 +878,8 @@ public class HttpUtils {
         final Set<String> ehs = new TreeSet<String>(
                 String.CASE_INSENSITIVE_ORDER);
         ehs.addAll(Arrays.asList(expectedHeaders));
-        ehs.add(CONTENT_TYPE);
-        ehs.add(CONTENT_TRANSFER_ENCODING);
+        ehs.add(HDRS_CONTENT_TYPE);
+        ehs.add(HDRS_CONTENT_TXFR_ENCODING);
 
         final MimeHeaders[] toReturn = new MimeHeaders[2];
         final MimeHeaders knownHeaders = new MimeHeaders();

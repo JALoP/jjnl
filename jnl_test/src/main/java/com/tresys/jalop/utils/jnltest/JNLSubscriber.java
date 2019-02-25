@@ -187,7 +187,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 ServletHandler handler = new ServletHandler();
                 server.setHandler(handler);
 
-                String keystorePath = "/home/cafassom/jalop/jjnl/keystore/keystore.jks";
+                String keystorePath = System.getProperty("user.home") + "/jalop/jjnl/keystore/keystore.jks";
                 File keystoreFile = new File(keystorePath);
                 if (!keystoreFile.exists())
                 {
