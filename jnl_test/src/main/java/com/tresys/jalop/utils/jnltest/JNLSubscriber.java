@@ -231,7 +231,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 sslContextFactory.setExcludeProtocols(excludedProtocols);
 
                 //This forces client certificate to be required
-          //      sslContextFactory.setNeedClientAuth(true);
+                sslContextFactory.setNeedClientAuth(true);
 
                 // HTTPS Configuration
                 // A new HttpConfiguration object is needed for the next connector and
@@ -329,82 +329,80 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
             HashMap<String, String> currHeaders = parseHttpHeaders(request);
 
             //Handles messages
-            if (request.getHeader(HttpUtils.HDRS_MESSAGE).equals(HttpUtils.MSG_INIT))
+
+            //Init message
+            String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
+            if (messageType.equals(HttpUtils.MSG_INIT))
             {
                 System.out.println(HttpUtils.MSG_INIT + " message received.");
 
-                //Return initialize ack
-                response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_ACK);
+                HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
+                HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
 
-
-
-       /*         InitMessage initMessage = null;
-                try
+                //Validates mode, must be publish live or publish archive, sets any error in response.
+                String modeStr = request.getHeader(HttpUtils.HDRS_MODE);
+                if (!HttpUtils.validateMode(modeStr, errorResponseHeaders))
                 {
-                    initMessage = HttpUtils.processInitMessage(currHeaders);
-                }
-                catch (MissingMimeHeaderException mmhe)
-                {
-                    //Send initialize nack in response
-
-                    InitNackMessage initNackMsg = null;
-                    try
-                    {
-                        initNackMsg = HttpUtils.processInitNack(currHeaders);
-                    }
-                    catch (UnexpectedMimeValueException umve2)
-                    {
-                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                        return;
-                    }
-                    catch (MissingMimeHeaderException mmhe2)
-                    {
-                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                        return;
-                    }
-
-                    //Sets the error message in the response
-                    HttpUtils.createInitNackMessage(initNackMsg.getErrorList(), response);
-
+                    System.out.println("Initialize message failed due to invalid mode value of: " + modeStr);
+                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
                     return;
                 }
-                catch (UnexpectedMimeValueException umve)
+
+                //Validates supported digest
+                String digestStr = request.getHeader(HttpUtils.HDRS_ACCEPT_DIGEST);
+                if (!HttpUtils.validateDigests(digestStr, successResponseHeaders, errorResponseHeaders))
                 {
-                    //Send initialize nack in response
-                    InitNackMessage initNackMsg = null;
-                    try
-                    {
-                        initNackMsg = HttpUtils.processInitNack(currHeaders);
-                    }
-                    catch (UnexpectedMimeValueException umve2)
-                    {
-                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                        return;
-                    }
-                    catch (MissingMimeHeaderException mmhe2)
-                    {
-                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                        return;
-                    }
-
-                    //Sets the error message in the response.
-                    HttpUtils.createInitNackMessage(initNackMsg.getErrorList(), response);
-
+                    System.out.println("Initialize message failed due to none of the following digests supported: " + digestStr);
+                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
                     return;
-                }  */
+                }
 
-           //     HttpUtils.createInitAckMessage(initMessage., encoding, response);  */
+                //Validates supported xml compression
+                String xmlCompressionsStr = request.getHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION);
+                if (!HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorResponseHeaders))
+                {
+                    System.out.println("Initialize message failed due to none of the following xml compressions supported: " + xmlCompressionsStr);
+                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                    return;
+                }
+
+                //Validates data class
+                String dataClassStr = request.getHeader(HttpUtils.HDRS_DATA_CLASS);
+                if (!HttpUtils.validateDataClass(dataClassStr))
+                {
+                    System.out.println("Initialize message failed due to none of the following data classes: " + dataClassStr);
+                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                    return;
+                }
+
+                //Validates version
+                String versionStr = request.getHeader(HttpUtils.HDRS_VERSION);
+                if (!HttpUtils.validateVersion(versionStr, errorResponseHeaders))
+                {
+                    System.out.println("Initialize message failed due to unsupported version: " + versionStr);
+                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                    return;
+                }
+
+                //If no errors, return initialize-ack with supported digest/encoding
+                System.out.println("Initialize message is valid, sending intialize-ack");
+                HttpUtils.setInitializeAckResponse(successResponseHeaders, response);
             }
             else
             {
-                System.out.println("Invalid message received, returning server error");
+                System.out.println("Invalid message received: " + messageType + " , returning server error");
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return;
             }
 
+            ///TODO - Handle the body of the http post, needed for record binary transfer, demo file transfer currently
+            readBinaryDataFromRequest(request);
 
-            ///Binary transfer, needed for record transfer
+            writeBinaryDataToResponse(response);
+        }
 
+        public void readBinaryDataFromRequest(HttpServletRequest request) throws IOException
+        {
             //Handle the binary data that was posted from the client in the request
             byte[] readRequestBuffer = new byte[524288]; //new byte[10240];
             File fileUpload = new File("/tmp/upload.bin");
@@ -418,10 +416,14 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                     output.write(readRequestBuffer, 0, length);
                 }
             }
+        }
 
+        public void writeBinaryDataToResponse(HttpServletResponse response) throws IOException
+        {
             //Handle sending the binary data response to the client.   Currently this is just sending the file back to the
             //client, but would be changed to send the jalop binary response instead.
             byte[] writeResponseBuffer = new byte[524288]; //new byte[10240];
+            File fileUpload = new File("/tmp/upload.bin");
             try (
                     InputStream input = new FileInputStream(fileUpload);
                     OutputStream output = response.getOutputStream(); //Just need to write to this output stream to send response back to client

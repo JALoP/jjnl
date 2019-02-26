@@ -75,8 +75,15 @@ int main(void)
         struct curl_slist *headers=NULL;
         headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
 
-        //Set Jalop init message
+        //Set Jalop initialize message
         headers = curl_slist_append(headers, "JAL-Message: initialize");
+
+        //Valid initialize headers
+        headers = curl_slist_append(headers, "JAL-Mode: publish-live");
+        headers = curl_slist_append(headers, "JAL-Accept-Digest: junk digest,http://www.w3.org/2001/04/xmlenc#sha256");
+        headers = curl_slist_append(headers, "JAL-Accept-XML-Compression: junk compression, none");
+        headers = curl_slist_append(headers, "JAL-Data-Class: journal");
+        headers = curl_slist_append(headers, "JAL-Version: 2.0");
 
         /* set URL to get here */
         //  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/JalopHttpServer/JalopHttpServlet");
