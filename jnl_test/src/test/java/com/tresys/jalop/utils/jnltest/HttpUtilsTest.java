@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//import javax.xml.crypto.dsig.DigestMethod;
-
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
@@ -91,7 +89,7 @@ public class HttpUtilsTest {
 		assertTrue(returned);
 		for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-Digest");
-			assertEquals(entry.getValue(), "http://www.w3.org/2001/04/xmlenc#sha256"); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "http://www.w3.org/2001/04/xmlenc#sha256");
 		}
 		assertTrue(errorResponseHeaders.isEmpty());
 	}
@@ -106,7 +104,7 @@ public class HttpUtilsTest {
 		assertTrue(returned);
 		for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-Digest");
-			assertEquals(entry.getValue(), "http://www.w3.org/2001/04/xmlenc#sha256"); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "http://www.w3.org/2001/04/xmlenc#sha256");
 		}
 		assertTrue(errorResponseHeaders.isEmpty());
 	}
@@ -138,7 +136,7 @@ public class HttpUtilsTest {
 		assertTrue(returned);
 		for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-XML-Compression");
-			assertEquals(entry.getValue(), "none"); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "none");
 		}
 		assertTrue(errorResponseHeaders.isEmpty());
 	}
@@ -153,7 +151,7 @@ public class HttpUtilsTest {
 		assertTrue(returned);
 		for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-XML-Compression");
-			assertEquals(entry.getValue(), "none"); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "none");
 		}
 		assertTrue(errorResponseHeaders.isEmpty());
 	}
@@ -168,7 +166,7 @@ public class HttpUtilsTest {
 		assertTrue(returned);
 		for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-XML-Compression");
-			assertEquals(entry.getValue(), "exi-1.0"); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "exi-1.0");
 		}
 		assertTrue(errorResponseHeaders.isEmpty());
 	}
@@ -183,7 +181,7 @@ public class HttpUtilsTest {
 		assertTrue(returned);
 		for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-XML-Compression");
-			assertEquals(entry.getValue(), "deflate"); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "deflate");
 		}
 		assertTrue(errorResponseHeaders.isEmpty());
 	}
@@ -198,7 +196,7 @@ public class HttpUtilsTest {
 		assertTrue(returned);
 		for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-XML-Compression");
-			assertEquals(entry.getValue(), "exi-1.0"); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "exi-1.0");
 		}
 		assertTrue(errorResponseHeaders.isEmpty());
 	}
@@ -214,7 +212,7 @@ public class HttpUtilsTest {
 		assertTrue(successResponseHeaders.isEmpty());
 		for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-Unsupported-XML-Compression");
-			assertEquals(entry.getValue(), ""); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "");
 		}
 	}
 
@@ -229,7 +227,7 @@ public class HttpUtilsTest {
 		assertTrue(successResponseHeaders.isEmpty());
 		for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
 			assertEquals(entry.getKey(), "JAL-Unsupported-XML-Compression");
-			assertEquals(entry.getValue(), ""); // Debated between this and DigestMethod.SHA256
+			assertEquals(entry.getValue(), "");
 		}
 	}
 
