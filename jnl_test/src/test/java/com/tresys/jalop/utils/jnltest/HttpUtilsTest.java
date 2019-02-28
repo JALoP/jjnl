@@ -14,6 +14,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
+import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+
 /**
  * Tests for common utility class.
  */
@@ -231,35 +234,35 @@ public class HttpUtilsTest {
 	}
 
 	@Test
-	public void testValidateDataClassWorksForJournal() {
+	public void testValidateDataClassWorksForJournal() throws MissingMimeHeaderException, UnexpectedMimeValueException {
 		final String dataClass = "journal";
 		final boolean returned = HttpUtils.validateDataClass(dataClass);
 		assertTrue(returned);
 	}
 
 	@Test
-	public void testValidateDataClassWorksForAudit() {
+	public void testValidateDataClassWorksForAudit() throws MissingMimeHeaderException, UnexpectedMimeValueException {
 		final String dataClass = "audit";
 		final boolean returned = HttpUtils.validateDataClass(dataClass);
 		assertTrue(returned);
 	}
 
 	@Test
-	public void testValidateDataClassWorksForLog() {
+	public void testValidateDataClassWorksForLog() throws MissingMimeHeaderException, UnexpectedMimeValueException {
 		final String dataClass = "log";
 		final boolean returned = HttpUtils.validateDataClass(dataClass);
 		assertTrue(returned);
 	}
 
-	@Test
-	public void testValidateDataClassFailsForEmptyDataClass() {
+	@Test(expected = MissingMimeHeaderException.class)
+	public void testValidateDataClassFailsForEmptyDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
 		final String dataClass = "";
 		final boolean returned = HttpUtils.validateDataClass(dataClass);
 		assertFalse(returned);
 	}
 
-	@Test
-	public void testValidateDataClassFailsForInvalidDataClass() {
+	@Test(expected = UnexpectedMimeValueException.class)
+	public void testValidateDataClassFailsForInvalidDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
 		final String dataClass = "invalid";
 		final boolean returned = HttpUtils.validateDataClass(dataClass);
 		assertFalse(returned);
