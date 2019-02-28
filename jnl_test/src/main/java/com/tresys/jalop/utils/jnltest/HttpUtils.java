@@ -9,6 +9,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
 
+import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
+import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
  */
@@ -199,21 +202,22 @@ public class HttpUtils {
     }
 
     //Validates dataClass, must be journal, audit, or log
-    public static boolean validateDataClass(String dataClass)
+    public static boolean validateDataClass(String dataClass) throws MissingMimeHeaderException, UnexpectedMimeValueException
     {
         String currDataClass = checkForEmptyString(dataClass, HDRS_DATA_CLASS);
 
         if (currDataClass == null)
         {
             //TODO, no header response for invalid data class currently exists, before exception was just thrown.
-            return false;
+            throw new MissingMimeHeaderException(HDRS_DATA_CLASS);
         }
 
         //Checks if supported data class.
         if (!currDataClass.equals(JOURNAL) && !currDataClass.equals(AUDIT) && !currDataClass.equals(LOG))
         {
             //TODO, no header response for invalid data class currently exists, before exception was just thrown.
-            return false;
+            throw new UnexpectedMimeValueException(HDRS_DATA_CLASS, JOURNAL
+                    + ", " + AUDIT + ", or " + LOG, dataClass);
         }
 
         //TODO check to only allow journal/audit/log based upon config file

@@ -46,6 +46,8 @@ import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
+import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 
@@ -368,10 +370,28 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 
                 //Validates data class
                 String dataClassStr = request.getHeader(HttpUtils.HDRS_DATA_CLASS);
-                if (!HttpUtils.validateDataClass(dataClassStr))
+
+                try
                 {
-                    System.out.println("Initialize message failed due to none of the following data classes: " + dataClassStr);
-                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                    HttpUtils.validateDataClass(dataClassStr);
+                }
+                catch (MissingMimeHeaderException mmhe)
+                {
+                    System.out.println("Initialize message failed due to missing header: " + HttpUtils.HDRS_DATA_CLASS);
+
+                    //TODO jalop spec needs changed to return why this failed since it currently doesn't support a header for this, but for now just sending server 500 error
+                    //HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    return;
+
+                }
+                catch (UnexpectedMimeValueException umve)
+                {
+                    System.out.println("Initialize message failed due to none of the following data classes supported: " + dataClassStr);
+
+                    //TODO jalop spec needs changed to return why this failed since it currently doesn't support a header for this, but for now just sending server 500 error
+                    //HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     return;
                 }
 
