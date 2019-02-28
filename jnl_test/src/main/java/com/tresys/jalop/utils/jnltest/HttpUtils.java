@@ -5,13 +5,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
-import javax.xml.soap.MimeHeader;
-import javax.xml.soap.MimeHeaders;
 
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
@@ -135,6 +131,17 @@ public class HttpUtils {
         return true;
     }
 
+    public static List<String> parseHeaderList(String currHeader)
+    {
+        String[] splitHeader = currHeader.split(",");
+        for (int i = 0; i < splitHeader.length; i++)
+        {
+            splitHeader[i] = splitHeader[i].trim();
+        }
+
+        return Arrays.asList(splitHeader);
+    }
+
     //Validates supported digest
     public static boolean validateDigests(String digests,  HashMap<String, String> successResponseHeaders, HashMap<String, String> errorResponseHeaders)
     {
@@ -146,7 +153,7 @@ public class HttpUtils {
             return false;
         }
 
-        List<String> acceptDigests = Arrays.asList(currDigests.split(","));
+        List<String> acceptDigests = parseHeaderList(digests);
 
         //Check to ensure the digest is valid, the first one found is the preferred value (currently only SHA256)
         for (String currDigest : acceptDigests)
@@ -173,7 +180,7 @@ public class HttpUtils {
             return false;
         }
 
-        List<String> acceptedXmlCompressions = Arrays.asList(currXmlCompressions.split(","));
+        List<String> acceptedXmlCompressions = parseHeaderList(currXmlCompressions);
 
         //Check to ensure the encoding is valid, only xml accepted, the first one found is the preferred value
         List<String> supportedXmlCompressionList = Arrays.asList(SUPPORTED_XML_COMPRESSIONS);
@@ -191,7 +198,7 @@ public class HttpUtils {
         return false;
     }
 
-    //Validates mode, must be publish live or publish archive
+    //Validates dataClass, must be journal, audit, or log
     public static boolean validateDataClass(String dataClass)
     {
         String currDataClass = checkForEmptyString(dataClass, HDRS_DATA_CLASS);
@@ -282,39 +289,5 @@ public class HttpUtils {
             }
         }
         return sb.toString();
-    }
-
-    /**
-     * @param is
-     *            The http headers {@link HashMap<String, String>} that holds the
-     *            message.
-     * @param expectedHeaders
-     *            List of expected headers
-     * @return an array of 2 {@link MimeHeaders}, the first {@link MimeHeader}
-     *         is the expected headers, the second is any remaining headers.
-     */
-    static MimeHeaders[] splitHeaders(HashMap<String, String> httpHeaders,
-            final String... expectedHeaders)  {
-        final Set<String> ehs = new TreeSet<String>(
-                String.CASE_INSENSITIVE_ORDER);
-        ehs.addAll(Arrays.asList(expectedHeaders));
-        ehs.add(HDRS_CONTENT_TYPE);
-        ehs.add(HDRS_CONTENT_TXFR_ENCODING);
-
-        final MimeHeaders[] toReturn = new MimeHeaders[2];
-        final MimeHeaders knownHeaders = new MimeHeaders();
-        final MimeHeaders otherHeaders = new MimeHeaders();
-        toReturn[0] = knownHeaders;
-        toReturn[1] = otherHeaders;
-
-        for (Map.Entry<String, String> entry : httpHeaders.entrySet()) {
-            if (ehs.contains(entry.getKey())) {
-                knownHeaders.addHeader(entry.getKey(), entry.getValue());
-            } else {
-                otherHeaders.addHeader(entry.getKey(), entry.getValue());
-            }
-        }
-
-        return toReturn;
     }
 }
