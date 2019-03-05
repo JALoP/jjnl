@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
+#include <uuid/uuid.h>
+#include <stdlib.h>
 
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
@@ -48,7 +50,12 @@ int main(void)
     CURLcode res;
 
     //Path to where the binary file data return in the http response will be written to.
-    static const char *outputFilename = "output.iso";
+    uuid_t id;
+    uuid_generate(id);
+
+    char *outputFilename = malloc(100);
+    uuid_unparse(id, outputFilename);
+
     FILE *outputFile;
 
     FILE *fd;
@@ -121,13 +128,17 @@ int main(void)
             /* write the page body to this file handle */
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, outputFile);
 
-            curl_easy_perform(curl); /* post away! */
+            res = curl_easy_perform(curl); /* post away! */
 
             /* Check for errors */
             if(res != CURLE_OK)
             {
                 fprintf(stderr, "curl_easy_perform() failed: %s\n",
                 curl_easy_strerror(res));
+            }
+            else
+            {
+                fprintf(stdout, "Successfully written data to file:  %s\n",  outputFilename);
             }
         }
 

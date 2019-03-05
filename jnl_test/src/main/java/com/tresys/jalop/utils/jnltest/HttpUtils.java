@@ -1,5 +1,6 @@
 package com.tresys.jalop.utils.jnltest;
 
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -94,6 +95,19 @@ public class HttpUtils {
 
     public static final String NONCE = "nonce";
     public static final String STATUS = "status";
+
+
+    public static String getDigest(MessageDigest md)
+    {
+        byte[] digest = md.digest();
+        String hexDgst = "";
+        for (byte b : digest) {
+            hexDgst = hexDgst + String.format("%02x",b);
+        }
+
+        return hexDgst;
+    }
+
 
     public static void setInitializeNackResponse(HashMap<String, String> responseHeaders, HttpServletResponse response)
     {

@@ -7,11 +7,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLEngine;
 import javax.servlet.ServletException;
@@ -57,6 +60,10 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
     {
         /** Logger for this class */
         private static final Logger logger = Logger.getLogger(JNLTest.class);
+
+        private static AtomicInteger requestCount = new AtomicInteger();
+        static final int BUFFER_SIZE = 4096;
+
         /**
          * Configuration for this instance of JNLTest.
          */
@@ -175,6 +182,8 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 
 
         private void start() throws Exception{
+
+            requestCount.set(0);
             if (this.config.getRole() == Role.Subscriber)
             {
                 // Create a basic jetty server object that will listen on port 8080.
@@ -330,6 +339,11 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 
             HashMap<String, String> currHeaders = parseHttpHeaders(request);
 
+            Integer currRequestCount = requestCount.incrementAndGet();
+
+            System.out.println("request: " + currRequestCount.toString() + " started");
+
+
             //Handles messages
 
             //Init message
@@ -416,34 +430,64 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
             }
 
             ///TODO - Handle the body of the http post, needed for record binary transfer, demo file transfer currently
-            readBinaryDataFromRequest(request);
+            String digest = readBinaryDataFromRequest(request, currRequestCount);
+            System.out.println("The digest value is: " + digest);
 
-            writeBinaryDataToResponse(response);
+            //Sets digest in the response
+            response.setHeader(HttpUtils.HDRS_DIGEST, digest);
+
+            writeBinaryDataToResponse(response, currRequestCount);
+
+            System.out.println("request: " + currRequestCount.toString() + " finished");
+
+
         }
 
-        public void readBinaryDataFromRequest(HttpServletRequest request) throws IOException
+        public String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException
         {
-            //Handle the binary data that was posted from the client in the request
-            byte[] readRequestBuffer = new byte[524288]; //new byte[10240];
-            File fileUpload = new File("/tmp/upload.bin");
-            try (
+            try
+            {
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+                //Handle the binary data that was posted from the client in the request
+                byte[] readRequestBuffer = new byte[BUFFER_SIZE]; //new byte[524288]; //new byte[10240];
+                String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
+                File outputDir = new File(outputDirStr);
+                if (!outputDir.isDirectory())
+                {
+                    outputDir.mkdirs();
+                }
+                File fileUpload = new File(outputDirStr + currRequestCount +".bin");
+                try (
                     InputStream input = request.getInputStream(); //Reading the binary post data in the request
                     OutputStream output = new FileOutputStream(fileUpload);
                     )
-            {
-                for (int length = 0; (length = input.read(readRequestBuffer)) > 0;)
                 {
-                    output.write(readRequestBuffer, 0, length);
+                    for (int length = 0; (length = input.read(readRequestBuffer)) > 0;)
+                    {
+                        //Builds digest
+                        md.update(readRequestBuffer, 0, length);
+                        output.write(readRequestBuffer, 0, length);
+                    }
                 }
+
+                //Generates digest
+                return HttpUtils.getDigest(md);
+            }
+            catch (NoSuchAlgorithmException nsae)
+            {
+                System.out.println("Digest algorithm not supported");
+                return null;
             }
         }
 
-        public void writeBinaryDataToResponse(HttpServletResponse response) throws IOException
+        public void writeBinaryDataToResponse(HttpServletResponse response, int currRequestCount) throws IOException
         {
             //Handle sending the binary data response to the client.   Currently this is just sending the file back to the
             //client, but would be changed to send the jalop binary response instead.
             byte[] writeResponseBuffer = new byte[524288]; //new byte[10240];
-            File fileUpload = new File("/tmp/upload.bin");
+            String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
+            File fileUpload = new File(outputDirStr + currRequestCount +".bin");
             try (
                     InputStream input = new FileInputStream(fileUpload);
                     OutputStream output = response.getOutputStream(); //Just need to write to this output stream to send response back to client
@@ -454,6 +498,8 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                     output.write(writeResponseBuffer, 0, length);
                 }
             }
+
+            fileUpload.delete();
         }
 
         @Override
