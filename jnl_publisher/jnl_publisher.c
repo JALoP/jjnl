@@ -80,7 +80,7 @@ int main(void)
     if(curl)
     {
         struct curl_slist *headers=NULL;
-        headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+        headers = curl_slist_append(headers, "Content-Type: application/http+jalop");
         headers = curl_slist_append(headers, "Transfer-Encoding: binary");
 
         //Set Jalop initialize message
