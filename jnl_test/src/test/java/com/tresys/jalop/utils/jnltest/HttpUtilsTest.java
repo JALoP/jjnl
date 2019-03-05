@@ -39,7 +39,7 @@ public class HttpUtilsTest {
 
     /**
      * Sets up the server for the web service.
-     * 
+     *
      * @throws Exception
      */
     @BeforeClass
@@ -50,13 +50,13 @@ public class HttpUtilsTest {
         server.setHandler(handler);
 
         handler.addServletWithMapping(JNLSubscriber.class, "/*");
-        
+
         server.start();
     }
 
     /**
      * Stops the web service server.
-     * 
+     *
      * @throws Exception
      */
     @AfterClass
@@ -66,7 +66,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInitializeJournalReturnsInitializeAck() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -87,7 +87,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInitializeAuditReturnsInitializeAck() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -108,7 +108,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInitializeLogReturnsInitializeAck() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -129,7 +129,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInvalidModeReturnsInitializeNack() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -150,7 +150,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInvalidDigestReturnsInitializeNack() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -171,7 +171,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInvalidXmlCompressionReturnsInitializeNack() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -192,7 +192,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInvalidDataClassReturnsServerError() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -211,7 +211,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testInvalidVersionReturnsInitializeNack() throws ClientProtocolException, IOException {
-        
+
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
@@ -275,7 +275,7 @@ public class HttpUtilsTest {
             assertEquals(entry.getValue(), "");
         }
     }
-    
+
     @Test
     public void testValidateModeFailsForEmptyMode() {
 
