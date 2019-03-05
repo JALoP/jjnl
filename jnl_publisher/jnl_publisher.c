@@ -81,6 +81,7 @@ int main(void)
     {
         struct curl_slist *headers=NULL;
         headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+        headers = curl_slist_append(headers, "Transfer-Encoding: binary");
 
         //Set Jalop initialize message
         headers = curl_slist_append(headers, "JAL-Message: initialize");
