@@ -36,11 +36,11 @@ public class JNLJournalServlet extends HttpServlet implements JNLServlet
             HttpServletResponse response)
                     throws ServletException, IOException {
 
-        HttpUtils.handleRequest(request, response, getMode());
+        HttpUtils.handleRequest(request, response, getSupportedDataClass());
     }
 
     @Override
-    public String getMode() {
+    public String getSupportedDataClass() {
         return "journal";
     }
 }

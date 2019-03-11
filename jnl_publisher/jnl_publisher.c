@@ -26,9 +26,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <curl/curl.h>
-#include <uuid/uuid.h>
 #include <stdlib.h>
-
 
 static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -48,15 +46,6 @@ int main(void)
 {
     CURL *curl;
     CURLcode res;
-
-    //Path to where the binary file data return in the http response will be written to.
-    uuid_t id;
-    uuid_generate(id);
-
-    //char *outputFilename = malloc(100);
-    //uuid_unparse(id, outputFilename);
-
-    //FILE *outputFile;
 
     FILE *fd;
     struct stat file_info;
@@ -93,8 +82,6 @@ int main(void)
         headers = curl_slist_append(headers, "JAL-Data-Class: audit");
         headers = curl_slist_append(headers, "JAL-Version: 2.0");
 
-        /* set URL to get here */
-        //  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/JalopHttpServer/JalopHttpServlet");
         //URL to the servlet processing the post
         curl_easy_setopt(curl, CURLOPT_URL, "https://localhost:8444/audit");
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -122,27 +109,19 @@ int main(void)
         //Function to read response headers
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
 
-        /* open the file */
-        //outputFile = fopen(outputFilename, "wb");
-        //if(outputFile)
-        //{
-            /* write the page body to this file handle */
-       //     curl_easy_setopt(curl, CURLOPT_WRITEDATA, outputFile);
+        //Perform the post
+        res = curl_easy_perform(curl); /* post away! */
 
-            res = curl_easy_perform(curl); /* post away! */
-
-            /* Check for errors */
-            if(res != CURLE_OK)
-            {
-                fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
-            }
-            else
-            {
-                fprintf(stdout, "Request was sucessful\n");
-            //    fprintf(stdout, "Successfully written data to file:  %s\n",  outputFilename);
-            }
-       // }
+        /* Check for errors */
+        if(res != CURLE_OK)
+        {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n",
+            curl_easy_strerror(res));
+        }
+        else
+        {
+            fprintf(stdout, "Request was sucessful\n");
+        }
 
         /* always cleanup */
         curl_easy_cleanup(curl);
