@@ -226,7 +226,7 @@ public class HttpUtils {
     }
 
     //Validates dataClass, must be journal, audit, or log
-    public static boolean validateDataClass(String dataClass, String mode, HashMap<String, String> errorResponseHeaders)
+    public static boolean validateDataClass(String dataClass, String supportedDataClass, HashMap<String, String> errorResponseHeaders)
     {
         String currDataClass = checkForEmptyString(dataClass, HDRS_DATA_CLASS);
 
@@ -237,7 +237,7 @@ public class HttpUtils {
         }
 
         //Checks if supported data class.
-        if (!currDataClass.equals(mode))
+        if (!currDataClass.equals(supportedDataClass))
         {
             errorResponseHeaders.put(HDRS_UNSUPPORTED_DATACLASS, "");
             return false;
@@ -280,7 +280,7 @@ public class HttpUtils {
         return currHeaders;
     }
 
-    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, String mode) throws IOException
+    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, String supportedDataClass) throws IOException
     {
         //Mainly for debugging right now, prints out headers to console.
         HttpUtils.parseHttpHeaders(request);
@@ -330,7 +330,7 @@ public class HttpUtils {
             //Validates data class
             String dataClassStr = request.getHeader(HttpUtils.HDRS_DATA_CLASS);
 
-            if (!HttpUtils.validateDataClass(dataClassStr, mode, errorResponseHeaders))
+            if (!HttpUtils.validateDataClass(dataClassStr, supportedDataClass, errorResponseHeaders))
             {
                 System.out.println("Initialize message failed due to unsupported data class: " + dataClassStr);
                 HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
