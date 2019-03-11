@@ -1,4 +1,4 @@
-package com.tresys.jalop.utils.jnltest;
+package com.tresys.jalop.jnl.impl.http;
 
 import java.io.File;
 import java.io.FileInputStream;
