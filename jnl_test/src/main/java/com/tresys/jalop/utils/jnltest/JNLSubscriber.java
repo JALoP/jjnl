@@ -1,26 +1,14 @@
 package com.tresys.jalop.utils.jnltest;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLEngine;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.http.HttpVersion;
@@ -31,15 +19,11 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.json.simple.parser.ParseException;
 
-import com.tresys.jalop.jnl.ConnectAck;
-import com.tresys.jalop.jnl.ConnectNack;
-import com.tresys.jalop.jnl.Connection;
 import com.tresys.jalop.jnl.ConnectionHandler;
-import com.tresys.jalop.jnl.ConnectionRequest;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
@@ -49,20 +33,15 @@ import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
-import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
-import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 
 
     @SuppressWarnings("serial")
-    public class JNLSubscriber extends HttpServlet implements Subscriber, ConnectionHandler, JNLTestInterface
+    public class JNLSubscriber implements Subscriber, JNLTestInterface
     {
         /** Logger for this class */
         private static final Logger logger = Logger.getLogger(JNLTest.class);
-
-        private static AtomicInteger requestCount = new AtomicInteger();
-        static final int BUFFER_SIZE = 4096;
 
         /**
          * Configuration for this instance of JNLTest.
@@ -183,7 +162,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 
         private void start() throws Exception{
 
-            requestCount.set(0);
+            HttpUtils.requestCount.set(0);
             if (this.config.getRole() == Role.Subscriber)
             {
                 // Create a basic jetty server object that will listen on port 8080.
@@ -195,7 +174,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 // The ServletHandler is a dead simple way to create a context handler
                 // that is backed by an instance of a Servlet.
                 // This handler then needs to be registered with the Server object.
-                ServletHandler handler = new ServletHandler();
+                ServletContextHandler handler =  new ServletContextHandler(server, "/");
                 server.setHandler(handler);
 
                 String keystorePath = System.getProperty("user.home") + "/jalop/jjnl/keystore/keystore.jks";
@@ -282,7 +261,11 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 // IMPORTANT:
                 // This is a raw Servlet, not a Servlet that has been configured
                 // through a web.xml @WebServlet annotation, or anything similar.
-                handler.addServletWithMapping(JNLSubscriber.class, "/*");
+
+                //Separate endpoints/servlets for audit,journal,log
+                handler.addServlet(JNLLogServlet.class, "/log");
+                handler.addServlet(JNLAuditServlet.class, "/audit");
+                handler.addServlet(JNLJournalServlet.class, "/journal");
 
                 // Start things up!
                 server.start();
@@ -303,203 +286,6 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
             } else {
                 System.out.println("Invalid configuration, only subscriber mode is supported");
             }
-        }
-
-        @Override
-        protected void doGet( HttpServletRequest request,
-                              HttpServletResponse response ) throws ServletException,
-                                                            IOException
-        {
-            response.setContentType("text/html");
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().println("<h1>Jalop Jetty Server</h1>");
-        }
-
-        public HashMap<String, String> parseHttpHeaders(HttpServletRequest request)
-        {
-            HashMap<String, String> currHeaders = new HashMap<String, String>();
-            Enumeration<String> headerNames = request.getHeaderNames();
-
-            while (headerNames.hasMoreElements()) {
-
-                String headerName = headerNames.nextElement();
-                String headerValue = request.getHeader(headerName);
-                System.out.println("Header Name: " + headerName + " Header Value: " + headerValue);
-
-                currHeaders.put(headerName, headerValue);
-            }
-
-            return currHeaders;
-        }
-
-        @Override
-        protected void doPost(HttpServletRequest request,
-                HttpServletResponse response)
-                        throws ServletException, IOException {
-
-            HashMap<String, String> currHeaders = parseHttpHeaders(request);
-
-            Integer currRequestCount = requestCount.incrementAndGet();
-
-            System.out.println("request: " + currRequestCount.toString() + " started");
-
-
-            //Handles messages
-
-            //Init message
-            String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
-            if (messageType.equals(HttpUtils.MSG_INIT))
-            {
-                System.out.println(HttpUtils.MSG_INIT + " message received.");
-
-                HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-                HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
-
-                //Validates mode, must be publish live or publish archive, sets any error in response.
-                String modeStr = request.getHeader(HttpUtils.HDRS_MODE);
-                if (!HttpUtils.validateMode(modeStr, errorResponseHeaders))
-                {
-                    System.out.println("Initialize message failed due to invalid mode value of: " + modeStr);
-                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                    return;
-                }
-
-                //Validates supported digest
-                String digestStr = request.getHeader(HttpUtils.HDRS_ACCEPT_DIGEST);
-                if (!HttpUtils.validateDigests(digestStr, successResponseHeaders, errorResponseHeaders))
-                {
-                    System.out.println("Initialize message failed due to none of the following digests supported: " + digestStr);
-                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                    return;
-                }
-
-                //Validates supported xml compression
-                String xmlCompressionsStr = request.getHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION);
-                if (!HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorResponseHeaders))
-                {
-                    System.out.println("Initialize message failed due to none of the following xml compressions supported: " + xmlCompressionsStr);
-                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                    return;
-                }
-
-                //Validates data class
-                String dataClassStr = request.getHeader(HttpUtils.HDRS_DATA_CLASS);
-
-                try
-                {
-                    HttpUtils.validateDataClass(dataClassStr);
-                }
-                catch (MissingMimeHeaderException mmhe)
-                {
-                    System.out.println("Initialize message failed due to missing header: " + HttpUtils.HDRS_DATA_CLASS);
-
-                    //TODO jalop spec needs changed to return why this failed since it currently doesn't support a header for this, but for now just sending server 500 error
-                    //HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    return;
-
-                }
-                catch (UnexpectedMimeValueException umve)
-                {
-                    System.out.println("Initialize message failed due to none of the following data classes supported: " + dataClassStr);
-
-                    //TODO jalop spec needs changed to return why this failed since it currently doesn't support a header for this, but for now just sending server 500 error
-                    //HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    return;
-                }
-
-                //Validates version
-                String versionStr = request.getHeader(HttpUtils.HDRS_VERSION);
-                if (!HttpUtils.validateVersion(versionStr, errorResponseHeaders))
-                {
-                    System.out.println("Initialize message failed due to unsupported version: " + versionStr);
-                    HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                    return;
-                }
-
-                //If no errors, return initialize-ack with supported digest/encoding
-                System.out.println("Initialize message is valid, sending intialize-ack");
-                HttpUtils.setInitializeAckResponse(successResponseHeaders, response);
-            }
-            else
-            {
-                System.out.println("Invalid message received: " + messageType + " , returning server error");
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                return;
-            }
-
-            ///TODO - Handle the body of the http post, needed for record binary transfer, demo file transfer currently
-            String digest = readBinaryDataFromRequest(request, currRequestCount);
-            System.out.println("The digest value is: " + digest);
-
-            //Sets digest in the response
-            response.setHeader(HttpUtils.HDRS_DIGEST, digest);
-
-            writeBinaryDataToResponse(response, currRequestCount);
-
-            System.out.println("request: " + currRequestCount.toString() + " finished");
-
-
-        }
-
-        public String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException
-        {
-            try
-            {
-                MessageDigest md = MessageDigest.getInstance("SHA-256");
-
-                //Handle the binary data that was posted from the client in the request
-                byte[] readRequestBuffer = new byte[BUFFER_SIZE]; //new byte[524288]; //new byte[10240];
-                String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
-                File outputDir = new File(outputDirStr);
-                if (!outputDir.isDirectory())
-                {
-                    outputDir.mkdirs();
-                }
-                File fileUpload = new File(outputDirStr + currRequestCount +".bin");
-                try (
-                    InputStream input = request.getInputStream(); //Reading the binary post data in the request
-                    OutputStream output = new FileOutputStream(fileUpload);
-                    )
-                {
-                    for (int length = 0; (length = input.read(readRequestBuffer)) > 0;)
-                    {
-                        //Builds digest
-                        md.update(readRequestBuffer, 0, length);
-                        output.write(readRequestBuffer, 0, length);
-                    }
-                }
-
-                //Generates digest
-                return HttpUtils.getDigest(md);
-            }
-            catch (NoSuchAlgorithmException nsae)
-            {
-                System.out.println("Digest algorithm not supported");
-                return null;
-            }
-        }
-
-        public void writeBinaryDataToResponse(HttpServletResponse response, int currRequestCount) throws IOException
-        {
-            //Handle sending the binary data response to the client.   Currently this is just sending the file back to the
-            //client, but would be changed to send the jalop binary response instead.
-            byte[] writeResponseBuffer = new byte[524288]; //new byte[10240];
-            String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
-            File fileUpload = new File(outputDirStr + currRequestCount +".bin");
-            try (
-                    InputStream input = new FileInputStream(fileUpload);
-                    OutputStream output = response.getOutputStream(); //Just need to write to this output stream to send response back to client
-                    )
-            {
-                for (int length = 0; (length = input.read(writeResponseBuffer)) > 0;)
-                {
-                    output.write(writeResponseBuffer, 0, length);
-                }
-            }
-
-            fileUpload.delete();
         }
 
         @Override
@@ -556,30 +342,5 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
             return this.config.getMode();
         }
 
-        @Override
-        public Set<ConnectError> handleConnectionRequest(final boolean rejecting,
-                final ConnectionRequest connRequest) {
-            return this.connectionHandler.handleConnectionRequest(rejecting, connRequest);
-        }
-
-        @Override
-        public void sessionClosed(final Session sess) {
-            this.connectionHandler.sessionClosed(sess);
-        }
-
-        @Override
-        public void connectionClosed(final Connection conn) {
-            this.connectionHandler.connectionClosed(conn);
-        }
-
-        @Override
-        public void connectAck(final Session sess, final ConnectAck ack) {
-            this.connectionHandler.connectAck(sess, ack);
-        }
-
-        @Override
-        public void connectNack(final Session sess, final ConnectNack nack) {
-            this.connectionHandler.connectNack(sess, nack);
-        }
     }
 

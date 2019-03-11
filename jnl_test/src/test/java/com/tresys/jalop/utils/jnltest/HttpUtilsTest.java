@@ -1,9 +1,9 @@
 package com.tresys.jalop.utils.jnltest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,10 +18,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,6 +35,7 @@ public class HttpUtilsTest {
     private static Server server;
     private static int HTTP_PORT = 8080;
 
+
     /**
      * Sets up the server for the web service.
      *
@@ -49,7 +48,7 @@ public class HttpUtilsTest {
         ServletHandler handler = new ServletHandler();
         server.setHandler(handler);
 
-        handler.addServletWithMapping(JNLSubscriber.class, "/*");
+        handler.addServletWithMapping(JNLLogServlet.class, "/log");
 
         server.start();
     }
@@ -444,35 +443,41 @@ public class HttpUtilsTest {
     @Test
     public void testValidateDataClassWorksForJournal() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "journal";
-        final boolean returned = HttpUtils.validateDataClass(dataClass);
+        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertTrue(returned);
     }
 
     @Test
     public void testValidateDataClassWorksForAudit() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "audit";
-        final boolean returned = HttpUtils.validateDataClass(dataClass);
+        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertTrue(returned);
     }
 
     @Test
     public void testValidateDataClassWorksForLog() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "log";
-        final boolean returned = HttpUtils.validateDataClass(dataClass);
+        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertTrue(returned);
     }
 
     @Test(expected = MissingMimeHeaderException.class)
     public void testValidateDataClassFailsForEmptyDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "";
-        final boolean returned = HttpUtils.validateDataClass(dataClass);
+        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertFalse(returned);
     }
 
     @Test(expected = UnexpectedMimeValueException.class)
     public void testValidateDataClassFailsForInvalidDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "invalid";
-        final boolean returned = HttpUtils.validateDataClass(dataClass);
+        final String mode = "journal";
+        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final boolean returned = HttpUtils.validateDataClass(dataClass, mode, errorResponseHeaders);
         assertFalse(returned);
     }
 

@@ -53,10 +53,10 @@ int main(void)
     uuid_t id;
     uuid_generate(id);
 
-    char *outputFilename = malloc(100);
-    uuid_unparse(id, outputFilename);
+    //char *outputFilename = malloc(100);
+    //uuid_unparse(id, outputFilename);
 
-    FILE *outputFile;
+    //FILE *outputFile;
 
     FILE *fd;
     struct stat file_info;
@@ -90,13 +90,13 @@ int main(void)
         headers = curl_slist_append(headers, "JAL-Mode: publish-live");
         headers = curl_slist_append(headers, "JAL-Accept-Digest: junk digest,http://www.w3.org/2001/04/xmlenc#sha256");
         headers = curl_slist_append(headers, "JAL-Accept-XML-Compression: junk compression, none");
-        headers = curl_slist_append(headers, "JAL-Data-Class: journal");
+        headers = curl_slist_append(headers, "JAL-Data-Class: audit");
         headers = curl_slist_append(headers, "JAL-Version: 2.0");
 
         /* set URL to get here */
         //  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:8080/JalopHttpServer/JalopHttpServlet");
         //URL to the servlet processing the post
-        curl_easy_setopt(curl, CURLOPT_URL, "https://localhost:8444/");
+        curl_easy_setopt(curl, CURLOPT_URL, "https://localhost:8444/audit");
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
         //Disable verify server cert with known CAs to use for development with self signed certs
@@ -123,11 +123,11 @@ int main(void)
         curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
 
         /* open the file */
-        outputFile = fopen(outputFilename, "wb");
-        if(outputFile)
-        {
+        //outputFile = fopen(outputFilename, "wb");
+        //if(outputFile)
+        //{
             /* write the page body to this file handle */
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, outputFile);
+       //     curl_easy_setopt(curl, CURLOPT_WRITEDATA, outputFile);
 
             res = curl_easy_perform(curl); /* post away! */
 
@@ -139,9 +139,10 @@ int main(void)
             }
             else
             {
-                fprintf(stdout, "Successfully written data to file:  %s\n",  outputFilename);
+                fprintf(stdout, "Request was sucessful\n");
+            //    fprintf(stdout, "Successfully written data to file:  %s\n",  outputFilename);
             }
-        }
+       // }
 
         /* always cleanup */
         curl_easy_cleanup(curl);

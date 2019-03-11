@@ -1,22 +1,31 @@
 package com.tresys.jalop.utils.jnltest;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
-
-import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
-import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
  */
 public class HttpUtils {
+    public static AtomicInteger requestCount = new AtomicInteger();
+    private static final int BUFFER_SIZE = 4096;
 
     public static final String AUDIT = "audit";
     public static final String BINARY = "binary";
@@ -62,6 +71,7 @@ public class HttpUtils {
     public static final String HDRS_ACCEPT_XML_COMPRESSION="JAL-Accept-XML-Compression";
     public static final String HDRS_UNSUPPORTED_XML_COMPRESSION = "JAL-Unsupported-XML-Compression";
     public static final String HDRS_XML_COMPRESSION = "JAL-XML-Compression";
+    public static final String HDRS_UNSUPPORTED_DATACLASS = "JAL-Unsupported-Data-Class";
 
     //Additional constants
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
@@ -216,22 +226,21 @@ public class HttpUtils {
     }
 
     //Validates dataClass, must be journal, audit, or log
-    public static boolean validateDataClass(String dataClass) throws MissingMimeHeaderException, UnexpectedMimeValueException
+    public static boolean validateDataClass(String dataClass, String mode, HashMap<String, String> errorResponseHeaders)
     {
         String currDataClass = checkForEmptyString(dataClass, HDRS_DATA_CLASS);
 
         if (currDataClass == null)
         {
-            //TODO, no header response for invalid data class currently exists, before exception was just thrown.
-            throw new MissingMimeHeaderException(HDRS_DATA_CLASS);
+            errorResponseHeaders.put(HDRS_UNSUPPORTED_DATACLASS, "");
+            return false;
         }
 
         //Checks if supported data class.
-        if (!currDataClass.equals(JOURNAL) && !currDataClass.equals(AUDIT) && !currDataClass.equals(LOG))
+        if (!currDataClass.equals(mode))
         {
-            //TODO, no header response for invalid data class currently exists, before exception was just thrown.
-            throw new UnexpectedMimeValueException(HDRS_DATA_CLASS, JOURNAL
-                    + ", " + AUDIT + ", or " + LOG, dataClass);
+            errorResponseHeaders.put(HDRS_UNSUPPORTED_DATACLASS, "");
+            return false;
         }
 
         //TODO check to only allow journal/audit/log based upon config file
@@ -253,6 +262,170 @@ public class HttpUtils {
 
         return true;
     }
+
+    public static HashMap<String, String> parseHttpHeaders(HttpServletRequest request)
+    {
+        HashMap<String, String> currHeaders = new HashMap<String, String>();
+        Enumeration<String> headerNames = request.getHeaderNames();
+
+        while (headerNames.hasMoreElements()) {
+
+            String headerName = headerNames.nextElement();
+            String headerValue = request.getHeader(headerName);
+            System.out.println("Header Name: " + headerName + " Header Value: " + headerValue);
+
+            currHeaders.put(headerName, headerValue);
+        }
+
+        return currHeaders;
+    }
+
+    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, String mode) throws IOException
+    {
+        //Mainly for debugging right now, prints out headers to console.
+        HttpUtils.parseHttpHeaders(request);
+
+        Integer currRequestCount = requestCount.incrementAndGet();
+
+        System.out.println("request: " + currRequestCount.toString() + " started");
+
+        //Handles messages
+
+        //Init message
+        String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
+        if (messageType.equals(HttpUtils.MSG_INIT))
+        {
+            System.out.println(HttpUtils.MSG_INIT + " message received.");
+
+            HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
+            HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+
+            //Validates mode, must be publish live or publish archive, sets any error in response.
+            String modeStr = request.getHeader(HttpUtils.HDRS_MODE);
+            if (!HttpUtils.validateMode(modeStr, errorResponseHeaders))
+            {
+                System.out.println("Initialize message failed due to invalid mode value of: " + modeStr);
+                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                return;
+            }
+
+            //Validates supported digest
+            String digestStr = request.getHeader(HttpUtils.HDRS_ACCEPT_DIGEST);
+            if (!HttpUtils.validateDigests(digestStr, successResponseHeaders, errorResponseHeaders))
+            {
+                System.out.println("Initialize message failed due to none of the following digests supported: " + digestStr);
+                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                return;
+            }
+
+            //Validates supported xml compression
+            String xmlCompressionsStr = request.getHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION);
+            if (!HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorResponseHeaders))
+            {
+                System.out.println("Initialize message failed due to none of the following xml compressions supported: " + xmlCompressionsStr);
+                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                return;
+            }
+
+            //Validates data class
+            String dataClassStr = request.getHeader(HttpUtils.HDRS_DATA_CLASS);
+
+            if (!HttpUtils.validateDataClass(dataClassStr, mode, errorResponseHeaders))
+            {
+                System.out.println("Initialize message failed due to unsupported data class: " + dataClassStr);
+                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                return;
+            }
+
+            //Validates version
+            String versionStr = request.getHeader(HttpUtils.HDRS_VERSION);
+            if (!HttpUtils.validateVersion(versionStr, errorResponseHeaders))
+            {
+                System.out.println("Initialize message failed due to unsupported version: " + versionStr);
+                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
+                return;
+            }
+
+            //If no errors, return initialize-ack with supported digest/encoding
+            System.out.println("Initialize message is valid, sending intialize-ack");
+            HttpUtils.setInitializeAckResponse(successResponseHeaders, response);
+        }
+        else
+        {
+            System.out.println("Invalid message received: " + messageType + " , returning server error");
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
+        }
+
+        ///TODO - Handle the body of the http post, needed for record binary transfer, demo file transfer currently
+        String digest = HttpUtils.readBinaryDataFromRequest(request, currRequestCount);
+        System.out.println("The digest value is: " + digest);
+
+        //Sets digest in the response
+        response.setHeader(HttpUtils.HDRS_DIGEST, digest);
+
+        System.out.println("request: " + currRequestCount.toString() + " finished");
+    }
+
+    public static String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException
+    {
+        try
+        {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+            //Handle the binary data that was posted from the client in the request
+            byte[] readRequestBuffer = new byte[BUFFER_SIZE]; //new byte[524288]; //new byte[10240];
+            String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
+            File outputDir = new File(outputDirStr);
+            if (!outputDir.isDirectory())
+            {
+                outputDir.mkdirs();
+            }
+            File fileUpload = new File(outputDirStr + currRequestCount +".bin");
+            try (
+                InputStream input = request.getInputStream(); //Reading the binary post data in the request
+                OutputStream output = new FileOutputStream(fileUpload);
+                )
+            {
+                for (int length = 0; (length = input.read(readRequestBuffer)) > 0;)
+                {
+                    //Builds digest
+                    md.update(readRequestBuffer, 0, length);
+                    output.write(readRequestBuffer, 0, length);
+                }
+            }
+
+            //Generates digest
+            return HttpUtils.getDigest(md);
+        }
+        catch (NoSuchAlgorithmException nsae)
+        {
+            System.out.println("Digest algorithm not supported");
+            return null;
+        }
+    }
+
+    public static void writeBinaryDataToResponse(HttpServletResponse response, int currRequestCount) throws IOException
+    {
+        //Handle sending the binary data response to the client.   Currently this is just sending the file back to the
+        //client, but would be changed to send the jalop binary response instead.
+        byte[] writeResponseBuffer = new byte[524288]; //new byte[10240];
+        String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
+        File fileUpload = new File(outputDirStr + currRequestCount +".bin");
+        try (
+                InputStream input = new FileInputStream(fileUpload);
+                OutputStream output = response.getOutputStream(); //Just need to write to this output stream to send response back to client
+                )
+        {
+            for (int length = 0; (length = input.read(writeResponseBuffer)) > 0;)
+            {
+                output.write(writeResponseBuffer, 0, length);
+            }
+        }
+
+        fileUpload.delete();
+    }
+
 
     /**
      * Helper utility to check that a passed in string is non-null and contains
