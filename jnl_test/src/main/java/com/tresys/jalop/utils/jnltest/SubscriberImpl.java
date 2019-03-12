@@ -58,6 +58,7 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
 
 /**
  * Sample implementation of a {@link Subscriber}. This {@link Subscriber} simply

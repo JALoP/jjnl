@@ -56,6 +56,7 @@ import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
+import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.PeerConfig;

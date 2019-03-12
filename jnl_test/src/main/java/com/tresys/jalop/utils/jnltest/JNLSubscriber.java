@@ -33,6 +33,11 @@ import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
+import com.tresys.jalop.jnl.impl.http.JNLAuditServlet;
+import com.tresys.jalop.jnl.impl.http.JNLJournalServlet;
+import com.tresys.jalop.jnl.impl.http.JNLLogServlet;
+import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 
