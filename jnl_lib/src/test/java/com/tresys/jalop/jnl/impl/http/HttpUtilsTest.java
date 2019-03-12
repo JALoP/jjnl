@@ -241,7 +241,7 @@ public class HttpUtilsTest {
     public void testValidateModeWorksWithPublishLive() {
 
         final String mode = "publish-live";
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
@@ -251,7 +251,7 @@ public class HttpUtilsTest {
     public void testValidateModeWorksWithPublishArchive() {
 
         final String mode = "publish-archival";
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
@@ -261,12 +261,11 @@ public class HttpUtilsTest {
     public void testValidateModeFailsWithSubscribeLive() {
 
         final String mode = "subscribe-live";
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
         assertFalse(returned);
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-Mode");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Mode");
         }
     }
 
@@ -274,12 +273,11 @@ public class HttpUtilsTest {
     public void testValidateModeFailsWithSubscribeArchive() {
 
         final String mode = "subscribe-archival";
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
         assertFalse(returned);
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-Mode");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Mode");
         }
     }
 
@@ -287,12 +285,11 @@ public class HttpUtilsTest {
     public void testValidateModeFailsForEmptyMode() {
 
         final String mode = "";
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
         assertFalse(returned);
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-Mode");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Mode");
         }
     }
 
@@ -301,7 +298,7 @@ public class HttpUtilsTest {
 
         final String digests = "http://www.w3.org/2001/04/xmlenc#sha256";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
         assertTrue(returned);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -316,7 +313,7 @@ public class HttpUtilsTest {
 
         final String digests = "junk digest,http://www.w3.org/2001/04/xmlenc#sha256";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
         assertTrue(returned);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -333,13 +330,12 @@ public class HttpUtilsTest {
 
         final String digests = "";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
         assertFalse(returned);
         assertTrue(successResponseHeaders.isEmpty());
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-Digest");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Digest");
         }
     }
 
@@ -348,7 +344,7 @@ public class HttpUtilsTest {
 
         final String xmlCompressions = "none";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertTrue(returned);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -363,7 +359,7 @@ public class HttpUtilsTest {
 
         final String xmlCompressions = "junk compression,none";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertTrue(returned);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -378,7 +374,7 @@ public class HttpUtilsTest {
 
         final String xmlCompressions = "exi-1.0";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertTrue(returned);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -393,7 +389,7 @@ public class HttpUtilsTest {
 
         final String xmlCompressions = "deflate";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertTrue(returned);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -408,7 +404,7 @@ public class HttpUtilsTest {
 
         final String xmlCompressions = "exi-1.0,deflate";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertTrue(returned);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -423,13 +419,12 @@ public class HttpUtilsTest {
 
         final String xmlCompressions = "";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertFalse(returned);
         assertTrue(successResponseHeaders.isEmpty());
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-XML-Compression");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-XML-Compression");
         }
     }
 
@@ -438,20 +433,19 @@ public class HttpUtilsTest {
 
         final String xmlCompressions = "invalid";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        final HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertFalse(returned);
         assertTrue(successResponseHeaders.isEmpty());
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-XML-Compression");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-XML-Compression");
         }
     }
 
     @Test
     public void testValidateDataClassWorksForJournal() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "journal";
-        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertTrue(returned);
     }
@@ -459,7 +453,7 @@ public class HttpUtilsTest {
     @Test
     public void testValidateDataClassWorksForAudit() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "audit";
-        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertTrue(returned);
     }
@@ -467,14 +461,14 @@ public class HttpUtilsTest {
     @Test
     public void testValidateDataClassWorksForLog() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "log";
-        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertTrue(returned);
     }
 
     public void testValidateDataClassFailsForEmptyDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "";
-        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
         assertFalse(returned);
     }
@@ -482,7 +476,7 @@ public class HttpUtilsTest {
     public void testValidateDataClassFailsForInvalidDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "invalid";
         final String mode = "journal";
-        HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+        List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDataClass(dataClass, mode, errorResponseHeaders);
         assertFalse(returned);
     }
@@ -490,7 +484,7 @@ public class HttpUtilsTest {
     @Test
     public void testValidateVersionWorks() {
         final String version = "2.0";
-        final HashMap<String, String> errorResponseHeaders = new HashMap<String, String>();
+        final List<String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateVersion(version, errorResponseHeaders);
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
@@ -499,24 +493,22 @@ public class HttpUtilsTest {
     @Test
     public void testValidateVersionFailsForEmptyVersion() {
         final String version = "";
-        final HashMap<String, String> errorResponseHeaders = new HashMap<String, String>();
+        final List<String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateVersion(version, errorResponseHeaders);
         assertFalse(returned);
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-Version");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Version");
         }
     }
 
     @Test
     public void testValidateVersionFailsForInvalidVersion() {
         final String version = "1.0";
-        final HashMap<String, String> errorResponseHeaders = new HashMap<String, String>();
+        final List<String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateVersion(version, errorResponseHeaders);
         assertFalse(returned);
-        for (Map.Entry<String, String> entry : errorResponseHeaders.entrySet()) {
-            assertEquals(entry.getKey(), "JAL-Unsupported-Version");
-            assertEquals(entry.getValue(), "");
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Version");
         }
     }
 

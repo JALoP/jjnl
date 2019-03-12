@@ -1,13 +1,13 @@
 package com.tresys.jalop.jnl.impl.http;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -72,6 +72,7 @@ public class HttpUtils {
     public static final String HDRS_UNSUPPORTED_XML_COMPRESSION = "JAL-Unsupported-XML-Compression";
     public static final String HDRS_XML_COMPRESSION = "JAL-XML-Compression";
     public static final String HDRS_UNSUPPORTED_DATACLASS = "JAL-Unsupported-Data-Class";
+    public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
 
     //Additional constants
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
@@ -119,13 +120,10 @@ public class HttpUtils {
     }
 
 
-    public static void setInitializeNackResponse(HashMap<String, String> responseHeaders, HttpServletResponse response)
+    public static void setInitializeNackResponse(List<String> errorMessages, HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_NACK);
-
-        for (Map.Entry<String, String> entry : responseHeaders.entrySet()) {
-            response.setHeader(entry.getKey(), entry.getValue());
-        }
+        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
     public static void setInitializeAckResponse(HashMap<String, String> responseHeaders, HttpServletResponse response)
@@ -138,20 +136,20 @@ public class HttpUtils {
     }
 
     //Validates mode, must be publish live or publish archive
-    public static boolean validateMode(String mode, HashMap<String, String> errorResponseHeaders)
+    public static boolean validateMode(String mode, List<String> errorResponseHeaders)
     {
         String currMode = checkForEmptyString(mode, HDRS_MODE);
 
         if (currMode == null)
         {
-            errorResponseHeaders.put(HDRS_UNSUPPORTED_MODE, "");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_MODE);
             return false;
         }
 
         //Checks if supported mode
         if (!currMode.equals(MSG_PUBLISH_LIVE) && !currMode.equals(MSG_PUBLISH_ARCHIVE))
         {
-            errorResponseHeaders.put(HDRS_UNSUPPORTED_MODE, "");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_MODE);
             return false;
         }
 
@@ -170,13 +168,13 @@ public class HttpUtils {
     }
 
     //Validates supported digest
-    public static boolean validateDigests(String digests,  HashMap<String, String> successResponseHeaders, HashMap<String, String> errorResponseHeaders)
+    public static boolean validateDigests(String digests,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
         String currDigests = checkForEmptyString(digests, HDRS_ACCEPT_DIGEST);
 
         if (currDigests == null)
         {
-            errorResponseHeaders.put(HDRS_UNSUPPORTED_DIGEST, "");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_DIGEST);
             return false;
         }
 
@@ -192,18 +190,18 @@ public class HttpUtils {
             }
         }
 
-        errorResponseHeaders.put(HDRS_UNSUPPORTED_DIGEST, "");
+        errorResponseHeaders.add(HDRS_UNSUPPORTED_DIGEST);
         return false;
     }
 
     //Validates supported xml compression
-    public static boolean validateXmlCompression(String xmlCompressions,  HashMap<String, String> successResponseHeaders, HashMap<String, String> errorResponseHeaders)
+    public static boolean validateXmlCompression(String xmlCompressions,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
         String currXmlCompressions = checkForEmptyString(xmlCompressions, HDRS_ACCEPT_XML_COMPRESSION);
 
         if (currXmlCompressions == null)
         {
-            errorResponseHeaders.put(HDRS_UNSUPPORTED_XML_COMPRESSION, "");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_XML_COMPRESSION);
             return false;
         }
 
@@ -221,25 +219,36 @@ public class HttpUtils {
             }
         }
 
-        errorResponseHeaders.put(HDRS_UNSUPPORTED_XML_COMPRESSION, "");
+        errorResponseHeaders.add(HDRS_UNSUPPORTED_XML_COMPRESSION);
         return false;
     }
 
+    public static String convertListToString(List<String> messageList)
+    {
+        String headerStr = "";
+        if (messageList != null)
+        {
+            headerStr = String.join("|", messageList);
+        }
+
+        return headerStr;
+    }
+
     //Validates dataClass, must be journal, audit, or log
-    public static boolean validateDataClass(String dataClass, String supportedDataClass, HashMap<String, String> errorResponseHeaders)
+    public static boolean validateDataClass(String dataClass, String supportedDataClass, List<String> errorResponseHeaders)
     {
         String currDataClass = checkForEmptyString(dataClass, HDRS_DATA_CLASS);
 
         if (currDataClass == null)
         {
-            errorResponseHeaders.put(HDRS_UNSUPPORTED_DATACLASS, "");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
             return false;
         }
 
         //Checks if supported data class.
         if (!currDataClass.equals(supportedDataClass))
         {
-            errorResponseHeaders.put(HDRS_UNSUPPORTED_DATACLASS, "");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
             return false;
         }
 
@@ -249,14 +258,14 @@ public class HttpUtils {
     }
 
     //Validates version, must be 2.0
-    public static boolean validateVersion(String version, HashMap<String, String> errorResponseHeaders)
+    public static boolean validateVersion(String version, List<String> errorResponseHeaders)
     {
         String currVersion = checkForEmptyString(version, HDRS_VERSION);
 
         //Checks if supported version, only 2.0 is currently supported
         if (currVersion == null || !currVersion.equals(SUPPORTED_VERSION))
         {
-            errorResponseHeaders.put(HDRS_UNSUPPORTED_VERSION, "");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_VERSION);
             return false;
         }
 
@@ -298,7 +307,7 @@ public class HttpUtils {
             System.out.println(HttpUtils.MSG_INIT + " message received.");
 
             HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-            HashMap <String,String> errorResponseHeaders = new HashMap<String,String>();
+            List <String> errorResponseHeaders = new ArrayList<String>();
 
             //Validates mode, must be publish live or publish archive, sets any error in response.
             String modeStr = request.getHeader(HttpUtils.HDRS_MODE);
