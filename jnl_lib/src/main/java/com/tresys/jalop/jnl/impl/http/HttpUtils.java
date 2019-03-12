@@ -7,17 +7,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
 
 /**
@@ -117,22 +114,6 @@ public class HttpUtils {
         }
 
         return hexDgst;
-    }
-
-
-    public static void setInitializeNackResponse(List<String> errorMessages, HttpServletResponse response)
-    {
-        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_NACK);
-        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
-    }
-
-    public static void setInitializeAckResponse(HashMap<String, String> responseHeaders, HttpServletResponse response)
-    {
-        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_ACK);
-
-        for (Map.Entry<String, String> entry : responseHeaders.entrySet()) {
-            response.setHeader(entry.getKey(), entry.getValue());
-        }
     }
 
     //Validates mode, must be publish live or publish archive
@@ -287,93 +268,6 @@ public class HttpUtils {
         }
 
         return currHeaders;
-    }
-
-    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, String supportedDataClass) throws IOException
-    {
-        //Mainly for debugging right now, prints out headers to console.
-        HttpUtils.parseHttpHeaders(request);
-
-        Integer currRequestCount = requestCount.incrementAndGet();
-
-        System.out.println("request: " + currRequestCount.toString() + " started");
-
-        //Handles messages
-
-        //Init message
-        String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
-        if (messageType.equals(HttpUtils.MSG_INIT))
-        {
-            System.out.println(HttpUtils.MSG_INIT + " message received.");
-
-            HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-            List <String> errorResponseHeaders = new ArrayList<String>();
-
-            //Validates mode, must be publish live or publish archive, sets any error in response.
-            String modeStr = request.getHeader(HttpUtils.HDRS_MODE);
-            if (!HttpUtils.validateMode(modeStr, errorResponseHeaders))
-            {
-                System.out.println("Initialize message failed due to invalid mode value of: " + modeStr);
-                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                return;
-            }
-
-            //Validates supported digest
-            String digestStr = request.getHeader(HttpUtils.HDRS_ACCEPT_DIGEST);
-            if (!HttpUtils.validateDigests(digestStr, successResponseHeaders, errorResponseHeaders))
-            {
-                System.out.println("Initialize message failed due to none of the following digests supported: " + digestStr);
-                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                return;
-            }
-
-            //Validates supported xml compression
-            String xmlCompressionsStr = request.getHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION);
-            if (!HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorResponseHeaders))
-            {
-                System.out.println("Initialize message failed due to none of the following xml compressions supported: " + xmlCompressionsStr);
-                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                return;
-            }
-
-            //Validates data class
-            String dataClassStr = request.getHeader(HttpUtils.HDRS_DATA_CLASS);
-
-            if (!HttpUtils.validateDataClass(dataClassStr, supportedDataClass, errorResponseHeaders))
-            {
-                System.out.println("Initialize message failed due to unsupported data class: " + dataClassStr);
-                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                return;
-            }
-
-            //Validates version
-            String versionStr = request.getHeader(HttpUtils.HDRS_VERSION);
-            if (!HttpUtils.validateVersion(versionStr, errorResponseHeaders))
-            {
-                System.out.println("Initialize message failed due to unsupported version: " + versionStr);
-                HttpUtils.setInitializeNackResponse(errorResponseHeaders, response);
-                return;
-            }
-
-            //If no errors, return initialize-ack with supported digest/encoding
-            System.out.println("Initialize message is valid, sending intialize-ack");
-            HttpUtils.setInitializeAckResponse(successResponseHeaders, response);
-        }
-        else
-        {
-            System.out.println("Invalid message received: " + messageType + " , returning server error");
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return;
-        }
-
-        ///TODO - Handle the body of the http post, needed for record binary transfer, demo file transfer currently
-        String digest = HttpUtils.readBinaryDataFromRequest(request, currRequestCount);
-        System.out.println("The digest value is: " + digest);
-
-        //Sets digest in the response
-        response.setHeader(HttpUtils.HDRS_DIGEST, digest);
-
-        System.out.println("request: " + currRequestCount.toString() + " finished");
     }
 
     public static String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException

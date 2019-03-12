@@ -33,7 +33,7 @@ public class JNLLogServlet extends HttpServlet implements JNLServlet
             HttpServletResponse response)
                     throws ServletException, IOException {
 
-        HttpUtils.handleRequest(request, response, getSupportedDataClass());
+    	MessageProcessor.handleRequest(request, response, getSupportedDataClass());
     }
 
     @Override
