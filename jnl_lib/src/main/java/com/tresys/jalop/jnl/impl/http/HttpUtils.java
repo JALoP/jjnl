@@ -46,6 +46,7 @@ public class HttpUtils {
     public static final String HDRS_AUDIT_LEN = "JAL-Audit-Length";
     public static final String HDRS_CONTENT_TXFR_ENCODING = "Content-Transfer-Encoding";
     public static final String HDRS_CONTENT_TYPE = "Content-Type";
+    public static final String HDRS_CONTENT_LENGTH = "Content-Length";
     public static final String HDRS_COUNT = "JAL-Count";
     public static final String HDRS_DATA_CLASS = "JAL-Data-Class";
     public static final String HDRS_DIGEST = "JAL-Digest";
@@ -100,6 +101,7 @@ public class HttpUtils {
     public static final String MSG_SUBSCRIBE_LIVE = "subscribe-live";
     public static final String MSG_PUBLISH_ARCHIVE = "publish-archival";
     public static final String MSG_SUBSCRIBE_ARCHIVE = "subscribe-archival";
+    public static final String MSG_AUDIT = "audit-record";
 
     public static final String NONCE = "nonce";
     public static final String STATUS = "status";

@@ -182,20 +182,23 @@ public class MessageProcessor {
             System.out.println("Initialize message is valid, sending intialize-ack");
             MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
         }
+        else if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL) || messageType.equals(HttpUtils.MSG_AUDIT)) //process binary if jal record data
+        {
+            //writes out binary length
+            System.out.println("Binary data length is: " + request.getHeader(HttpUtils.HDRS_CONTENT_LENGTH));
+
+            ///TODO - Handle the body of the http post, needed for record binary transfer, demo file transfer currently
+            String digest = HttpUtils.readBinaryDataFromRequest(request, currRequestCount);
+            System.out.println("The digest value is: " + digest);
+
+            //Sets digest in the response
+            response.setHeader(HttpUtils.HDRS_DIGEST, digest);
+        }
         else
         {
             System.out.println("Invalid message received: " + messageType + " , returning server error");
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return;
         }
-
-        ///TODO - Handle the body of the http post, needed for record binary transfer, demo file transfer currently
-        String digest = HttpUtils.readBinaryDataFromRequest(request, currRequestCount);
-        System.out.println("The digest value is: " + digest);
-
-        //Sets digest in the response
-        response.setHeader(HttpUtils.HDRS_DIGEST, digest);
-
-        System.out.println("request: " + currRequestCount.toString() + " finished");
     }
 }
