@@ -86,6 +86,7 @@ public class HttpUtils {
      */
     public static final String DEFAULT_CONTENT_TRANSFER_ENCODING = "binary";
 
+    public static final String MSG_AUDIT = "audit-record";
     public static final String MSG_DIGEST = "digest";
     public static final String MSG_DIGEST_RESP = "digest-response";
     public static final String MSG_INIT = "initialize";
@@ -101,7 +102,6 @@ public class HttpUtils {
     public static final String MSG_SUBSCRIBE_LIVE = "subscribe-live";
     public static final String MSG_PUBLISH_ARCHIVE = "publish-archival";
     public static final String MSG_SUBSCRIBE_ARCHIVE = "subscribe-archival";
-    public static final String MSG_AUDIT = "audit-record";
 
     public static final String NONCE = "nonce";
     public static final String STATUS = "status";
