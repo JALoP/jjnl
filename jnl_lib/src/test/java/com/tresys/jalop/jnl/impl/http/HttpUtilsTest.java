@@ -296,6 +296,46 @@ public class HttpUtilsTest {
     }
 
     @Test
+    public void testValidateConfigureDigestChallengeWorksWithOn() {
+        final String configureDigestChallenge = "on";
+        final List<String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, errorResponseHeaders);
+        assertTrue(returned);
+        assertTrue(errorResponseHeaders.isEmpty());
+    }
+
+    @Test
+    public void testValidateConfigureDigestChallengeWorksWithOff() {
+        final String configureDigestChallenge = "off";
+        final List<String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, errorResponseHeaders);
+        assertTrue(returned);
+        assertTrue(errorResponseHeaders.isEmpty());
+    }
+
+    @Test
+    public void testValidateConfigureDigestChallengeFailsForEmptyDigestChallenge() {
+        final String configureDigestChallenge = "";
+        final List<String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Configure-Digest-Challenge");
+        }
+    }
+
+    @Test
+    public void testValidateConfigureDigestChallengeFailsForInvalidDigestChallenge() {
+        final String configureDigestChallenge = "invalid";
+        final List<String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals(entry, "JAL-Unsupported-Configure-Digest-Challenge");
+        }
+    }
+
+    @Test
     public void testCheckForEmptyStringReturnsTrimmedString() {
 
         final String padded = "   string   ";

@@ -29,6 +29,8 @@ public class HttpUtils {
     public static final String BREAK = "BREAK";
     public static final String CONFIRMED = "confirmed";
     public static final String CONFIRMED_EQUALS = CONFIRMED + "=";
+    public static final String DGST_CHAL_OFF = "off";
+    public static final String DGST_CHAL_ON = "on";
     public static final String DGST_CHAN_FORMAT_STR = "digest:";
     public static final String DGST_SHA256 = "sha256";
     public static final String ENC_XML = "xml";
@@ -44,6 +46,7 @@ public class HttpUtils {
     public static final String HDRS_AGENT = "JAL-Agent";
     public static final String HDRS_APP_META_LEN = "JAL-Application-Metadata-Length";
     public static final String HDRS_AUDIT_LEN = "JAL-Audit-Length";
+    public static final String HDRS_CONFIGURE_DIGEST_CHALLENGE = "JAL-Configure-Digest-Challenge";
     public static final String HDRS_CONTENT_TXFR_ENCODING = "Content-Transfer-Encoding";
     public static final String HDRS_CONTENT_TYPE = "Content-Type";
     public static final String HDRS_CONTENT_LENGTH = "Content-Length";
@@ -59,6 +62,7 @@ public class HttpUtils {
     public static final String HDRS_NONCE = "JAL-Id";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
     public static final String HDRS_UNAUTHORIZED_MODE = "JAL-Unauthorized-Mode";
+    public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";
     public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
     //public static final String HDRS_UNSUPPORTED_ENCODING = "JAL-Unsupported-Encoding"; //This is actually unsupported xml-compression, this was changed in the jalop specification, but not the code
     public static final String HDRS_UNSUPPORTED_MODE = "JAL-Unsupported-Mode";
@@ -118,6 +122,100 @@ public class HttpUtils {
         return hexDgst;
     }
 
+    public static List<String> parseHeaderList(String currHeader)
+    {
+        String[] splitHeader = currHeader.split(",");
+        for (int i = 0; i < splitHeader.length; i++)
+        {
+            splitHeader[i] = splitHeader[i].trim();
+        }
+
+        return Arrays.asList(splitHeader);
+    }
+
+    public static String convertListToString(List<String> messageList)
+    {
+        String headerStr = "";
+        if (messageList != null)
+        {
+            headerStr = String.join("|", messageList);
+        }
+
+        return headerStr;
+    }
+
+    public static HashMap<String, String> parseHttpHeaders(HttpServletRequest request)
+    {
+        HashMap<String, String> currHeaders = new HashMap<String, String>();
+        Enumeration<String> headerNames = request.getHeaderNames();
+
+        while (headerNames.hasMoreElements()) {
+
+            String headerName = headerNames.nextElement();
+            String headerValue = request.getHeader(headerName);
+            System.out.println("Header Name: " + headerName + " Header Value: " + headerValue);
+
+            currHeaders.put(headerName, headerValue);
+        }
+
+        return currHeaders;
+    }
+
+    /**
+     * Helper utility to check that a passed in string is non-null and contains
+     * non-whitespace characters. This method returns the original string with
+     * leading/trailing whitespace removed.
+     *
+     * @param toCheck
+     *            The string to check.
+     * @param parameterName
+     *            A human readable name to add to the exception.
+     * @return <code>toCheck</code> with leading/trailing whitespace removed.
+     * @throws IllegalArgumentException
+     *             if <code>toCheck</code> is <code>null</code> or is comprised
+     *             entirely of whitespace.
+     */
+    public static String checkForEmptyString(String toCheck,
+            final String parameterName) {
+        if (toCheck == null) {
+            return null;
+        }
+        toCheck = toCheck.trim();
+        if (toCheck.length() == 0) {
+            return null;
+        }
+        return toCheck;
+    }
+
+    /**
+     * Helper utility to build a comma separated list of strings.
+     *
+     * @param stringList
+     *            The list of strings to join.
+     * @param listName
+     *            A name for the list, this is used if the list contains
+     *            <code>null</code> or empty strings.
+     * @return A {@link String} that is the comma separated list of the values
+     *         in <code>stringList</code>
+     */
+    public static String makeStringList(final List<String> stringList,
+            final String listName) {
+        if ((stringList == null) || stringList.isEmpty()) {
+            return null;
+        }
+        final Iterator<String> iter = stringList.iterator();
+        final StringBuilder sb = new StringBuilder();
+        while (iter.hasNext()) {
+            String s = iter.next();
+            s = checkForEmptyString(s, listName);
+            sb.append(s);
+            if (iter.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
+    }
+
     //Validates mode, must be publish live or publish archive
     public static boolean validateMode(String mode, List<String> errorResponseHeaders)
     {
@@ -137,17 +235,6 @@ public class HttpUtils {
         }
 
         return true;
-    }
-
-    public static List<String> parseHeaderList(String currHeader)
-    {
-        String[] splitHeader = currHeader.split(",");
-        for (int i = 0; i < splitHeader.length; i++)
-        {
-            splitHeader[i] = splitHeader[i].trim();
-        }
-
-        return Arrays.asList(splitHeader);
     }
 
     //Validates supported digest
@@ -206,16 +293,7 @@ public class HttpUtils {
         return false;
     }
 
-    public static String convertListToString(List<String> messageList)
-    {
-        String headerStr = "";
-        if (messageList != null)
-        {
-            headerStr = String.join("|", messageList);
-        }
-
-        return headerStr;
-    }
+    
 
     //Validates dataClass, must be journal, audit, or log
     public static boolean validateDataClass(String dataClass, String supportedDataClass, List<String> errorResponseHeaders)
@@ -255,21 +333,25 @@ public class HttpUtils {
         return true;
     }
 
-    public static HashMap<String, String> parseHttpHeaders(HttpServletRequest request)
+    //Validates configure digest challenge, must be on/off
+    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, List<String> errorResponseHeaders)
     {
-        HashMap<String, String> currHeaders = new HashMap<String, String>();
-        Enumeration<String> headerNames = request.getHeaderNames();
+        String currConfigDigest = checkForEmptyString(configureDigestChallenge, HDRS_CONFIGURE_DIGEST_CHALLENGE);
 
-        while (headerNames.hasMoreElements()) {
-
-            String headerName = headerNames.nextElement();
-            String headerValue = request.getHeader(headerName);
-            System.out.println("Header Name: " + headerName + " Header Value: " + headerValue);
-
-            currHeaders.put(headerName, headerValue);
+        //Checks if supported configure digest challenge, only on/off is supported
+        if (currConfigDigest == null)
+        {
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
+            return false;
         }
 
-        return currHeaders;
+        if (!currConfigDigest.equals(DGST_CHAL_ON) && !currConfigDigest.equals(DGST_CHAL_OFF))
+        {
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
+            return false;
+        }
+
+        return true;
     }
 
     public static String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException
@@ -308,60 +390,5 @@ public class HttpUtils {
             System.out.println("Digest algorithm not supported");
             return null;
         }
-    }
-
-    /**
-     * Helper utility to check that a passed in string is non-null and contains
-     * non-whitespace characters. This method returns the original string with
-     * leading/trailing whitespace removed.
-     *
-     * @param toCheck
-     *            The string to check.
-     * @param parameterName
-     *            A human readable name to add to the exception.
-     * @return <code>toCheck</code> with leading/trailing whitespace removed.
-     * @throws IllegalArgumentException
-     *             if <code>toCheck</code> is <code>null</code> or is comprised
-     *             entirely of whitespace.
-     */
-    public static String checkForEmptyString(String toCheck,
-            final String parameterName) {
-        if (toCheck == null) {
-            return null;
-        }
-        toCheck = toCheck.trim();
-        if (toCheck.length() == 0) {
-            return null;
-        }
-        return toCheck;
-    }
-
-    /**
-     * Helper utility to build a comma separated list of strings.
-     *
-     * @param stringList
-     *            The list of strings to join.
-     * @param listName
-     *            A name for the list, this is used if the list contains
-     *            <code>null</code> or empty strings.
-     * @return A {@link String} that is the comma separated list of the values
-     *         in <code>stringList</code>
-     */
-    public static String makeStringList(final List<String> stringList,
-            final String listName) {
-        if ((stringList == null) || stringList.isEmpty()) {
-            return null;
-        }
-        final Iterator<String> iter = stringList.iterator();
-        final StringBuilder sb = new StringBuilder();
-        while (iter.hasNext()) {
-            String s = iter.next();
-            s = checkForEmptyString(s, listName);
-            sb.append(s);
-            if (iter.hasNext()) {
-                sb.append(", ");
-            }
-        }
-        return sb.toString();
     }
 }

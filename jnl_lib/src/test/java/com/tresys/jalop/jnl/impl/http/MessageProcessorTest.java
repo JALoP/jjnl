@@ -61,18 +61,19 @@ public class MessageProcessorTest {
     public void testInitializeJournalReturnsInitializeAck() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, MessageProcessor.MSG_PUBLISH_LIVE);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, MessageProcessor.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, MessageProcessor.JOURNAL);
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION, MessageProcessor.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-ack");
@@ -82,18 +83,19 @@ public class MessageProcessorTest {
     public void testInitializeAuditReturnsInitializeAck() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + AUDIT_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, MessageProcessor.MSG_PUBLISH_LIVE);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, MessageProcessor.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, MessageProcessor.AUDIT);
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION, MessageProcessor.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-ack");
@@ -103,18 +105,149 @@ public class MessageProcessorTest {
     public void testInitializeLogReturnsInitializeAck() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + LOG_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, MessageProcessor.MSG_PUBLISH_LIVE);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, MessageProcessor.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, MessageProcessor.LOG);
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION, MessageProcessor.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.LOG);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(responseStatus, 200);
+        assertEquals(responseMessage, "initialize-ack");
+    }
+
+    @Test
+    public void testNullDigestReturnsInitializeAck() throws ClientProtocolException, IOException {
+
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(responseStatus, 200);
+        assertEquals(responseMessage, "initialize-ack");
+    }
+    
+    @Test
+    public void testEmptyDigestReturnsInitializeAck() throws ClientProtocolException, IOException {
+
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "");
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(responseStatus, 200);
+        assertEquals(responseMessage, "initialize-ack");
+    }
+
+    @Test
+    public void testNullXmlCompressionReturnsInitializeAck() throws ClientProtocolException, IOException {
+
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(responseStatus, 200);
+        assertEquals(responseMessage, "initialize-ack");
+    }
+
+    @Test
+    public void testEmptyXmlCompressionReturnsInitializeAck() throws ClientProtocolException, IOException {
+
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, "");
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(responseStatus, 200);
+        assertEquals(responseMessage, "initialize-ack");
+    }
+
+    @Test
+    public void testNullConfigureDigestChallengeReturnsInitializeAck() throws ClientProtocolException, IOException {
+
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(responseStatus, 200);
+        assertEquals(responseMessage, "initialize-ack");
+    }
+
+    @Test
+    public void testEmptyConfigureDigestChallengeReturnsInitializeAck() throws ClientProtocolException, IOException {
+
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, "");
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-ack");
@@ -124,18 +257,19 @@ public class MessageProcessorTest {
     public void testInvalidModeReturnsInitializeNack() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, "invalid");
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, MessageProcessor.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, MessageProcessor.JOURNAL);
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION, MessageProcessor.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, "invalid");
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-nack");
@@ -145,18 +279,19 @@ public class MessageProcessorTest {
     public void testInvalidDigestReturnsInitializeNack() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, MessageProcessor.MSG_PUBLISH_LIVE);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, "invalid");
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, MessageProcessor.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, MessageProcessor.JOURNAL);
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION, MessageProcessor.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "invalid");
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-nack");
@@ -166,18 +301,19 @@ public class MessageProcessorTest {
     public void testInvalidXmlCompressionReturnsInitializeNack() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, MessageProcessor.MSG_PUBLISH_LIVE);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, "invalid");
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, MessageProcessor.JOURNAL);
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION, MessageProcessor.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, "invalid");
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-nack");
@@ -187,18 +323,19 @@ public class MessageProcessorTest {
     public void testInvalidDataClassReturnsInitializeNack() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, MessageProcessor.MSG_PUBLISH_LIVE);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, MessageProcessor.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, "invalid");
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION, MessageProcessor.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, "invalid");
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-nack");
@@ -208,18 +345,41 @@ public class MessageProcessorTest {
     public void testInvalidVersionReturnsInitializeNack() throws ClientProtocolException, IOException {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
-        httpPost.setHeader(MessageProcessor.HDRS_CONTENT_TYPE, MessageProcessor.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(MessageProcessor.HDRS_MESSAGE, MessageProcessor.MSG_INIT);
-        httpPost.setHeader(MessageProcessor.HDRS_MODE, MessageProcessor.MSG_PUBLISH_LIVE);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(MessageProcessor.HDRS_ACCEPT_XML_COMPRESSION, MessageProcessor.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(MessageProcessor.HDRS_DATA_CLASS, MessageProcessor.JOURNAL);
-        httpPost.setHeader(MessageProcessor.HDRS_VERSION,"invalid");
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION,"invalid");
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.DGST_CHAL_ON);
 
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(MessageProcessor.HDRS_MESSAGE).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(responseStatus, 200);
+        assertEquals(responseMessage, "initialize-nack");
+    }
+
+    @Test
+    public void testInvalidConfigureDigestChallengeReturnsInitializeNack() throws ClientProtocolException, IOException {
+
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, "invalid");
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-nack");
