@@ -221,6 +221,25 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 sslContextFactory.setKeyStorePassword("changeit");
                 sslContextFactory.setKeyManagerPassword("changeit");
 
+                //Exclude all weak ciphers
+                sslContextFactory.setExcludeCipherSuites("^.*_(MD5|SHA|SHA1)$");
+                // Exclude ciphers that don't support forward secrecy
+                sslContextFactory.addExcludeCipherSuites("^TLS_RSA_.*$");
+                // Exclude SSL ciphers (that are accidentally present due to Include patterns)
+                sslContextFactory.addExcludeCipherSuites("^SSL_.*$");
+                // Exclude NULL ciphers (that are accidentally present due to Include patterns)
+                sslContextFactory.addExcludeCipherSuites("^.*_NULL_.*$");
+                // Exclude anon ciphers (that are accidentally present due to Include patterns)
+                sslContextFactory.addExcludeCipherSuites("^.*_anon_.*$");
+
+                sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_256_CBC_SHA256");
+                sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_128_CBC_SHA256");
+                sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_128_GCM_SHA256");
+                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256");
+                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256");
+                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
+                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
+
                 //Disable all protocols except for tls 1.2
                 String[] excludedProtocols = new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1"};
                 sslContextFactory.setExcludeProtocols(excludedProtocols);
