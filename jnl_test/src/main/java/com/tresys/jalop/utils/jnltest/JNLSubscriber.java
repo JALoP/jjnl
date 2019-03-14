@@ -232,13 +232,11 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 // Exclude anon ciphers (that are accidentally present due to Include patterns)
                 sslContextFactory.addExcludeCipherSuites("^.*_anon_.*$");
 
-                sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_256_CBC_SHA256");
-                sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_128_CBC_SHA256");
+                //Exclude CBC ciphers
+                sslContextFactory.addExcludeCipherSuites("^.*_CBC_.*$");
+
                 sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_128_GCM_SHA256");
-                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256");
-                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256");
-                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384");
-                sslContextFactory.addExcludeCipherSuites("TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384");
+
 
                 //Disable all protocols except for tls 1.2
                 String[] excludedProtocols = new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1"};
