@@ -144,7 +144,7 @@ public class MessageProcessorTest {
         assertEquals(responseStatus, 200);
         assertEquals(responseMessage, "initialize-ack");
     }
-    
+
     @Test
     public void testEmptyDigestReturnsInitializeAck() throws ClientProtocolException, IOException {
 
