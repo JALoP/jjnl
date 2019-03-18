@@ -85,7 +85,8 @@ struct curl_slist * getInitializeHeaders(std::string dataClass)
 
     std::string dataClassMsg = "JAL-Data-Class: " + dataClass;
     headers = curl_slist_append(headers, dataClassMsg.c_str());
-    headers = curl_slist_append(headers, "JAL-Version: 2.0");
+    headers = curl_slist_append(headers, "JAL-Version: 2.0.0.0");
+    headers = curl_slist_append(headers, "JAL-Accept-Configure-Digest-Challenge: on");
 
     return headers;
 }
