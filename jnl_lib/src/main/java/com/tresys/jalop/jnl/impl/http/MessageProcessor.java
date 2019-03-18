@@ -96,7 +96,7 @@ public class MessageProcessor {
         MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
     }
 
-    public stati void processJALRecordMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass) throws IOException
+    public static void processJALRecordMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass, Integer currRequestCount) throws IOException
     {
         //writes out binary length
         System.out.println("Binary data length is: " + request.getHeader(HttpUtils.HDRS_CONTENT_LENGTH));
@@ -143,7 +143,7 @@ public class MessageProcessor {
         }
         else if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL) || messageType.equals(HttpUtils.MSG_AUDIT)) //process binary if jal record data
         {
-            MessageProcessor.processJALRecordMessage(request, response, supportedDataClass);
+            MessageProcessor.processJALRecordMessage(request, response, supportedDataClass, currRequestCount);
         }
         else
         {
