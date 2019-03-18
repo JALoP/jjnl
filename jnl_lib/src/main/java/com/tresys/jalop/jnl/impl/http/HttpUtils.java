@@ -39,6 +39,7 @@ public class HttpUtils {
     public static final String UNKNOWN = "unknown";
     public static final String UNKNOWN_EQUALS = UNKNOWN + "=";
 
+    public static final String HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE = "JAL-Accept-Configure-Digest-Challenge";
     public static final String HDRS_ACCEPT_DIGEST = "JAL-Accept-Digest";
    // public static final String HDRS_ACCEPT_ENCODING = "JAL-Accept-Encoding"; //This is actually accept-xml-compression, this was changed in the jalop specification, but not the code
     public static final String HDRS_AGENT = "JAL-Agent";
@@ -335,7 +336,7 @@ public class HttpUtils {
     //Validates configure digest challenge, must be on/off
     public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
-        String currConfigDigests = checkForEmptyString(configureDigestChallenge, HDRS_CONFIGURE_DIGEST_CHALLENGE);
+        String currConfigDigests = checkForEmptyString(configureDigestChallenge, HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
 
         //Checks if supported configure digest challenge, only on/off is supported
         if (currConfigDigests == null)

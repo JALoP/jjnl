@@ -79,7 +79,7 @@ public class MessageProcessor {
         }
 
         //Validates configure digest challenge
-        String confDigestChallengeStr = request.getHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE);
+        String confDigestChallengeStr = request.getHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
         if (confDigestChallengeStr == null || confDigestChallengeStr.isEmpty())
         {
             confDigestChallengeStr = HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0];
