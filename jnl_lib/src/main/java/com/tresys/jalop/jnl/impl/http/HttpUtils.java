@@ -29,8 +29,6 @@ public class HttpUtils {
     public static final String BREAK = "BREAK";
     public static final String CONFIRMED = "confirmed";
     public static final String CONFIRMED_EQUALS = CONFIRMED + "=";
-    public static final String DGST_CHAL_OFF = "off";
-    public static final String DGST_CHAL_ON = "on";
     public static final String DGST_CHAN_FORMAT_STR = "digest:";
     public static final String DGST_SHA256 = "sha256";
     public static final String ENC_XML = "xml";
@@ -77,6 +75,7 @@ public class HttpUtils {
     public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
 
     //Additional constants
+    public static final String[] SUPPORTED_CONFIGURE_DIGEST_CHALLENGES = new String[] {"on", "off"};
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
     public static final String SUPPORTED_VERSION = "2.0";
 
@@ -334,24 +333,32 @@ public class HttpUtils {
     }
 
     //Validates configure digest challenge, must be on/off
-    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, List<String> errorResponseHeaders)
+    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
-        String currConfigDigest = checkForEmptyString(configureDigestChallenge, HDRS_CONFIGURE_DIGEST_CHALLENGE);
+        String currConfigDigests = checkForEmptyString(configureDigestChallenge, HDRS_CONFIGURE_DIGEST_CHALLENGE);
 
         //Checks if supported configure digest challenge, only on/off is supported
-        if (currConfigDigest == null)
+        if (currConfigDigests == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
             return false;
         }
 
-        if (!currConfigDigest.equals(DGST_CHAL_ON) && !currConfigDigest.equals(DGST_CHAL_OFF))
-        {
-            errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
-            return false;
-        }
+        List<String> acceptedConfigDigests = parseHeaderList(currConfigDigests);
 
-        return true;
+        //Check to ensure the configre digest challenge is valid, only on/off, the first one found is the preferred value
+        List<String> supportedConfigDigestList = Arrays.asList(SUPPORTED_CONFIGURE_DIGEST_CHALLENGES);
+        for (String currConfigDigest : acceptedConfigDigests)
+        {
+            if (supportedConfigDigestList.contains(HttpUtils.checkForEmptyString(currConfigDigest, "")))
+            {
+                successResponseHeaders.put(HDRS_CONFIGURE_DIGEST_CHALLENGE, currConfigDigest);
+                return true;
+            }
+        }
+        
+        errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
+        return false;
     }
 
     public static String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException
@@ -361,7 +368,7 @@ public class HttpUtils {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
 
             //Handle the binary data that was posted from the client in the request
-            byte[] readRequestBuffer = new byte[BUFFER_SIZE]; //new byte[524288]; //new byte[10240];
+            byte[] readRequestBuffer = new byte[BUFFER_SIZE];
             String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
             File outputDir = new File(outputDirStr);
             if (!outputDir.isDirectory())
