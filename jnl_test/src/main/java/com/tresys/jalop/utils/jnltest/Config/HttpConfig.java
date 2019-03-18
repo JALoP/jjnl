@@ -16,21 +16,28 @@ package com.tresys.jalop.utils.jnltest.Config;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
 
 /**
  * The {@link HttpConfig} class is used to to parse a configuration file, and
  * configure the JNLTest program.
  */
 public class HttpConfig extends BaseConfig {
+    private static final String CONFIGURE_DIGEST = "configureDigest";
 
     private HashMap<String, String> sslConfig;
+    private List<String> configureDigests;
 
     private static final String KEY_ALGORITHM = "Key Algorithm";
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
@@ -91,6 +98,24 @@ public class HttpConfig extends BaseConfig {
     }
 
     /**
+     * Helper utility to process a segment of the configuration as a
+     * 'subscriber'.
+     *
+     * @param subscriber
+     *            The context to look up keys in.
+     * @throws ConfigurationException
+     *             If an error is detected in the configuration.
+     */
+    @Override
+    void handleSubscriber(final JSONObject subscriber)
+            throws ConfigurationException {
+        super.handleSubscriber(subscriber);
+
+        handleConfigureDigest(subscriber);
+    }
+
+
+    /**
      * Create a new {@link HttpConfig} object.
      *
      * @param source
@@ -126,6 +151,39 @@ public class HttpConfig extends BaseConfig {
         if (ssl != null) {
             handleSslConfig(ssl);
         }
+    }
+
+    /**
+     * Handle parsing the dataClass field for a publisher or listener.
+     * @param obj
+     *            The context to look up keys in.
+     * @throws ConfigurationException
+     *            If an error is detected in the configuration.
+     */
+    public void handleConfigureDigest(final JSONObject obj) throws ConfigurationException {
+        final JSONArray dataClasses = itemAsArray(CONFIGURE_DIGEST, obj);
+        this.configureDigests = new ArrayList<String>();
+        for (final Object o : dataClasses) {
+            this.configureDigests.add((String)o);
+        }
+
+        //Ensures that at least "on" is present
+        if (this.configureDigests == null || !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGST_ON))
+        {
+           throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must contain at least " + HttpUtils.MSG_CONFIGURE_DIGST_ON);
+        }
+
+        //Ensures that only contains "on" and "off"
+        if (this.configureDigests.size() > 1 && !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGST_OFF) ||
+            this.configureDigests.size() > 2)
+        {
+            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGST_ON + " and " + HttpUtils.MSG_CONFIGURE_DIGST_OFF);
+        }
+    }
+
+    public List<String> getConfigureDigests()
+    {
+        return this.configureDigests;
     }
 
     /**

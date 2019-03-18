@@ -40,6 +40,7 @@ import com.tresys.jalop.jnl.impl.http.JNLAuditServlet;
 import com.tresys.jalop.jnl.impl.http.JNLJournalServlet;
 import com.tresys.jalop.jnl.impl.http.JNLLogServlet;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
+import com.tresys.jalop.jnl.impl.http.MessageProcessor;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
@@ -288,6 +289,9 @@ import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
                 // This is a raw Servlet, not a Servlet that has been configured
                 // through a web.xml @WebServlet annotation, or anything similar.
 
+                //Sets allowed configure digest values from config
+                MessageProcessor.setAllowedConfigureDigests(config.getConfigureDigests());
+
                 //Separate endpoints/servlets for audit,journal,log
                 //Only sets up endpoints as allowed in the configuration file.
                 Set<RecordType>recordTypeSet = config.getRecordTypes();
@@ -299,19 +303,19 @@ import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
                 if (recordTypeSet.contains(RecordType.Log))
                 {
                     System.out.println("Log endpoint is active.");
-                    handler.addServlet(JNLLogServlet.class, "/log");
+                    handler.addServlet(JNLLogServlet.class, HttpUtils.LOG_ENDPOINT);
                 }
 
                 if (recordTypeSet.contains(RecordType.Audit))
                 {
                     System.out.println("Audit endpoint is active.");
-                    handler.addServlet(JNLAuditServlet.class, "/audit");
+                    handler.addServlet(JNLAuditServlet.class, HttpUtils.AUDIT_ENDPOINT);
                 }
 
                 if (recordTypeSet.contains(RecordType.Journal))
                 {
                     System.out.println("Journal endpoint is active.");
-                    handler.addServlet(JNLJournalServlet.class, "/journal");
+                    handler.addServlet(JNLJournalServlet.class, HttpUtils.JOURNAL_ENDPOINT);
                 }
 
                 // Start things up!

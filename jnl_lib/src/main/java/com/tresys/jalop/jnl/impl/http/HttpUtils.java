@@ -73,7 +73,6 @@ public class HttpUtils {
     public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
 
     //Additional constants
-    public static final String[] SUPPORTED_CONFIGURE_DIGEST_CHALLENGES = new String[] {"on", "off"};
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
     public static final String[] SUPPORTED_VERSIONS = new String[] {"2.0.0.0"};
 
@@ -88,6 +87,8 @@ public class HttpUtils {
     public static final String DEFAULT_CONTENT_TRANSFER_ENCODING = "binary";
 
     public static final String MSG_AUDIT = "audit-record";
+    public static final String MSG_CONFIGURE_DIGST_OFF = "off";
+    public static final String MSG_CONFIGURE_DIGST_ON = "on";
     public static final String MSG_DIGEST = "digest";
     public static final String MSG_DIGEST_RESP = "digest-response";
     public static final String MSG_INIT = "initialize";
@@ -107,6 +108,9 @@ public class HttpUtils {
     public static final String NONCE = "nonce";
     public static final String STATUS = "status";
 
+    public static String JOURNAL_ENDPOINT = "/journal";
+    public static String AUDIT_ENDPOINT = "/audit";
+    public static String LOG_ENDPOINT = "/log";
 
     public static String getDigest(MessageDigest md)
     {
@@ -290,7 +294,7 @@ public class HttpUtils {
         return false;
     }
 
-    
+
 
     //Validates dataClass, must be journal, audit, or log
     public static boolean validateDataClass(String dataClass, String supportedDataClass, List<String> errorResponseHeaders)
@@ -332,7 +336,7 @@ public class HttpUtils {
     }
 
     //Validates configure digest challenge, must be on/off
-    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
+    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders, List<String> allowedConfigureDigests)
     {
         String currConfigDigests = checkForEmptyString(configureDigestChallenge, HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
 
@@ -346,16 +350,15 @@ public class HttpUtils {
         List<String> acceptedConfigDigests = parseHeaderList(currConfigDigests);
 
         //Check to ensure the configre digest challenge is valid, only on/off, the first one found is the preferred value
-        List<String> supportedConfigDigestList = Arrays.asList(SUPPORTED_CONFIGURE_DIGEST_CHALLENGES);
         for (String currConfigDigest : acceptedConfigDigests)
         {
-            if (supportedConfigDigestList.contains(HttpUtils.checkForEmptyString(currConfigDigest, "")))
+            if (allowedConfigureDigests.contains(HttpUtils.checkForEmptyString(currConfigDigest, "")))
             {
                 successResponseHeaders.put(HDRS_CONFIGURE_DIGEST_CHALLENGE, currConfigDigest);
                 return true;
             }
         }
-        
+
         errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
         return false;
     }

@@ -300,7 +300,7 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "on";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders, MessageProcessor.getAllowedConfigureDigests());
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -314,7 +314,7 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "off";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders, MessageProcessor.getAllowedConfigureDigests());
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -328,7 +328,7 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "on,off";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders, MessageProcessor.getAllowedConfigureDigests());
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -342,7 +342,7 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "off,on";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders, MessageProcessor.getAllowedConfigureDigests());
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -356,7 +356,7 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders, MessageProcessor.getAllowedConfigureDigests());
         assertFalse(returned);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
@@ -369,7 +369,7 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "invalid";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders, MessageProcessor.getAllowedConfigureDigests());
         assertFalse(returned);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {

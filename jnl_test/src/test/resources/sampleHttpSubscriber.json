@@ -4,11 +4,11 @@
   "subscriber": {
     "sessionTimeout": "00:20:00",
     "dataClass": [ "audit", "journal", "log" ],
+    "configureDigest": [ "on", "off"],
     "pendingDigestMax": 1,
     "pendingDigestTimeout": 120,
     "output": "./output",
     "mode": "archive",
-    "configure-digest": ["on", "off"],
   }
   "ssl": {
     "Key Algorithm": "SunX509",
