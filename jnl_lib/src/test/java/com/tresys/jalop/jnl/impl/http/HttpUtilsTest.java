@@ -266,7 +266,7 @@ public class HttpUtilsTest {
 
     @Test
     public void testValidateVersionWorks() {
-        final String version = "2.0";
+        final String version = "2.0.0.0";
         final List<String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateVersion(version, errorResponseHeaders);
         assertTrue(returned);

@@ -75,7 +75,7 @@ public class HttpUtils {
     //Additional constants
     public static final String[] SUPPORTED_CONFIGURE_DIGEST_CHALLENGES = new String[] {"on", "off"};
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
-    public static final String[] SUPPORTED_VERSIONS = new String[] {"2.0"};
+    public static final String[] SUPPORTED_VERSIONS = new String[] {"2.0.0.0"};
 
 
     public static final String DEFAULT_CONTENT_TYPE =
