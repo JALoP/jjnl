@@ -1,0 +1,24 @@
+{
+  "address": "127.0.0.1",
+  "port": 8444,
+  "subscriber": {
+    "sessionTimeout": "00:20:00",
+    "dataClass": [ "audit", "journal", "log" ],
+    "pendingDigestMax": 1,
+    "pendingDigestTimeout": 120,
+    "output": "./output",
+    "mode": "archive",
+    "configure-digest": ["on", "off"],
+  }
+  "ssl": {
+    "Key Algorithm": "SunX509",
+    "Key Store Passphrase": "changeit",
+    "Key Store Data Type": "file",
+    "Key Store": "../keystore/keystore.jks",
+
+    "Trust Algorithm": "SunX509",
+    "Trust Store Passphrase": "changeit",
+    "Trust Store Data Type": "file",
+    "Trust Store": "../keystore/remotes.jks",
+  }
+}

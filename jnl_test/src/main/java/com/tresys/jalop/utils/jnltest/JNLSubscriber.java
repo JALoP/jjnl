@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.net.ssl.SSLEngine;
 
@@ -33,6 +34,7 @@ import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
 import com.tresys.jalop.jnl.impl.http.JNLAuditServlet;
 import com.tresys.jalop.jnl.impl.http.JNLJournalServlet;
@@ -40,6 +42,7 @@ import com.tresys.jalop.jnl.impl.http.JNLLogServlet;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
+import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
 
 
     @SuppressWarnings("serial")
@@ -51,7 +54,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
         /**
          * Configuration for this instance of JNLTest.
          */
-        private final Config config;
+        private final HttpConfig config;
         /**
          * From Sessions to associated {@link SubscriberImpl}
          */
@@ -79,7 +82,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
          * @param config
          *            A {@link Config}
          */
-        public JNLSubscriber(final Config config) {
+        public JNLSubscriber(final HttpConfig config) {
             this.config = config;
         }
         public JNLSubscriber() {
@@ -139,9 +142,9 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                         + " the configuration file to use");
                 System.exit(1);
             }
-            Config config;
+            HttpConfig config;
             try {
-                config = Config.parse(args[0]);
+                config = HttpConfig.parse(args[0]);
             } catch (final IOException e) {
                 System.err.println("Caught IO exception: " + e.getMessage());
                 System.exit(1);
@@ -182,7 +185,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 ServletContextHandler handler =  new ServletContextHandler(server, "/");
                 server.setHandler(handler);
 
-                String keystorePath = System.getProperty("user.home") + "/jalop/jjnl/keystore/keystore.jks";
+                String keystorePath = config.getKeystorePath();
                 File keystoreFile = new File(keystorePath);
                 if (!keystoreFile.exists())
                 {
@@ -197,7 +200,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 // done. The port for secured communication is also set here.
                 HttpConfiguration http_config = new HttpConfiguration();
                 http_config.setSecureScheme("https");
-                http_config.setSecurePort(8444);
+                http_config.setSecurePort(config.getPort());
              //   http_config.setOutputBufferSize(32768);
 
                 // HTTP connector
@@ -209,6 +212,7 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                         new HttpConnectionFactory(http_config));
                 http.setPort(8080);
                 http.setIdleTimeout(30000);
+                http.setHost(config.getAddress().getHostAddress());
 
                 // SSL Context Factory for HTTPS
                 // SSL requires a certificate so we configure a factory for ssl contents
@@ -218,8 +222,8 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 // keystore to be used.
                 SslContextFactory sslContextFactory = new SslContextFactory();
                 sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
-                sslContextFactory.setKeyStorePassword("changeit");
-                sslContextFactory.setKeyManagerPassword("changeit");
+                sslContextFactory.setKeyStorePassword(config.getKeystorePassword());
+                sslContextFactory.setKeyManagerPassword(config.getKeystorePassword());
 
                 //Exclude all weak ciphers
                 sslContextFactory.setExcludeCipherSuites("^.*_(MD5|SHA|SHA1)$");
@@ -285,9 +289,30 @@ import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
                 // through a web.xml @WebServlet annotation, or anything similar.
 
                 //Separate endpoints/servlets for audit,journal,log
-                handler.addServlet(JNLLogServlet.class, "/log");
-                handler.addServlet(JNLAuditServlet.class, "/audit");
-                handler.addServlet(JNLJournalServlet.class, "/journal");
+                //Only sets up endpoints as allowed in the configuration file.
+                Set<RecordType>recordTypeSet = config.getRecordTypes();
+                if (recordTypeSet.contains(RecordType.Unset))
+                {
+                   throw new JNLException("Cannot subscribe with a DataClass of 'Unset'");
+                }
+
+                if (recordTypeSet.contains(RecordType.Log))
+                {
+                    System.out.println("Log endpoint is active.");
+                    handler.addServlet(JNLLogServlet.class, "/log");
+                }
+
+                if (recordTypeSet.contains(RecordType.Audit))
+                {
+                    System.out.println("Audit endpoint is active.");
+                    handler.addServlet(JNLAuditServlet.class, "/audit");
+                }
+
+                if (recordTypeSet.contains(RecordType.Journal))
+                {
+                    System.out.println("Journal endpoint is active.");
+                    handler.addServlet(JNLJournalServlet.class, "/journal");
+                }
 
                 // Start things up!
                 server.start();
