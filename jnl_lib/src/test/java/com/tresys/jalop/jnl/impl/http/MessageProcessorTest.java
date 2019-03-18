@@ -67,8 +67,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -89,8 +89,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -111,8 +111,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.LOG);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
 
         HttpClient client = HttpClientBuilder.create().build();
@@ -133,8 +133,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -155,8 +155,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -176,8 +176,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -198,8 +198,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, "");
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -220,7 +220,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -241,8 +241,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, "");
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "");
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -263,8 +263,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, String.join(",", HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]));
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, String.join(",", HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]));
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, String.join(",", HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -285,8 +285,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -307,8 +307,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -329,8 +329,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -351,8 +351,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, "invalid");
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -374,7 +374,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION,"invalid");
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.SUPPORTED_CONFIGURE_DIGEST_CHALLENGES[0]);
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -395,8 +395,8 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSION);
-        httpPost.setHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE, "invalid");
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "invalid");
 
         HttpClient client = HttpClientBuilder.create().build();
 

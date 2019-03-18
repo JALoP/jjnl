@@ -41,7 +41,6 @@ public class HttpUtils {
 
     public static final String HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE = "JAL-Accept-Configure-Digest-Challenge";
     public static final String HDRS_ACCEPT_DIGEST = "JAL-Accept-Digest";
-   // public static final String HDRS_ACCEPT_ENCODING = "JAL-Accept-Encoding"; //This is actually accept-xml-compression, this was changed in the jalop specification, but not the code
     public static final String HDRS_AGENT = "JAL-Agent";
     public static final String HDRS_APP_META_LEN = "JAL-Application-Metadata-Length";
     public static final String HDRS_AUDIT_LEN = "JAL-Audit-Length";
@@ -52,7 +51,6 @@ public class HttpUtils {
     public static final String HDRS_COUNT = "JAL-Count";
     public static final String HDRS_DATA_CLASS = "JAL-Data-Class";
     public static final String HDRS_DIGEST = "JAL-Digest";
-   /// public static final String HDRS_ENCODING = "JAL-Encoding";  //This is actually JAL-XML-Compression, this was changed in the jalop spec, but not the code.
     public static final String HDRS_JOURNAL_LEN = "JAL-Journal-Length";
     public static final String HDRS_JOURNAL_OFFSET = "JAL-Journal-Offset";
     public static final String HDRS_LOG_LEN = "JAL-Log-Length";
@@ -63,7 +61,6 @@ public class HttpUtils {
     public static final String HDRS_UNAUTHORIZED_MODE = "JAL-Unauthorized-Mode";
     public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";
     public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
-    //public static final String HDRS_UNSUPPORTED_ENCODING = "JAL-Unsupported-Encoding"; //This is actually unsupported xml-compression, this was changed in the jalop specification, but not the code
     public static final String HDRS_UNSUPPORTED_MODE = "JAL-Unsupported-Mode";
     public static final String HDRS_UNSUPPORTED_VERSION = "JAL-Unsupported-Version";
 
@@ -78,7 +75,7 @@ public class HttpUtils {
     //Additional constants
     public static final String[] SUPPORTED_CONFIGURE_DIGEST_CHALLENGES = new String[] {"on", "off"};
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
-    public static final String SUPPORTED_VERSION = "2.0";
+    public static final String[] SUPPORTED_VERSIONS = new String[] {"2.0"};
 
 
     public static final String DEFAULT_CONTENT_TYPE =
@@ -324,7 +321,8 @@ public class HttpUtils {
         String currVersion = checkForEmptyString(version, HDRS_VERSION);
 
         //Checks if supported version, only 2.0 is currently supported
-        if (currVersion == null || !currVersion.equals(SUPPORTED_VERSION))
+        List<String> supportedVersionsList = Arrays.asList(SUPPORTED_VERSIONS);
+        if (currVersion == null || !supportedVersionsList.contains(HttpUtils.checkForEmptyString(currVersion, "")))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_VERSION);
             return false;
