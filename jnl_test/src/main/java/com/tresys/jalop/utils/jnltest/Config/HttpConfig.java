@@ -168,16 +168,16 @@ public class HttpConfig extends BaseConfig {
         }
 
         //Ensures that at least "on" is present
-        if (this.configureDigests == null || !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGST_ON))
+        if (this.configureDigests == null || !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGEST_ON))
         {
-           throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must contain at least " + HttpUtils.MSG_CONFIGURE_DIGST_ON);
+           throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must contain at least " + HttpUtils.MSG_CONFIGURE_DIGEST_ON);
         }
 
         //Ensures that only contains "on" and "off"
-        if (this.configureDigests.size() > 1 && !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGST_OFF) ||
+        if (this.configureDigests.size() > 1 && !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGEST_OFF) ||
             this.configureDigests.size() > 2)
         {
-            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGST_ON + " and " + HttpUtils.MSG_CONFIGURE_DIGST_OFF);
+            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGEST_ON + " and " + HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
         }
     }
 

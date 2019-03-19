@@ -40,7 +40,6 @@ import com.tresys.jalop.jnl.impl.http.JNLAuditServlet;
 import com.tresys.jalop.jnl.impl.http.JNLJournalServlet;
 import com.tresys.jalop.jnl.impl.http.JNLLogServlet;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
-import com.tresys.jalop.jnl.impl.http.MessageProcessor;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
@@ -290,7 +289,7 @@ import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
                 // through a web.xml @WebServlet annotation, or anything similar.
 
                 //Sets allowed configure digest values from config
-                MessageProcessor.setAllowedConfigureDigests(config.getConfigureDigests());
+                HttpUtils.setAllowedConfigureDigests(config.getConfigureDigests());
 
                 //Separate endpoints/servlets for audit,journal,log
                 //Only sets up endpoints as allowed in the configuration file.

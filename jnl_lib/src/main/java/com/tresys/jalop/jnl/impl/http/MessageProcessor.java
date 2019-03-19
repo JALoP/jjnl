@@ -17,8 +17,6 @@ import javax.xml.crypto.dsig.DigestMethod;
 public class MessageProcessor {
     public static AtomicInteger requestCount = new AtomicInteger();
 
-    private static List<String> allowedConfigureDigests;
-
     public static void processInitializeMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass) throws IOException
     {
         System.out.println(HttpUtils.MSG_INIT + " message received.");
@@ -83,10 +81,10 @@ public class MessageProcessor {
         String confDigestChallengeStr = request.getHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
         if (confDigestChallengeStr == null || confDigestChallengeStr.isEmpty())
         {
-            confDigestChallengeStr = HttpUtils.MSG_CONFIGURE_DIGST_ON;
+            confDigestChallengeStr = HttpUtils.MSG_CONFIGURE_DIGEST_ON;
         }
 
-        if (!HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorResponseHeaders, getAllowedConfigureDigests()))
+        if (!HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorResponseHeaders))
         {
             System.out.println("Initialize message failed due to unsupported configure digest challenge: " + confDigestChallengeStr);
             MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
@@ -153,25 +151,5 @@ public class MessageProcessor {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             return;
         }
-    }
-
-    public static List<String> getAllowedConfigureDigests() {
-
-        if (allowedConfigureDigests == null)
-        {
-            allowedConfigureDigests = new ArrayList<String>();
-        }
-
-        //Minimally "on" is always supported
-        if (allowedConfigureDigests.size() == 0)
-        {
-            allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGST_ON);
-        }
-
-        return allowedConfigureDigests;
-    }
-
-    public static void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
-        MessageProcessor.allowedConfigureDigests = allowedConfigureDigests;
     }
 }

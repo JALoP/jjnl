@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -87,8 +88,8 @@ public class HttpUtils {
     public static final String DEFAULT_CONTENT_TRANSFER_ENCODING = "binary";
 
     public static final String MSG_AUDIT = "audit-record";
-    public static final String MSG_CONFIGURE_DIGST_OFF = "off";
-    public static final String MSG_CONFIGURE_DIGST_ON = "on";
+    public static final String MSG_CONFIGURE_DIGEST_OFF = "off";
+    public static final String MSG_CONFIGURE_DIGEST_ON = "on";
     public static final String MSG_DIGEST = "digest";
     public static final String MSG_DIGEST_RESP = "digest-response";
     public static final String MSG_INIT = "initialize";
@@ -111,6 +112,28 @@ public class HttpUtils {
     public static String JOURNAL_ENDPOINT = "/journal";
     public static String AUDIT_ENDPOINT = "/audit";
     public static String LOG_ENDPOINT = "/log";
+
+    private static List<String> allowedConfigureDigests;
+
+    public static List<String> getAllowedConfigureDigests() {
+
+        if (allowedConfigureDigests == null)
+        {
+            allowedConfigureDigests = new ArrayList<String>();
+        }
+
+        //Minimally "on" is always supported
+        if (allowedConfigureDigests.size() == 0)
+        {
+            allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        }
+
+        return allowedConfigureDigests;
+    }
+
+    public static void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
+        HttpUtils.allowedConfigureDigests = allowedConfigureDigests;
+    }
 
     public static String getDigest(MessageDigest md)
     {
@@ -336,7 +359,7 @@ public class HttpUtils {
     }
 
     //Validates configure digest challenge, must be on/off
-    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders, List<String> allowedConfigureDigests)
+    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
         String currConfigDigests = checkForEmptyString(configureDigestChallenge, HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
 
@@ -352,7 +375,7 @@ public class HttpUtils {
         //Check to ensure the configre digest challenge is valid, only on/off, the first one found is the preferred value
         for (String currConfigDigest : acceptedConfigDigests)
         {
-            if (allowedConfigureDigests.contains(HttpUtils.checkForEmptyString(currConfigDigest, "")))
+            if (HttpUtils.getAllowedConfigureDigests().contains(HttpUtils.checkForEmptyString(currConfigDigest, "")))
             {
                 successResponseHeaders.put(HDRS_CONFIGURE_DIGEST_CHALLENGE, currConfigDigest);
                 return true;
