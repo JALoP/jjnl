@@ -237,6 +237,7 @@ public class HttpConfig extends BaseConfig {
         httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());
+        httpSubscriberConfig.setOutputPath(this.getOutputPath());
 
         return httpSubscriberConfig;
     }

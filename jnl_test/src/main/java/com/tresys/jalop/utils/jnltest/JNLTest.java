@@ -57,6 +57,7 @@ import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
+import com.tresys.jalop.jnl.impl.subscriber.SubscriberImpl;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.PeerConfig;
@@ -254,7 +255,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler, JNLTes
         synchronized(map) {
             sub = map.get(sess.getRecordType());
             if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), this.config.getOutputPath(), sess.getAddress(), this);
+                sub = new SubscriberImpl(sess.getRecordType(), this.config.getOutputPath(), sess.getAddress(), this, null);
                 map.put(sess.getRecordType(), sub);
             }
         }

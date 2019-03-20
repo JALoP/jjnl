@@ -1,5 +1,6 @@
 package com.tresys.jalop.jnl.impl.http;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +18,7 @@ public class HttpSubscriberConfig {
     private List<String> allowedConfigureDigests;
     private Role role;
     private Mode mode;
+    private File outputPath;
 
     public String getKeystorePath() {
         return keystorePath;
@@ -65,6 +67,12 @@ public class HttpSubscriberConfig {
     }
     public void setMode(Mode mode) {
         this.mode = mode;
+    }
+    public File getOutputPath() {
+        return outputPath;
+    }
+    public void setOutputPath(File outputPath) {
+        this.outputPath = outputPath;
     }
 
 }

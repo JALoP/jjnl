@@ -21,7 +21,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tresys.jalop.utils.jnltest;
+package com.tresys.jalop.jnl.impl.subscriber;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -292,6 +292,8 @@ public class SubscriberImpl implements Subscriber {
             this.status.put(SYS_META_SZ, sysMetaLen);
             this.status.put(PAYLOAD_SZ, payloadLen);
             this.status.put(REMOTE_NONCE, remoteNonce);
+
+            //TODO might need changed for uuid for http subscriber, remoteIp stores the publisher id
             this.status.put(REMOTE_IP, SubscriberImpl.this.remoteIp);
         }
     }
@@ -309,11 +311,20 @@ public class SubscriberImpl implements Subscriber {
      *          The {@link InetAddress} of the remote.
      */
     public SubscriberImpl(final RecordType recordType, final File outputRoot,
-            final InetAddress remoteAddr, final JNLTestInterface jnlTest) {
+            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId) {
         this.recordType = recordType;
-        this.remoteIp = remoteAddr.getHostAddress();
+
+        //If publisherId is not null, then use publisher uuid instead of ip for dir names
+        if (publisherId != null)
+        {
+            this.remoteIp = publisherId;
+        }
+        else
+        {
+            this.remoteIp = remoteAddr.getHostAddress();
+        }
         this.jnlTest = jnlTest;
-        final File tmp = new File(outputRoot, remoteAddr.getHostAddress());
+        final File tmp = new File(outputRoot, this.remoteIp);
         final String type;
         switch (recordType) {
         case Audit:
@@ -329,11 +340,11 @@ public class SubscriberImpl implements Subscriber {
             throw new IllegalArgumentException("illegal record type");
         }
 
-		this.outputRoot = new File(outputRoot, type);
-		if(!this.outputRoot.exists()) {
-			this.outputRoot.mkdirs();
-		}
-		if (!(this.outputRoot.exists() && this.outputRoot.isDirectory())) {
+        this.outputRoot = new File(outputRoot, type);
+        if(!this.outputRoot.exists()) {
+            this.outputRoot.mkdirs();
+        }
+        if (!(this.outputRoot.exists() && this.outputRoot.isDirectory())) {
             throw new RuntimeException("Failed to create subdirs for " + type);
         }
 
@@ -346,12 +357,12 @@ public class SubscriberImpl implements Subscriber {
         }
         this.lastConfirmedFile = new File(this.outputIpRoot, LAST_CONFIRMED_FILENAME);
         if(!lastConfirmedFile.exists()) {
-			try {
-				this.lastConfirmedFile.createNewFile();
-			} catch (final IOException e) {
-				LOGGER.fatal("Failed to create file: " + LAST_CONFIRMED_FILENAME);
-				throw new RuntimeException(e);
-			}
+            try {
+                this.lastConfirmedFile.createNewFile();
+            } catch (final IOException e) {
+                LOGGER.fatal("Failed to create file: " + LAST_CONFIRMED_FILENAME);
+                throw new RuntimeException(e);
+            }
         }
 
         try {
@@ -387,9 +398,9 @@ public class SubscriberImpl implements Subscriber {
         long lastNonce = 0;
         if(outputRecordDirs.length >= 1) {
             Arrays.sort(outputRecordDirs);
-	        final List<File> sortedOutputRecords = java.util.Arrays.asList(outputRecordDirs);
-	        final File lastRecord = sortedOutputRecords.get(sortedOutputRecords.size() - 1);
-	        lastNonce = Long.valueOf(lastRecord.getName());
+            final List<File> sortedOutputRecords = java.util.Arrays.asList(outputRecordDirs);
+            final File lastRecord = sortedOutputRecords.get(sortedOutputRecords.size() - 1);
+            lastNonce = Long.valueOf(lastRecord.getName());
         }
 
         switch (this.recordType) {
@@ -411,23 +422,23 @@ public class SubscriberImpl implements Subscriber {
             this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
 
         if(this.lastConfirmedFile.length() > 0) {
-			final JSONObject lastConfirmedJson = (JSONObject) p.parse(new FileReader(
-		        this.lastConfirmedFile));
+            final JSONObject lastConfirmedJson = (JSONObject) p.parse(new FileReader(
+                this.lastConfirmedFile));
 
-			this.lastNonceFromRemote = (String) lastConfirmedJson.get(LAST_CONFIRMED_NONCE);
-		}
+            this.lastNonceFromRemote = (String) lastConfirmedJson.get(LAST_CONFIRMED_NONCE);
+        }
 
         final Set<File> deleteDirs = new HashSet<File>();
 
         if(this.recordType == RecordType.Journal && recordDirs.length > 0) {
-			// Checking the first record to see if it can be resumed, the rest will be deleted
-			Arrays.sort(recordDirs);
-			final List<File> sortedRecords = new ArrayList<File>(java.util.Arrays.asList(recordDirs));
+            // Checking the first record to see if it can be resumed, the rest will be deleted
+            Arrays.sort(recordDirs);
+            final List<File> sortedRecords = new ArrayList<File>(java.util.Arrays.asList(recordDirs));
 
-			final File firstRecord = sortedRecords.remove(0);
-			deleteDirs.addAll(sortedRecords);
+            final File firstRecord = sortedRecords.remove(0);
+            deleteDirs.addAll(sortedRecords);
 
-			JSONObject status;
+            JSONObject status;
             try {
                 status = (JSONObject) p.parse(new FileReader(
                                                    new File(firstRecord,
@@ -435,7 +446,7 @@ public class SubscriberImpl implements Subscriber {
 
                 final Number progress = (Number) status.get(PAYLOAD_PROGRESS);
                 if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null) {
-					// journal record can be resumed
+                    // journal record can be resumed
                     this.lastNonceFromRemote =
                         (String) status.get(REMOTE_NONCE);
                     this.journalOffset = progress.longValue();
@@ -464,8 +475,8 @@ public class SubscriberImpl implements Subscriber {
             }
 
         } else {
-			// Any confirmed record should have been moved so deleting all that are left
-			deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
+            // Any confirmed record should have been moved so deleting all that are left
+            deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
         }
 
         for (final File f: deleteDirs) {
@@ -682,10 +693,10 @@ public class SubscriberImpl implements Subscriber {
     public final boolean notifyDigest(final SubscriberSession sess,
                                       final RecordInfo recordInfo,
                                       final byte[] digest) {
-		String hexString = "";
-		for (byte b : digest) {
-		    hexString = hexString + String.format("%02x",b);
-		}
+        String hexString = "";
+        for (byte b : digest) {
+            hexString = hexString + String.format("%02x",b);
+        }
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Calculated digest for " + recordInfo.getNonce()
@@ -747,7 +758,7 @@ public class SubscriberImpl implements Subscriber {
             if(DigestStatus.Confirmed.equals(status)) {
                 if(!moveConfirmedRecord(lri)) {
                     ret = false;
-		}
+        }
             }
         }
 
@@ -755,27 +766,27 @@ public class SubscriberImpl implements Subscriber {
     }
 
     @SuppressWarnings("unchecked")
-	private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
+    private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
 
-		final long latestNonce = retrieveLatestNonce();
-		final File dest = new File(this.outputRoot, SubscriberImpl.NONCE_FORMATER.format(latestNonce));
+        final long latestNonce = retrieveLatestNonce();
+        final File dest = new File(this.outputRoot, SubscriberImpl.NONCE_FORMATER.format(latestNonce));
 
-		if(LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Renaming directory from: " +lri.recordDir.getAbsolutePath() + " to: "+
-					dest.getAbsolutePath());
-		}
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Renaming directory from: " +lri.recordDir.getAbsolutePath() + " to: "+
+                    dest.getAbsolutePath());
+        }
 
-		if(lri.recordDir.renameTo(dest)) {
-			final JSONObject lastConfirmedStatus = new JSONObject();
-			final String remoteNonce = (String) lri.status.get(REMOTE_NONCE);
-			lastConfirmedStatus.put(LAST_CONFIRMED_NONCE, remoteNonce);
-			dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
-		} else {
-			LOGGER.error("Error trying to move confirmed file.");
-			return false;
-		}
+        if(lri.recordDir.renameTo(dest)) {
+            final JSONObject lastConfirmedStatus = new JSONObject();
+            final String remoteNonce = (String) lri.status.get(REMOTE_NONCE);
+            lastConfirmedStatus.put(LAST_CONFIRMED_NONCE, remoteNonce);
+            dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
+        } else {
+            LOGGER.error("Error trying to move confirmed file.");
+            return false;
+        }
 
-		return true;
+        return true;
     }
 
     /**
@@ -787,22 +798,21 @@ public class SubscriberImpl implements Subscriber {
         long latestNonce = 1;
 
         synchronized(this.jnlTest) {
-	        switch (this.recordType) {
-	        case Audit:
-	            latestNonce = this.jnlTest.getLatestAuditNONCE();
-	            this.jnlTest.setLatestAuditNONCE(++latestNonce);
-	            break;
-	        case Journal:
-	            latestNonce = this.jnlTest.getLatestJournalNONCE();
-	            this.jnlTest.setLatestJournalNONCE(++latestNonce);
-	            break;
-	        case Log:
-	            latestNonce = this.jnlTest.getLatestLogNONCE();
-	            this.jnlTest.setLatestLogNONCE(++latestNonce);
-	            break;
-	        }
+            switch (this.recordType) {
+            case Audit:
+                latestNonce = this.jnlTest.getLatestAuditNONCE();
+                this.jnlTest.setLatestAuditNONCE(++latestNonce);
+                break;
+            case Journal:
+                latestNonce = this.jnlTest.getLatestJournalNONCE();
+                this.jnlTest.setLatestJournalNONCE(++latestNonce);
+                break;
+            case Log:
+                latestNonce = this.jnlTest.getLatestLogNONCE();
+                this.jnlTest.setLatestLogNONCE(++latestNonce);
+                break;
+            }
         }
         return latestNonce;
     }
-
 }

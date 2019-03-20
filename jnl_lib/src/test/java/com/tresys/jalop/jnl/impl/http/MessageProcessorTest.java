@@ -2,6 +2,7 @@ package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.xml.crypto.dsig.DigestMethod;
@@ -40,6 +41,13 @@ public class MessageProcessorTest {
         handler.addServletWithMapping(JNLJournalServlet.class, HttpUtils.JOURNAL_ENDPOINT);
         handler.addServletWithMapping(JNLAuditServlet.class, HttpUtils.AUDIT_ENDPOINT);
         handler.addServletWithMapping(JNLLogServlet.class, HttpUtils.LOG_ENDPOINT);
+
+        //Sets up the subscriber
+        HttpSubscriberConfig config = new HttpSubscriberConfig();
+        config.setOutputPath(new File("./output"));
+
+        JNLSubscriber subscriber = new JNLSubscriber(config);
+        HttpUtils.setSubscriber(subscriber);
 
         server.start();
     }

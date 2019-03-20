@@ -63,4 +63,6 @@ public interface SubscriberSession extends Session {
 	void setPendingDigestMax(int pendingDigestMax);
 
     InetAddress getAddress();
+
+    String getPublisherId();
 }

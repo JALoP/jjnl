@@ -82,8 +82,8 @@ public class HttpUtilsTest {
         final String digests = "http://www.w3.org/2001/04/xmlenc#sha256";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
-        assertTrue(returned);
+        final String selectedDigest = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedDigest, "http://www.w3.org/2001/04/xmlenc#sha256");
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
             assertEquals(entry.getKey(), "JAL-Digest");
             assertEquals(entry.getValue(), "http://www.w3.org/2001/04/xmlenc#sha256");
@@ -97,8 +97,8 @@ public class HttpUtilsTest {
         final String digests = "junk digest,http://www.w3.org/2001/04/xmlenc#sha256";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
-        assertTrue(returned);
+        final String selectedDigest = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedDigest, "http://www.w3.org/2001/04/xmlenc#sha256");
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
             assertEquals(entry.getKey(), "JAL-Digest");
             assertEquals(entry.getValue(), "http://www.w3.org/2001/04/xmlenc#sha256");
@@ -114,8 +114,8 @@ public class HttpUtilsTest {
         final String digests = "";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
-        assertFalse(returned);
+        final String selectedDigest = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedDigest, null);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
             assertEquals(entry, "JAL-Unsupported-Digest");
@@ -128,8 +128,8 @@ public class HttpUtilsTest {
         final String xmlCompressions = "none";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
-        assertTrue(returned);
+        final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedCompression, "none");
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
             assertEquals(entry.getKey(), "JAL-XML-Compression");
             assertEquals(entry.getValue(), "none");
@@ -143,8 +143,8 @@ public class HttpUtilsTest {
         final String xmlCompressions = "junk compression,none";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
-        assertTrue(returned);
+        final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedCompression, "none");
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
             assertEquals(entry.getKey(), "JAL-XML-Compression");
             assertEquals(entry.getValue(), "none");
@@ -158,8 +158,8 @@ public class HttpUtilsTest {
         final String xmlCompressions = "exi-1.0";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
-        assertTrue(returned);
+        final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedCompression, "exi-1.0");
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
             assertEquals(entry.getKey(), "JAL-XML-Compression");
             assertEquals(entry.getValue(), "exi-1.0");
@@ -173,8 +173,8 @@ public class HttpUtilsTest {
         final String xmlCompressions = "deflate";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
-        assertTrue(returned);
+        final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedCompression, "deflate");
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
             assertEquals(entry.getKey(), "JAL-XML-Compression");
             assertEquals(entry.getValue(), "deflate");
@@ -188,8 +188,8 @@ public class HttpUtilsTest {
         final String xmlCompressions = "exi-1.0,deflate";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
-        assertTrue(returned);
+        final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedCompression, "exi-1.0");
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
             assertEquals(entry.getKey(), "JAL-XML-Compression");
             assertEquals(entry.getValue(), "exi-1.0");
@@ -203,8 +203,8 @@ public class HttpUtilsTest {
         final String xmlCompressions = "";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
-        assertFalse(returned);
+        final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedCompression, null);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
             assertEquals(entry, "JAL-Unsupported-XML-Compression");
@@ -217,8 +217,8 @@ public class HttpUtilsTest {
         final String xmlCompressions = "invalid";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
-        assertFalse(returned);
+        final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
+        assertEquals(selectedCompression, null);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
             assertEquals(entry, "JAL-Unsupported-XML-Compression");

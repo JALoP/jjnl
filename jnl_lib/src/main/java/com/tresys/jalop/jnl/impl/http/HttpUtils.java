@@ -18,6 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.crypto.dsig.DigestMethod;
 
+import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Subscriber;
+
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
  */
@@ -114,6 +117,8 @@ public class HttpUtils {
     public static String LOG_ENDPOINT = "/log";
 
     private static List<String> allowedConfigureDigests;
+
+    private static Subscriber subscriber;
 
     public static List<String> getAllowedConfigureDigests() {
 
@@ -262,14 +267,15 @@ public class HttpUtils {
     }
 
     //Validates supported digest
-    public static boolean validateDigests(String digests,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
+    public static String validateDigests(String digests,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
         String currDigests = checkForEmptyString(digests, HDRS_ACCEPT_DIGEST);
+        String selectedDigest = null;
 
         if (currDigests == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_DIGEST);
-            return false;
+            return null;
         }
 
         List<String> acceptDigests = parseHeaderList(digests);
@@ -279,24 +285,26 @@ public class HttpUtils {
         {
             if (currDigest.equals(DigestMethod.SHA256))
             {
-                successResponseHeaders.put(HDRS_DIGEST, DigestMethod.SHA256);
-                return true;
+                selectedDigest = DigestMethod.SHA256;
+                successResponseHeaders.put(HDRS_DIGEST, selectedDigest);
+                return selectedDigest;
             }
         }
 
         errorResponseHeaders.add(HDRS_UNSUPPORTED_DIGEST);
-        return false;
+        return null;
     }
 
     //Validates supported xml compression
-    public static boolean validateXmlCompression(String xmlCompressions,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
+    public static String validateXmlCompression(String xmlCompressions,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
+        String selectedXmlCompression = null;
         String currXmlCompressions = checkForEmptyString(xmlCompressions, HDRS_ACCEPT_XML_COMPRESSION);
 
         if (currXmlCompressions == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_XML_COMPRESSION);
-            return false;
+            return null;
         }
 
         List<String> acceptedXmlCompressions = parseHeaderList(currXmlCompressions);
@@ -308,15 +316,15 @@ public class HttpUtils {
 
             if (supportedXmlCompressionList.contains(HttpUtils.checkForEmptyString(currXmlCompression, "")))
             {
-                successResponseHeaders.put(HDRS_XML_COMPRESSION, currXmlCompression);
-                return true;
+                selectedXmlCompression = currXmlCompression;
+                successResponseHeaders.put(HDRS_XML_COMPRESSION, selectedXmlCompression);
+                return selectedXmlCompression;
             }
         }
 
         errorResponseHeaders.add(HDRS_UNSUPPORTED_XML_COMPRESSION);
-        return false;
+        return null;
     }
-
 
 
     //Validates dataClass, must be journal, audit, or log
@@ -422,5 +430,27 @@ public class HttpUtils {
             System.out.println("Digest algorithm not supported");
             return null;
         }
+    }
+
+    public static Subscriber getSubscriber() {
+        return subscriber;
+    }
+
+    public static void setSubscriber(Subscriber subscriber) {
+        HttpUtils.subscriber = subscriber;
+    }
+
+    public static RecordType getRecordType(String dataClass)
+    {
+        RecordType recordType = RecordType.Unset;
+        if (dataClass.equalsIgnoreCase(JOURNAL)) {
+            recordType = RecordType.Journal;
+        } else if (dataClass.equalsIgnoreCase(AUDIT)) {
+            recordType = RecordType.Audit;
+        } else if (dataClass.equalsIgnoreCase(LOG)) {
+            recordType = RecordType.Log;
+        }
+
+        return recordType;
     }
 }

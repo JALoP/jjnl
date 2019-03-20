@@ -5,17 +5,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.log4j.Logger;
+
+import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.SubscribeRequest;
+import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
+
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
  */
 public class MessageProcessor {
-    public static AtomicInteger requestCount = new AtomicInteger();
+
+    /** Logger for this class */
+    private static final Logger logger = Logger.getLogger(MessageProcessor.class);
 
     public static void processInitializeMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass) throws IOException
     {
@@ -39,7 +47,9 @@ public class MessageProcessor {
         {
             digestStr = DigestMethod.SHA256;
         }
-        if (!HttpUtils.validateDigests(digestStr, successResponseHeaders, errorResponseHeaders))
+
+        String selectedDigest = HttpUtils.validateDigests(digestStr, successResponseHeaders, errorResponseHeaders);
+        if (selectedDigest == null)
         {
             System.out.println("Initialize message failed due to none of the following digests supported: " + digestStr);
             MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
@@ -52,7 +62,9 @@ public class MessageProcessor {
         {
             xmlCompressionsStr = HttpUtils.SUPPORTED_XML_COMPRESSIONS[0];
         }
-        if (!HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorResponseHeaders))
+
+        String selectedXmlCompression = HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorResponseHeaders);
+        if (selectedXmlCompression == null)
         {
             System.out.println("Initialize message failed due to none of the following xml compressions supported: " + xmlCompressionsStr);
             MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
@@ -91,9 +103,59 @@ public class MessageProcessor {
             return;
         }
 
+        //Sets up subscriber session and determines if journal resume applies.
+        final Subscriber subscriber = HttpUtils.getSubscriber();
+
+        //TODO need to pass in publisher uuid sent from publisher in header, right now putting random uuid in.
+        //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
+        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("publisher_id",
+                HttpUtils.getRecordType(supportedDataClass), subscriber, selectedDigest,
+                selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
+                1 /*contextImpl.getDefaultPendingDigestMax()*/);
+
+      //  this.contextImpl.addSession(message.getChannel().getSession(), sessionImpl);
+
+        final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
+
+        if(subRequest.getResumeOffset() > 0 && RecordType.Journal.equals(supportedDataClass)) {
+            if(logger.isDebugEnabled()) {
+                logger.debug("Sending a journal resume message.");
+            }
+
+            //Adds journal resume header
+            if (!createJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders))
+            {
+                //TODO getNonce (JAL record id) should never be less than zero, but need to handle with initialize-nack if this fails?
+                //Something needs put in the JAL-Error-Message list here
+                errorResponseHeaders.add("Invalid Jal-Id");
+                MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
+                return;
+            }
+        } else {
+            //If no Jal-Id in header, then no journal resume.
+        }
+
         //If no errors, return initialize-ack with supported digest/encoding
         System.out.println("Initialize message is valid, sending intialize-ack");
         MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
+    }
+
+    public static Boolean createJournalResumeMessage(final String nonce,
+            final long offset, HashMap<String, String> headers) {
+        HttpUtils.checkForEmptyString(nonce, HttpUtils.HDRS_NONCE);
+
+        if (offset < 0) {
+            //TODO general comment through out, need to change all System.out.println to use log4j logger instead.
+            System.out.println("offset for '"
+                    + HttpUtils.MSG_JOURNAL_RESUME + "' must be positive");
+            return false;
+        }
+
+        //Sets JAL-Id to indicate journal resume
+        headers.put(HttpUtils.HDRS_NONCE, nonce);
+        headers.put(HttpUtils.HDRS_JOURNAL_OFFSET, Long.toString(offset));
+
+        return false;
     }
 
     public static void processJALRecordMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass, Integer currRequestCount) throws IOException
@@ -129,7 +191,7 @@ public class MessageProcessor {
         //Mainly for debugging right now, prints out headers to console.
         HttpUtils.parseHttpHeaders(request);
 
-        Integer currRequestCount = requestCount.incrementAndGet();
+        Integer currRequestCount = HttpUtils.requestCount.incrementAndGet();
 
         System.out.println("request: " + currRequestCount.toString() + " started");
 

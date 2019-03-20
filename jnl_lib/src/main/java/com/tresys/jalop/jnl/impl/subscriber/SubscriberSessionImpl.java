@@ -262,6 +262,12 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	}
 
 	@Override
+	public String getPublisherId()
+	{
+	    throw new UnsupportedOperationException("Not implemented");
+	}
+
+	@Override
 	public void run() {
 
 		if (log.isDebugEnabled()) {

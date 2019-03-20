@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import javax.net.ssl.SSLEngine;
@@ -20,17 +22,17 @@ import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
+import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLException;
-
+import com.tresys.jalop.jnl.impl.subscriber.SubscriberImpl;
 
 @SuppressWarnings("serial")
 public class JNLSubscriber implements Subscriber, JNLTestInterface
@@ -39,14 +41,10 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     private static final Logger logger = Logger.getLogger(JNLSubscriber.class);
 
     /**
-     * Configuration for this instance of JNLTest.
+     * From Sessions to associated {@link SubscriberImpl}
      */
-    private final HttpSubscriberConfig config;
+    private final Map<Session, Map<RecordType, SubscriberImpl>> sessMap = new HashMap<Session, Map<RecordType,SubscriberImpl>>();
 
-    /**
-     * ConnectionHandler implementation
-     */
-    private ConnectionHandler connectionHandler;
     /**
      * Counter to keep track of the last used nonce for log records
      */
@@ -59,6 +57,12 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
      * Counter to keep track of the last used nonce for journal records
      */
     private long latestJournalNONCE;
+
+    /**
+     * Configuration for this instance of JNLTest.
+     */
+    private final HttpSubscriberConfig config;
+
     /**
      * Create a JNLTest object based on the specified configuration.
      *
@@ -71,59 +75,16 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     public JNLSubscriber() {
         this.config = null;
     }
-    /**
-     * @return the latestLogNONCE
-     */
-    @Override
-    public long getLatestLogNONCE() {
-        return latestLogNONCE;
-    }
-
-    /**
-     * @param latestLogNONCE the latestLogNONCE to set
-     */
-    @Override
-    public void setLatestLogNONCE(final long latestLogNONCE) {
-        this.latestLogNONCE = latestLogNONCE;
-    }
-
-    /**
-     * @return the latestAuditNONCE
-     */
-    @Override
-    public long getLatestAuditNONCE() {
-        return latestAuditNONCE;
-    }
-
-    /**
-     * @param latestAuditNONCE the latestAuditNONCE to set
-     */
-    @Override
-    public void setLatestAuditNONCE(final long latestAuditNONCE) {
-        this.latestAuditNONCE = latestAuditNONCE;
-    }
-
-    /**
-     * @return the latestJournalNONCE
-     */
-    @Override
-    public long getLatestJournalNONCE() {
-        return latestJournalNONCE;
-    }
-
-    /**
-     * @param latestJournalNONCE the latestJournalNONCE to set
-     */
-    @Override
-    public void setLatestJournalNONCE(final long latestJournalNONCE) {
-        this.latestJournalNONCE = latestJournalNONCE;
-    }
 
     public void start() throws Exception{
 
         HttpUtils.requestCount.set(0);
+
         if (this.config.getRole() == Role.Subscriber)
         {
+            //Sets the subscriber reference
+            HttpUtils.setSubscriber(this);
+
             // Create a basic jetty server object that will listen on port 8080.
             // Note that if you set this to port 0 then a randomly available port
             // will be assigned that you can either look in the logs for the port,
@@ -289,45 +250,111 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         }
     }
 
+    /**
+     * @return the latestLogNONCE
+     */
+    @Override
+    public long getLatestLogNONCE() {
+        return latestLogNONCE;
+    }
+
+    /**
+     * @param latestLogNONCE the latestLogNONCE to set
+     */
+    @Override
+    public void setLatestLogNONCE(final long latestLogNONCE) {
+        this.latestLogNONCE = latestLogNONCE;
+    }
+
+    /**
+     * @return the latestAuditNONCE
+     */
+    @Override
+    public long getLatestAuditNONCE() {
+        return latestAuditNONCE;
+    }
+
+    /**
+     * @param latestAuditNONCE the latestAuditNONCE to set
+     */
+    @Override
+    public void setLatestAuditNONCE(final long latestAuditNONCE) {
+        this.latestAuditNONCE = latestAuditNONCE;
+    }
+
+    /**
+     * @return the latestJournalNONCE
+     */
+    @Override
+    public long getLatestJournalNONCE() {
+        return latestJournalNONCE;
+    }
+
+    /**
+     * @param latestJournalNONCE the latestJournalNONCE to set
+     */
+    @Override
+    public void setLatestJournalNONCE(final long latestJournalNONCE) {
+        this.latestJournalNONCE = latestJournalNONCE;
+    }
+
     @Override
     public SubscribeRequest getSubscribeRequest(final SubscriberSession sess) {
-        //TODO needs implemented, or remove if not needed.
-        throw new UnsupportedOperationException("Not implemented yet.");
+        // TODO: All the code here to manage the maps should really be happening in the
+        // connection handler callbacks, but the library isn't generating those events
+        // quite yet.
+        Map<RecordType, SubscriberImpl> map;
+        synchronized (this.sessMap) {
+            map = this.sessMap.get(sess);
+            if (map == null) {
+                map = new HashMap<RecordType, SubscriberImpl>();
+                this.sessMap.put(sess, map);
+            }
+        }
+        SubscriberImpl sub;
+        synchronized(map) {
+            sub = map.get(sess.getRecordType());
+            if (sub == null) {
+                sub = new SubscriberImpl(sess.getRecordType(), config.getOutputPath(), null, this, sess.getPublisherId());
+                map.put(sess.getRecordType(), sub);
+            }
+        }
+        return sub.getSubscribeRequest(sess);
     }
 
     @Override
     public boolean notifySysMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream sysMetaData) {
-       //TODO needs implemented, or remove if not needed.
-       throw new UnsupportedOperationException("Not implemented yet.");
+        return this.sessMap.get(sess).get(sess.getRecordType()).notifySysMetadata(sess, recordInfo, sysMetaData);
     }
 
     @Override
     public boolean notifyAppMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream appMetaData) {
-        //TODO needs implemented, or remove if not needed.
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return this.sessMap.get(sess).get(sess.getRecordType()).notifyAppMetadata(sess, recordInfo, appMetaData);
     }
 
     @Override
     public boolean notifyPayload(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream payload) {
-        //TODO needs implemented, or remove if not needed.
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return this.sessMap.get(sess).get(sess.getRecordType()).notifyPayload(sess, recordInfo, payload);
     }
 
     @Override
     public boolean notifyDigest(final SubscriberSession sess, final RecordInfo recordInfo, final byte[] digest) {
-        //TODO needs implemented, or remove if not needed.
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigest(sess, recordInfo, digest);
     }
 
     @Override
     public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status) {
-        //TODO needs implemented, or remove if not needed.
-        throw new UnsupportedOperationException("Not implemented yet.");
+        return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigestResponse(sess, nonce, status);
     }
 
     @Override
     public Mode getMode() {
-        return this.config.getMode();
+        return config.getMode();
+    }
+
+    public HttpSubscriberConfig getConfig()
+    {
+        return config;
     }
 }
 
