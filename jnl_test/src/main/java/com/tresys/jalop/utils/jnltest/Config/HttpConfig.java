@@ -27,6 +27,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
 
 /**
@@ -223,5 +224,20 @@ public class HttpConfig extends BaseConfig {
         }
 
         return keyStorePassword;
+    }
+
+    public HttpSubscriberConfig getHttpSubscriberConfig()
+    {
+        HttpSubscriberConfig httpSubscriberConfig = new HttpSubscriberConfig();
+        httpSubscriberConfig.setKeystorePath(this.getKeystorePath());
+        httpSubscriberConfig.setKeystorePassword(this.getKeystorePassword());
+        httpSubscriberConfig.setAddress(this.getAddress().getHostAddress());
+        httpSubscriberConfig.setPort(this.getPort());
+        httpSubscriberConfig.setRecordTypes(this.getRecordTypes());
+        httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
+        httpSubscriberConfig.setRole(this.getRole());
+        httpSubscriberConfig.setMode(this.getMode());
+
+        return httpSubscriberConfig;
     }
 }
