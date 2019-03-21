@@ -367,15 +367,16 @@ public class HttpUtils {
     }
 
     //Validates configure digest challenge, must be on/off
-    public static boolean validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
+    public static String validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
         String currConfigDigests = checkForEmptyString(configureDigestChallenge, HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
+        String selectedConfigureDigest = null;
 
         //Checks if supported configure digest challenge, only on/off is supported
         if (currConfigDigests == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
-            return false;
+            return null;
         }
 
         List<String> acceptedConfigDigests = parseHeaderList(currConfigDigests);
@@ -385,13 +386,14 @@ public class HttpUtils {
         {
             if (HttpUtils.getAllowedConfigureDigests().contains(HttpUtils.checkForEmptyString(currConfigDigest, "")))
             {
+                selectedConfigureDigest = currConfigDigest;
                 successResponseHeaders.put(HDRS_CONFIGURE_DIGEST_CHALLENGE, currConfigDigest);
-                return true;
+                return selectedConfigureDigest;
             }
         }
 
         errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
-        return false;
+        return null;
     }
 
     public static String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException
@@ -443,12 +445,16 @@ public class HttpUtils {
     public static RecordType getRecordType(String dataClass)
     {
         RecordType recordType = RecordType.Unset;
-        if (dataClass.equalsIgnoreCase(JOURNAL)) {
-            recordType = RecordType.Journal;
-        } else if (dataClass.equalsIgnoreCase(AUDIT)) {
-            recordType = RecordType.Audit;
-        } else if (dataClass.equalsIgnoreCase(LOG)) {
-            recordType = RecordType.Log;
+
+        if (dataClass != null)
+        {
+            if (dataClass.equalsIgnoreCase(JOURNAL)) {
+                recordType = RecordType.Journal;
+            } else if (dataClass.equalsIgnoreCase(AUDIT)) {
+                recordType = RecordType.Audit;
+            } else if (dataClass.equalsIgnoreCase(LOG)) {
+                recordType = RecordType.Log;
+            }
         }
 
         return recordType;

@@ -96,7 +96,8 @@ public class MessageProcessor {
             confDigestChallengeStr = HttpUtils.MSG_CONFIGURE_DIGEST_ON;
         }
 
-        if (!HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorResponseHeaders))
+        String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorResponseHeaders);
+        if (selectedConfDigestChallenge == null)
         {
             System.out.println("Initialize message failed due to unsupported configure digest challenge: " + confDigestChallengeStr);
             MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
@@ -111,23 +112,20 @@ public class MessageProcessor {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("publisher_id",
                 HttpUtils.getRecordType(supportedDataClass), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
-                1 /*contextImpl.getDefaultPendingDigestMax()*/);
+                1, selectedConfDigestChallenge/*contextImpl.getDefaultPendingDigestMax()*/);
 
       //  this.contextImpl.addSession(message.getChannel().getSession(), sessionImpl);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 
-        if(subRequest.getResumeOffset() > 0 && RecordType.Journal.equals(supportedDataClass)) {
+        if(subRequest.getResumeOffset() > 0 && RecordType.Journal.equals(HttpUtils.getRecordType(supportedDataClass))) {
             if(logger.isDebugEnabled()) {
                 logger.debug("Sending a journal resume message.");
             }
 
             //Adds journal resume header
-            if (!createJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders))
+            if (!createJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorResponseHeaders))
             {
-                //TODO getNonce (JAL record id) should never be less than zero, but need to handle with initialize-nack if this fails?
-                //Something needs put in the JAL-Error-Message list here
-                errorResponseHeaders.add("Invalid Jal-Id");
                 MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
                 return;
             }
@@ -141,21 +139,23 @@ public class MessageProcessor {
     }
 
     public static Boolean createJournalResumeMessage(final String nonce,
-            final long offset, HashMap<String, String> headers) {
+            final long offset, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders) {
         HttpUtils.checkForEmptyString(nonce, HttpUtils.HDRS_NONCE);
 
         if (offset < 0) {
             //TODO general comment through out, need to change all System.out.println to use log4j logger instead.
             System.out.println("offset for '"
                     + HttpUtils.MSG_JOURNAL_RESUME + "' must be positive");
+
+            errorResponseHeaders.add("Invalid JAL-Journal-Offset");
             return false;
         }
 
         //Sets JAL-Id to indicate journal resume
-        headers.put(HttpUtils.HDRS_NONCE, nonce);
-        headers.put(HttpUtils.HDRS_JOURNAL_OFFSET, Long.toString(offset));
+        successResponseHeaders.put(HttpUtils.HDRS_NONCE, nonce);
+        successResponseHeaders.put(HttpUtils.HDRS_JOURNAL_OFFSET, Long.toString(offset));
 
-        return false;
+        return true;
     }
 
     public static void processJALRecordMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass, Integer currRequestCount) throws IOException

@@ -1,9 +1,13 @@
 package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
@@ -80,8 +84,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -102,8 +106,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -125,8 +129,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -146,8 +150,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -168,8 +172,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -189,8 +193,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -211,8 +215,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -232,8 +236,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -254,8 +258,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -276,8 +280,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-ack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
     }
 
     @Test
@@ -298,8 +302,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-nack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
     }
 
     @Test
@@ -320,8 +324,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-nack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
     }
 
     @Test
@@ -342,8 +346,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-nack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
     }
 
     @Test
@@ -364,8 +368,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-nack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
     }
 
     @Test
@@ -386,8 +390,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-nack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
     }
 
     @Test
@@ -408,7 +412,31 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(responseStatus, 200);
-        assertEquals(responseMessage, "initialize-nack");
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
+    }
+
+    @Test
+    public void testCreateJournalResumeMessageEmptyNounce()
+    {
+        HashMap<String, String> successHeaders = new HashMap<String, String>();
+        List<String> errorHeaders = new ArrayList<String>();
+        boolean result = MessageProcessor.createJournalResumeMessage(null, 0, successHeaders, errorHeaders);
+        assertEquals(null, successHeaders.get(HttpUtils.HDRS_NONCE));
+        assertEquals("0", successHeaders.get(HttpUtils.HDRS_JOURNAL_OFFSET));
+        assertEquals(0, errorHeaders.size());
+        assertTrue(result);
+
+    }
+
+    @Test
+    public void testCreateJournalResumeMessageInvalidJalOffset()
+    {
+        HashMap<String, String> headers = new HashMap<String, String>();
+        List<String> errorHeaders = new ArrayList<String>();
+        boolean result = MessageProcessor.createJournalResumeMessage("test", -1, headers, errorHeaders);
+        assertEquals(false, result);
+        assertEquals(0, headers.size());
+        assertEquals(true, errorHeaders.contains("Invalid JAL-Journal-Offset"));
     }
 }

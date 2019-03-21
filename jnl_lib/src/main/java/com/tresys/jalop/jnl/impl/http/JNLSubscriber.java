@@ -70,10 +70,11 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
      *            A {@link Config}
      */
     public JNLSubscriber(final HttpSubscriberConfig config) {
+
+        if (config == null) {
+            throw new IllegalArgumentException("'HttpSubscriberConfig' is required.");
+        }
         this.config = config;
-    }
-    public JNLSubscriber() {
-        this.config = null;
     }
 
     public void start() throws Exception{
