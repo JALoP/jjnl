@@ -22,6 +22,40 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 public class HttpUtilsTest {
 
     @Test
+    public void testValidatePublisherIdWorksWithUUID() {
+
+        final String publisherId = "ae8a54d7-dd7c-4c50-a7e7-f948a140c556";
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validatePublisherId(publisherId, errorResponseHeaders);
+        assertTrue(returned);
+        assertTrue(errorResponseHeaders.isEmpty());
+    }
+
+    @Test
+    public void testValidatePublisherIdFailsWithInvalidUUID() {
+
+        final String publisherId = "ae8a54d7-4c50-a7e7-f948a140c556";
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validatePublisherId(publisherId, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Publisher-Id", entry);
+        }
+    }
+
+    @Test
+    public void testValidatePublisherIdFailsWithEmptyUUID() {
+
+        final String publisherId = "";
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validatePublisherId(publisherId, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Publisher-Id", entry);
+        }
+    }
+
+    @Test
     public void testValidateModeWorksWithPublishLive() {
 
         final String mode = "publish-live";

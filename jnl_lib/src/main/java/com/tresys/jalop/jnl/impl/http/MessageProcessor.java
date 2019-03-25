@@ -32,6 +32,14 @@ public class MessageProcessor {
         HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         List <String> errorResponseHeaders = new ArrayList<String>();
 
+        String publisherIdStr = request.getHeader(HttpUtils.HDRS_PUBLISHER_ID);
+        if (!HttpUtils.validatePublisherId(publisherIdStr, errorResponseHeaders))
+        {
+            System.out.println("Initialize message failed due to invalid Publisher ID value of: " + publisherIdStr);
+            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
+            return;
+        }
+
         //Validates mode, must be publish live or publish archive, sets any error in response.
         String modeStr = request.getHeader(HttpUtils.HDRS_MODE);
         if (!HttpUtils.validateMode(modeStr, errorResponseHeaders))
@@ -107,14 +115,11 @@ public class MessageProcessor {
         //Sets up subscriber session and determines if journal resume applies.
         final Subscriber subscriber = HttpUtils.getSubscriber();
 
-        //TODO need to pass in publisher uuid sent from publisher in header, right now putting random uuid in.
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
-        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("publisher_id",
+        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr,
                 HttpUtils.getRecordType(supportedDataClass), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
                 1, selectedConfDigestChallenge/*contextImpl.getDefaultPendingDigestMax()*/);
-
-      //  this.contextImpl.addSession(message.getChannel().getSession(), sessionImpl);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 

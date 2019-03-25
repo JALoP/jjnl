@@ -61,11 +61,13 @@ public class HttpUtils {
     public static final String HDRS_MESSAGE = "JAL-Message";
     public static final String HDRS_MODE = "JAL-Mode";
     public static final String HDRS_NONCE = "JAL-Id";
+    public static final String HDRS_PUBLISHER_ID = "JAL-Publisher-Id";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
     public static final String HDRS_UNAUTHORIZED_MODE = "JAL-Unauthorized-Mode";
     public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";
     public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
     public static final String HDRS_UNSUPPORTED_MODE = "JAL-Unsupported-Mode";
+    public static final String HRDS_UNSUPPORTED_PUBLISHER_ID = "JAL-Unsupported-Publisher-Id";
     public static final String HDRS_UNSUPPORTED_VERSION = "JAL-Unsupported-Version";
 
     //New headers added for http, not in original Utils.java, however listed in Jalop specification doc
@@ -243,6 +245,28 @@ public class HttpUtils {
             }
         }
         return sb.toString();
+    }
+
+    // Validates Publisher ID, must be UUID
+    public static boolean validatePublisherId(String publisherId, List<String> errorResponseHeaders)
+    {
+        String currPublisherId = checkForEmptyString(publisherId, HDRS_PUBLISHER_ID);
+
+        if (currPublisherId == null)
+        {
+            errorResponseHeaders.add(HRDS_UNSUPPORTED_PUBLISHER_ID);
+            return false;
+        }
+
+        //Regular expression to match UUID format
+        String uuidPattern = "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
+        if (!currPublisherId.matches(uuidPattern))
+        {
+            errorResponseHeaders.add(HRDS_UNSUPPORTED_PUBLISHER_ID);
+            return false;
+        }
+
+        return true;
     }
 
     //Validates mode, must be publish live or publish archive
