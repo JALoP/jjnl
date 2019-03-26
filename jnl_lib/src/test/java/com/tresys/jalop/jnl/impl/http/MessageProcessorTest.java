@@ -71,6 +71,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -93,6 +94,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -115,6 +117,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.LOG_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -138,6 +141,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
@@ -159,6 +163,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "");
@@ -181,6 +186,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -202,6 +208,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -224,6 +231,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -245,6 +253,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -267,6 +276,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -289,6 +299,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -311,6 +322,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "invalid");
@@ -333,6 +345,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -355,6 +368,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -377,6 +391,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -399,6 +414,7 @@ public class MessageProcessorTest {
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
