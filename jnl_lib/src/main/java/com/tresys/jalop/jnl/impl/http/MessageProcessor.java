@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -116,7 +117,9 @@ public class MessageProcessor {
         final Subscriber subscriber = HttpUtils.getSubscriber();
 
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
-        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr,
+        UUID sessionUUID = UUID.randomUUID();
+        final String sessionId = sessionUUID.toString();
+        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
                 HttpUtils.getRecordType(supportedDataClass), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
                 1, selectedConfDigestChallenge/*contextImpl.getDefaultPendingDigestMax()*/);
@@ -135,12 +138,13 @@ public class MessageProcessor {
                 return;
             }
         } else {
-            //If no Jal-Id in header, then no journal resume.
-        }
+            //If no errors, return initialize-ack with supported digest/encoding
+            System.out.println("Initialize message is valid, sending intialize-ack");
 
-        //If no errors, return initialize-ack with supported digest/encoding
-        System.out.println("Initialize message is valid, sending intialize-ack");
-        MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
+            //Add the session ID before we send the initialize-ack message
+            successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, sessionId);
+            MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
+        }        
     }
 
     public static Boolean createJournalResumeMessage(final String nonce,

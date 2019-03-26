@@ -32,6 +32,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     private final String xmlEncoding;
     private volatile boolean errored;
     private String publisherId;
+    private String sessionId;
     private String configureDigest;
 
     /**
@@ -53,7 +54,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
      * @param pendingDigestMax
      *            The maximum number of digests to queue.
      */
-    public SubscriberHttpSessionImpl(final String publisherId,
+    public SubscriberHttpSessionImpl(final String publisherId, final String sessionId,
             final RecordType recordType, final Subscriber subscriber,
             final String digestMethod, final String xmlEncoding,
             final int pendingDigestTimeoutSeconds, final int pendingDigestMax, final String configureDigest) {
@@ -75,6 +76,10 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
             throw new IllegalArgumentException("'publisherId' is required.");
         }
 
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            throw new IllegalArgumentException("'sessionId' is required.");
+        }
+
         if (configureDigest == null || configureDigest.trim().isEmpty()) {
             throw new IllegalArgumentException("'configureDigest' is required.");
         }
@@ -84,6 +89,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         this.xmlEncoding = xmlEncoding.trim();
         this.configureDigest = configureDigest.trim();
         this.publisherId = publisherId.trim();
+        this.sessionId = sessionId.trim();
 
         if (subscriber == null) {
             throw new IllegalArgumentException("'subscriber' cannot be null.");
@@ -139,6 +145,12 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     public String getPublisherId()
     {
         return publisherId;
+    }
+
+    @Override
+    public String getSessionId()
+    {
+        return sessionId;
     }
 
     @Override

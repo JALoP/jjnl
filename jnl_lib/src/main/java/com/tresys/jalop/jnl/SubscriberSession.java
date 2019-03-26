@@ -65,4 +65,6 @@ public interface SubscriberSession extends Session {
     InetAddress getAddress();
 
     String getPublisherId();
+
+    String getSessionId();
 }
