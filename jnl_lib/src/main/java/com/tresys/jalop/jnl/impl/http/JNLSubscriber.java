@@ -32,6 +32,7 @@ import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLException;
+import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberImpl;
 
 @SuppressWarnings("serial")
@@ -321,6 +322,24 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             }
         }
         return sub.getSubscribeRequest(sess);
+    }
+
+    public Session getSessionByPublisherId(String publisherId)
+    {
+        Session foundSession = null;
+        synchronized (this.sessMap) {
+
+            for (Session currSession : this.sessMap.keySet())
+            {
+                if (((SubscriberHttpSessionImpl)currSession).getPublisherId().equals(publisherId))
+                {
+                    foundSession = currSession;
+                    break;
+                }
+            }
+        }
+
+        return foundSession;
     }
 
     @Override

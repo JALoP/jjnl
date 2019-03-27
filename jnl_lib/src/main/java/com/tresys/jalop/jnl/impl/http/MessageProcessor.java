@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
@@ -144,7 +145,7 @@ public class MessageProcessor {
             //Add the session ID before we send the initialize-ack message
             successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, sessionId);
             MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
-        }        
+        }
     }
 
     public static Boolean createJournalResumeMessage(final String nonce,
@@ -167,8 +168,170 @@ public class MessageProcessor {
         return true;
     }
 
-    public static void processJALRecordMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass, Integer currRequestCount) throws IOException
+    public static void setErrorResponse(List<String> errorMessages, HttpServletResponse response)
     {
+        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+    }
+
+    public static void setErrorResponse(String errorMessage, HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, errorMessage);
+    }
+
+    public static boolean processJALRecordMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass, Integer currRequestCount) throws IOException
+    {
+        //Gets the publisher Id from header
+        String publisherIdStr = request.getHeader(HttpUtils.HDRS_PUBLISHER_ID);
+        List<String> errorMessages = new ArrayList<String>();
+        if (!HttpUtils.validatePublisherId(publisherIdStr, errorMessages))
+        {
+            System.out.println("Initialize message failed due to invalid Publisher ID value of: " + publisherIdStr);
+            MessageProcessor.setErrorResponse(errorMessages, response);
+            return false;
+        }
+
+        // Get the segment lengths from the header
+        Long sysMetadataSize = new Long(0);
+        try
+        {
+            sysMetadataSize = new Long(request.getHeader(Utils.HDRS_SYS_META_LEN)).longValue();
+
+            if (sysMetadataSize < 0)
+            {
+                MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_SYS_META_LEN, response);
+                return false;
+            }
+        }
+        catch(NumberFormatException nfe )
+        {
+            MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_SYS_META_LEN, response);
+            return false;
+        }
+
+        Long appMetadataSize = new Long(0);
+        try
+        {
+            appMetadataSize = new Long(request.getHeader(Utils.HDRS_APP_META_LEN)).longValue();
+
+            if (appMetadataSize < 0)
+            {
+                MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_APP_META_LEN, response);
+                return false;
+            }
+        }
+        catch(NumberFormatException nfe )
+        {
+            MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_APP_META_LEN, response);
+            return false;
+        }
+
+        RecordType recType = RecordType.Unset;
+        String payloadType = request.getHeader(Utils.HDRS_MESSAGE);
+        Long payloadSize = new Long(0);
+        if (payloadType.equalsIgnoreCase(HttpUtils.MSG_LOG) && RecordType.Log.equals(HttpUtils.getRecordType(supportedDataClass)))
+        {
+            try
+            {
+                payloadSize = new Long(request.getHeader(Utils.HDRS_LOG_LEN)).longValue();
+
+                if (payloadSize < 0)
+                {
+                    MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_LOG_LEN, response);
+                    return false;
+                }
+            }
+            catch (NumberFormatException nfe)
+            {
+                MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_LOG_LEN, response);
+                return false;
+            }
+            recType = RecordType.Log;
+        }
+        else if (payloadType.equalsIgnoreCase(HttpUtils.MSG_AUDIT) && RecordType.Audit.equals(HttpUtils.getRecordType(supportedDataClass)))
+        {
+            try
+            {
+                payloadSize = new Long(request.getHeader(Utils.HDRS_AUDIT_LEN)).longValue();
+
+                if (payloadSize < 0)
+                {
+                    MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_AUDIT_LEN, response);
+                    return false;
+                }
+            }
+            catch (NumberFormatException nfe)
+            {
+                MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_AUDIT_LEN, response);
+                return false;
+            }
+            recType = RecordType.Audit;
+        }
+        else if (payloadType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL) && RecordType.Journal.equals(HttpUtils.getRecordType(supportedDataClass)))
+        {
+            try
+            {
+                payloadSize = new Long(request.getHeader(Utils.HDRS_JOURNAL_LEN)).longValue();
+
+                if (payloadSize < 0)
+                {
+                    MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_JOURNAL_LEN, response);
+                    return false;
+                }
+            }
+            catch (NumberFormatException nfe)
+            {
+                MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_JOURNAL_LEN, response);
+                return false;
+            }
+            recType = RecordType.Journal;
+        }
+        else
+        {
+            MessageProcessor.setErrorResponse(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, response);
+            return false;
+        }
+
+        //Gets JAL-Id
+        String jalId = request.getHeader(HttpUtils.HDRS_NONCE);
+
+        //Verifies not empty
+        try
+        {
+            jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        }
+        catch(IllegalArgumentException iae )
+        {
+            MessageProcessor.setErrorResponse(HttpUtils.HDRS_INVALID_JAL_ID, response);
+            return false;
+        }
+
+        //Lookup the correct session based upon publisher id and process the record
+        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionByPublisherId(publisherIdStr);
+
+        //If null session does not exist for specific publisher id
+        if (sess == null)
+        {
+            MessageProcessor.setErrorResponse(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, response);
+            return false;
+        }
+
+        SubscriberHttpANSHandler subscriberHandler = sess.getsubscriberHandler();
+        String digest = subscriberHandler.handleJALRecord(sysMetadataSize, appMetadataSize, payloadSize, payloadType, recType, jalId, request.getInputStream());
+
+        //If null, then failure occurred
+        if (digest == null)
+        {
+            //TODO for now put empty digest in response, which will indicate a failure
+            response.setHeader(HttpUtils.HDRS_DIGEST, "");
+        }
+        else
+        {
+            //Put digest in the response
+            response.setHeader(HttpUtils.HDRS_DIGEST, digest);
+        }
+
+        /*
         //writes out binary length
         System.out.println("Binary data length is: " + request.getHeader(HttpUtils.HDRS_CONTENT_LENGTH));
 
@@ -177,7 +340,9 @@ public class MessageProcessor {
         System.out.println("The digest value is: " + digest);
 
         //Sets digest in the response
-        response.setHeader(HttpUtils.HDRS_DIGEST, digest);
+        response.setHeader(HttpUtils.HDRS_DIGEST, digest); */
+
+        return true;
     }
 
     public static void setInitializeNackResponse(List<String> errorMessages, HttpServletResponse response)

@@ -95,8 +95,18 @@ struct curl_slist * getInitializeHeaders(std::string dataClass)
 struct curl_slist * getJALRecordHeaders(std::string dataClass)
 {
     struct curl_slist *headers=NULL;
+    headers = curl_slist_append(headers, "JAL-Publisher-Id: ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+
     headers = curl_slist_append(headers, "Content-Type: application/http+jalop");
     headers = curl_slist_append(headers, "Transfer-Encoding: binary");
+
+    //JAL record headers
+    headers = curl_slist_append(headers, "JAL-Id: 2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496");
+    headers = curl_slist_append(headers, "JAL-System-Metadata-Length: 3083");
+    headers = curl_slist_append(headers, "JAL-Application-Metadata-Length: 1125");
+
+    //temp for now
+    headers = curl_slist_append(headers, "JAL-Audit-Length: 19");
 
     std::string dataClassMsg = "JAL-Message: " + dataClass + "-record";
     headers = curl_slist_append(headers, dataClassMsg.c_str());
@@ -130,7 +140,7 @@ bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::strin
             struct stat file_info;
 
             //Source file to post to the jetty http servlet
-            char *inputFilename = "test.iso";
+            char *inputFilename = "test.txt";
             fd = fopen(inputFilename, "rb");
             if (!fd)
             {
@@ -253,7 +263,7 @@ int main(void)
 
     //If successful post, then proccess response
     processInitializeResponse(currDataClass);
-
+/*
     //Send initialize message to journal channel
     currDataClass = "journal";
     if (!performHttpPost(getInitializeHeaders(currDataClass), false, currDataClass))
@@ -274,7 +284,7 @@ int main(void)
     }
 
     //If successful post, then proccess response
-    processInitializeResponse(currDataClass);
+    processInitializeResponse(currDataClass); */
 
     return 0;
 }

@@ -2,8 +2,12 @@ package com.tresys.jalop.jnl.impl.subscriber;
 
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
 
@@ -13,6 +17,7 @@ import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.http.SubscriberHttpANSHandler;
 
 public class SubscriberHttpSessionImpl implements SubscriberSession {
 
@@ -25,6 +30,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     protected Map<String, String> digestMap;
     private long journalResumeOffset;
     private InputStream journalResumeIS;
+    private SubscriberHttpANSHandler subscriberHandler;
     private Mode mode = Mode.Unset;
 
     private final RecordType recordType;
@@ -84,13 +90,6 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
             throw new IllegalArgumentException("'configureDigest' is required.");
         }
 
-        this.recordType = recordType;
-        this.digestMethod = digestMethod.trim();
-        this.xmlEncoding = xmlEncoding.trim();
-        this.configureDigest = configureDigest.trim();
-        this.publisherId = publisherId.trim();
-        this.sessionId = sessionId.trim();
-
         if (subscriber == null) {
             throw new IllegalArgumentException("'subscriber' cannot be null.");
         }
@@ -105,21 +104,45 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
                     + "must be a positive number.");
         }
 
-        /*try {
-    this.listener = new SubscriberANSHandler(
-            MessageDigest
-                    .getInstance(getDigestType(digestMethod.trim())),
-            this);
-} catch (final NoSuchAlgorithmException e) {
-    throw new IllegalArgumentException(
-            "'digestMethod' must be a valid DigestMethod", e);
-}*/
+        try {
+            this.subscriberHandler = new SubscriberHttpANSHandler(
+                    MessageDigest
+                            .getInstance(getDigestType(digestMethod.trim())),
+                    this);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(
+                    "'digestMethod' must be a valid DigestMethod", e);
+        }
 
+        this.recordType = recordType;
+        this.digestMethod = digestMethod.trim();
+        this.xmlEncoding = xmlEncoding.trim();
+        this.configureDigest = configureDigest.trim();
+        this.publisherId = publisherId.trim();
+        this.sessionId = sessionId.trim();
         this.subscriber = subscriber;
         this.pendingDigestMax = pendingDigestMax;
         this.pendingDigestTimeoutSeconds = pendingDigestTimeoutSeconds;
         this.digestMap = new HashMap<String, String>();
         this.journalResumeOffset = 0;
+    }
+
+    protected String getDigestType(final String algorithm) {
+
+        if (DigestMethod.SHA256.equals(algorithm)) {
+            return "SHA-256";
+        } else if (DigestMethod.SHA512.equals(algorithm)) {
+            return "SHA-512";
+        } else if ("http://www.w3.org/2001/04/xmldsig-more#sha384"
+                .equals(algorithm)) {
+            return "SHA-384";
+        }
+        return "";
+    }
+
+    public SubscriberHttpANSHandler getsubscriberHandler()
+    {
+        return this.subscriberHandler;
     }
 
     /**
@@ -230,13 +253,6 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     public Subscriber getSubscriber() {
         return this.subscriber;
     }
-
-    /**
-     * @return the listener
-     */
-    /*public ReplyListener getListener() {
-return this.listener;
-}*/
 
     @Override
     public void setDigestTimeout(final int pendingDigestTimeoutSeconds) {
