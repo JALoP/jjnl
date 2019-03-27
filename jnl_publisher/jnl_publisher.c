@@ -92,7 +92,7 @@ struct curl_slist * getInitializeHeaders(std::string dataClass)
     return headers;
 }
 
-struct curl_slist * getJALRecordHeaders(std::string dataClass)
+struct curl_slist * getJALRecordHeaders(std::string dataClass, std::string jalId, std::string sysMetadataLength, std::string appMetadataLength, std::string payloadLength)
 {
     struct curl_slist *headers=NULL;
     headers = curl_slist_append(headers, "JAL-Publisher-Id: ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
@@ -101,12 +101,18 @@ struct curl_slist * getJALRecordHeaders(std::string dataClass)
     headers = curl_slist_append(headers, "Transfer-Encoding: binary");
 
     //JAL record headers
-    headers = curl_slist_append(headers, "JAL-Id: 2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496");
-    headers = curl_slist_append(headers, "JAL-System-Metadata-Length: 3083");
-    headers = curl_slist_append(headers, "JAL-Application-Metadata-Length: 1125");
+    std::string jalIdStr = "JAL-Id: " + jalId;
+    headers = curl_slist_append(headers, jalIdStr.c_str());
+
+    std::string sysMetadataStr = "JAL-System-Metadata-Length: " + sysMetadataLength;
+    headers = curl_slist_append(headers, sysMetadataStr.c_str());
+
+    std::string appMetadataStr = "JAL-Application-Metadata-Length: " + appMetadataLength;
+    headers = curl_slist_append(headers, appMetadataStr.c_str());
 
     //temp for now
-    headers = curl_slist_append(headers, "JAL-Audit-Length: 19");
+    std::string payloadStr = "JAL-Audit-Length: " + payloadLength;
+    headers = curl_slist_append(headers, payloadStr.c_str());
 
     std::string dataClassMsg = "JAL-Message: " + dataClass + "-record";
     headers = curl_slist_append(headers, dataClassMsg.c_str());
@@ -114,7 +120,7 @@ struct curl_slist * getJALRecordHeaders(std::string dataClass)
     return headers;
 }
 
-bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::string dataClass)
+bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::string dataClass, std::string filename)
 {
     CURL *curl;
     CURLcode res;
@@ -140,7 +146,7 @@ bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::strin
             struct stat file_info;
 
             //Source file to post to the jetty http servlet
-            char *inputFilename = "test.txt";
+            char *inputFilename = (char*)filename.c_str();
             fd = fopen(inputFilename, "rb");
             if (!fd)
             {
@@ -228,7 +234,18 @@ bool processInitializeResponse(std::string dataClass)
         {
             //Sending jal record after successful initialize
             fprintf(stdout, "Received initialize-ack, sending jal record\n");
-            if (!performHttpPost(getJALRecordHeaders(dataClass), true, dataClass))
+            struct curl_slist *rec1headers = getJALRecordHeaders(dataClass, "2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496",
+                                                    "3083", "1125", "19");
+            if (!performHttpPost(rec1headers, true, dataClass, "test.txt"))
+            {
+                fprintf(stdout, "JAL-record post failed.\n");
+                return false;
+            }
+            processJALRecordResponse(dataClass);
+
+            struct curl_slist *rec2headers = getJALRecordHeaders(dataClass, "1ef4e71c-5971-4349-9169-d1e8a2e9450b_2019-02-22T16:09:46.43660-05:00_20705_3167946496",
+                                                    "3083", "1124", "41");
+            if (!performHttpPost(rec2headers, true, dataClass, "test2.txt"))
             {
                 fprintf(stdout, "JAL-record post failed.\n");
                 return false;
@@ -255,7 +272,7 @@ int main(void)
 {
     //Send initialize message to audit channel
     std::string currDataClass = "audit";
-    if (!performHttpPost(getInitializeHeaders(currDataClass), false, currDataClass))
+    if (!performHttpPost(getInitializeHeaders(currDataClass), false, currDataClass, ""))
     {
         fprintf(stdout, "Initialize HTTP post failed.\n");
         exit(1);
