@@ -44,7 +44,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     /**
      * From Sessions to associated {@link SubscriberImpl}
      */
-    private final Map<Session, Map<RecordType, SubscriberImpl>> sessMap = new HashMap<Session, Map<RecordType,SubscriberImpl>>();
+    private final Map<Session, SubscriberImpl> sessMap = new HashMap<Session, SubscriberImpl>();
 
     /**
      * Counter to keep track of the last used nonce for log records
@@ -305,33 +305,45 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         // TODO: All the code here to manage the maps should really be happening in the
         // connection handler callbacks, but the library isn't generating those events
         // quite yet.
-        Map<RecordType, SubscriberImpl> map;
-        synchronized (this.sessMap) {
-            map = this.sessMap.get(sess);
-            if (map == null) {
-                map = new HashMap<RecordType, SubscriberImpl>();
-                this.sessMap.put(sess, map);
-            }
-        }
         SubscriberImpl sub;
-        synchronized(map) {
-            sub = map.get(sess.getRecordType());
+        synchronized (this.sessMap) {
+            sub = this.sessMap.get(sess);
             if (sub == null) {
                 sub = new SubscriberImpl(sess.getRecordType(), config.getOutputPath(), null, this, sess.getPublisherId());
-                map.put(sess.getRecordType(), sub);
+                this.sessMap.put(sess, sub);
             }
         }
+
         return sub.getSubscribeRequest(sess);
     }
 
-    public Session getSessionByPublisherId(String publisherId)
+    public Session getSessionByPublisherId(String publisherId, RecordType recordType)
     {
         Session foundSession = null;
         synchronized (this.sessMap) {
 
             for (Session currSession : this.sessMap.keySet())
             {
-                if (((SubscriberHttpSessionImpl)currSession).getPublisherId().equals(publisherId))
+                SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)currSession);
+                if (session.getPublisherId().equals(publisherId) && session.getRecordType().equals(recordType))
+                {
+                    foundSession = currSession;
+                    break;
+                }
+            }
+        }
+
+        return foundSession;
+    }
+
+    public Session getSessionBySessionId(String sessionId)
+    {
+        Session foundSession = null;
+        synchronized (this.sessMap) {
+
+            for (Session currSession : this.sessMap.keySet())
+            {
+                if (((SubscriberHttpSessionImpl)currSession).getSessionId().equals(sessionId))
                 {
                     foundSession = currSession;
                     break;
@@ -344,27 +356,27 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
     @Override
     public boolean notifySysMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream sysMetaData) {
-        return this.sessMap.get(sess).get(sess.getRecordType()).notifySysMetadata(sess, recordInfo, sysMetaData);
+        return this.sessMap.get(sess).notifySysMetadata(sess, recordInfo, sysMetaData);
     }
 
     @Override
     public boolean notifyAppMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream appMetaData) {
-        return this.sessMap.get(sess).get(sess.getRecordType()).notifyAppMetadata(sess, recordInfo, appMetaData);
+        return this.sessMap.get(sess).notifyAppMetadata(sess, recordInfo, appMetaData);
     }
 
     @Override
     public boolean notifyPayload(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream payload) {
-        return this.sessMap.get(sess).get(sess.getRecordType()).notifyPayload(sess, recordInfo, payload);
+        return this.sessMap.get(sess).notifyPayload(sess, recordInfo, payload);
     }
 
     @Override
     public boolean notifyDigest(final SubscriberSession sess, final RecordInfo recordInfo, final byte[] digest) {
-        return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigest(sess, recordInfo, digest);
+        return this.sessMap.get(sess).notifyDigest(sess, recordInfo, digest);
     }
 
     @Override
     public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status) {
-        return this.sessMap.get(sess).get(sess.getRecordType()).notifyDigestResponse(sess, nonce, status);
+        return this.sessMap.get(sess).notifyDigestResponse(sess, nonce, status);
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 public class SubscriberHttpANSHandler {
 
     static final int BUFFER_SIZE = 4096;
+    private static final int LINE_FEED = 10;
 
     /**
      * The MessageDigest to use for calculating the JALoP digest.
@@ -25,6 +26,7 @@ public class SubscriberHttpANSHandler {
     private final MessageDigest md;
     private boolean payloadCorrect;
     private boolean payloadComplete;
+
 
     private final SubscriberHttpSessionImpl subsess;
     static Logger log = Logger.getLogger(SubscriberHttpANSHandler.class);
@@ -171,12 +173,24 @@ public class SubscriberHttpANSHandler {
             subsess.setJournalResumeOffset(0);
             subsess.setJournalResumeIS(null);
 
-            if (is.read() != -1) {
-                //TODO, not sure why error is being thrown here, this might have been needed for beep, but fails with the http input stream.
-                //This check does not appear to be needed.
-             //   throw new IOException(
-                     //   "Additional data exists when none is expected");
+            int remainingBytes = is.available();
+            if (remainingBytes> 1)
+            {
+                throw new IOException(
+                        "Additional data exists when none is expected");
             }
+            else if (remainingBytes == 1)
+            {
+                //Handles case where libcurl adds a line break to the binary body, ensure that the 1 byte read is a line feed
+                int byteValue = is.read();
+
+                if (byteValue != LINE_FEED)
+                {
+                    throw new IOException(
+                            "Additional data exists when none is expected");
+                }
+            }
+
             payloadComplete = true;
 
             final byte [] digest = getRecordDigest();
@@ -338,25 +352,3 @@ public class SubscriberHttpANSHandler {
         }
     }
 }
-/*
-    @Override
-    public void receiveANS(final Message message) throws AbortChannelException {
-        try {
-            final MessageDigest mdClone = (MessageDigest) this.md.clone();
-            final Thread t = new Thread(new Dispatcher(message.getDataStream(), mdClone));
-            t.start();
-
-        } catch (final CloneNotSupportedException e) {
-            throw new AbortChannelException(e.getMessage());
-        }
-    }
-
-    @Override
-    public void receiveNUL(final Message message) throws AbortChannelException {
-        if (log.isDebugEnabled()) {
-            log.debug("SubscriberANSHandler received NUL");
-        }
-        //do nothing
-    } */
-
-

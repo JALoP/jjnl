@@ -69,6 +69,7 @@ public class HttpUtils {
     public static final String HDRS_NONCE = "JAL-Id";
     public static final String HDRS_PUBLISHER_ID = "JAL-Publisher-Id";
     public static final String HDRS_SESSION_ID = "JAL-Session-Id";
+    public static final String HDRS_SESSION_ALREADY_EXISTS = "JAL-Session-Already-Exists";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
     public static final String HDRS_UNAUTHORIZED_MODE = "JAL-Unauthorized-Mode";
     public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";

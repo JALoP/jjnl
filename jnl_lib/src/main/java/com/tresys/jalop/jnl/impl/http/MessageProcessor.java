@@ -14,6 +14,7 @@ import javax.xml.crypto.dsig.DigestMethod;
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.impl.messages.Utils;
@@ -117,6 +118,26 @@ public class MessageProcessor {
         //Sets up subscriber session and determines if journal resume applies.
         final Subscriber subscriber = HttpUtils.getSubscriber();
 
+        //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
+        JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
+        Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr));
+
+        //TODO need to determine what the behavior should be if session already exists. Initialize-nack?  What results in a duplicate session error?
+        //Same publisher id and record type?
+        //Same publisher id, record type and mode (live/archive)?
+        if (currSession != null)
+        {
+            System.out.println("Session already exists for publisher: " + publisherIdStr);
+            errorResponseHeaders.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
+            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
+
+            //TODO - sending session id in initialize-nack for testing, so test publisher can still send until this logic is finalized.
+            //Add the session ID before we send the initialize-ack message
+            response.setHeader(HttpUtils.HDRS_SESSION_ID, ((SubscriberHttpSessionImpl)currSession).getSessionId());
+
+            return;
+        }
+
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
         UUID sessionUUID = UUID.randomUUID();
         final String sessionId = sessionUUID.toString();
@@ -180,12 +201,12 @@ public class MessageProcessor {
 
     public static boolean processJALRecordMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass, Integer currRequestCount) throws IOException
     {
-        //Gets the publisher Id from header
-        String publisherIdStr = request.getHeader(HttpUtils.HDRS_PUBLISHER_ID);
+        //Gets the session Id from header
+        String sessionIdStr = request.getHeader(HttpUtils.HDRS_SESSION_ID);
         List<String> errorMessages = new ArrayList<String>();
-        if (!HttpUtils.validatePublisherId(publisherIdStr, errorMessages))
+        if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
         {
-            System.out.println("Initialize message failed due to invalid Publisher ID value of: " + publisherIdStr);
+            System.out.println("Initialize message failed due to invalid Session ID value of: " + sessionIdStr);
             MessageProcessor.setErrorResponse(errorMessages, response);
             return false;
         }
@@ -305,24 +326,25 @@ public class MessageProcessor {
             return false;
         }
 
-        //Lookup the correct session based upon publisher id and process the record
+        //Lookup the correct session based upon session id and process the record
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionByPublisherId(publisherIdStr);
+        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionBySessionId(sessionIdStr);
 
-        //If null session does not exist for specific publisher id
+        //If null then active session does not exist for this publisher, return error
         if (sess == null)
         {
-            MessageProcessor.setErrorResponse(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, response);
+            MessageProcessor.setErrorResponse(HttpUtils.HRDS_UNSUPPORTED_SESSION_ID, response);
             return false;
         }
 
+        //Process the JAL record
         SubscriberHttpANSHandler subscriberHandler = sess.getsubscriberHandler();
         String digest = subscriberHandler.handleJALRecord(sysMetadataSize, appMetadataSize, payloadSize, payloadType, recType, jalId, request.getInputStream());
 
         //If null, then failure occurred
         if (digest == null)
         {
-            //TODO for now put empty digest in response, which will indicate a failure
+            //TODO for now put empty digest in response, which will indicate a failure, might want to return a specific error header?
             response.setHeader(HttpUtils.HDRS_DIGEST, "");
         }
         else
