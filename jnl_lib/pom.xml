@@ -51,7 +51,7 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
 			<version>9.4.14.v20181114</version>
-		</dependency>    
+		</dependency>
 
 		<!-- Need to comment out for eclipse dev -->
 		<!-- TODO remove these when we remove BEEP -->
