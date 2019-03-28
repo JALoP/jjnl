@@ -1,73 +1,78 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.tresys.jalop.jnl</groupId>
-    <version>1.0.0</version>
-    <relativePath>../jnl_parent</relativePath>
-    <artifactId>parent</artifactId>
-  </parent>
-  <artifactId>jnl_lib</artifactId>
-  <name>Java JALoP Network Library</name>
-  <dependencies>
-     <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>1.1.1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>1.3.2</version>
-    </dependency>
-    <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>4.5.7</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-server</artifactId>
-        <version>9.4.14.v20181114</version>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
-        </exclusions>
-    </dependency>
+	<modelVersion>4.0.0</modelVersion>
 
-    <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlets -->
-    <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>9.4.14.v20181114</version>
-    </dependency>    
-  </dependencies>
- <!-- Need to comment out for eclipse dev <dependencies>
-    <dependency>
-      <groupId>org.beepcore-java</groupId>
-      <artifactId>beepcore</artifactId>
-      <version>${beepcore.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.beepcore-java</groupId>
-      <artifactId>beeptls-jsse</artifactId>
-      <version>${beepcore.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>EDU.oswego.cs.dl.util</groupId>
-      <artifactId>concurrent</artifactId>
-      <version>${oswego.concurrent.version}</version>
-      <scope>compile</scope>
-    </dependency>
-  </dependencies>  -->
+	<properties>
+        <jalop.version>2.0.0.0</jalop.version>
+    </properties>
+
+	<parent>
+		<groupId>com.tresys.jalop.jnl</groupId>
+		<version>${jalop.version}</version>
+		<relativePath>../jnl_parent</relativePath>
+		<artifactId>parent</artifactId>
+	</parent>
+
+	<artifactId>jnl_lib</artifactId>
+	<name>Java JALoP Network Library</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
+			</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.4.14.v20181114</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>9.4.14.v20181114</version>
+		</dependency>    
+
+		<!-- Need to comment out for eclipse dev -->
+		<!-- TODO remove these when we remove BEEP -->
+		<dependency>
+			<groupId>org.beepcore-java</groupId>
+			<artifactId>beepcore</artifactId>
+			<version>${beepcore.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.beepcore-java</groupId>
+			<artifactId>beeptls-jsse</artifactId>
+			<version>${beepcore.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>EDU.oswego.cs.dl.util</groupId>
+			<artifactId>concurrent</artifactId>
+			<version>${oswego.concurrent.version}</version>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
 </project>
 
