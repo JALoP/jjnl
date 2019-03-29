@@ -3,6 +3,7 @@ package com.tresys.jalop.jnl.impl.http;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,7 +21,11 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import com.tresys.jalop.jnl.RecordType;
 
 /**
  * Tests for common utility class.
@@ -29,6 +34,9 @@ public class MessageProcessorTest {
 
     private static Server server;
     private static int HTTP_PORT = 8080;
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     /**
      * Sets up the server for the web service.
@@ -456,6 +464,16 @@ public class MessageProcessorTest {
     }
 
     @Test
+    public void testProcessJALRecordMessageNullDigestResultParam()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("digestResult is required");
+        byte[] test = new byte[10];
+        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, new ArrayList<String>());
+        assertEquals(false, result);
+    }
+
+    @Test
     public void testCreateJournalResumeMessageEmptyNounce()
     {
         HashMap<String, String> successHeaders = new HashMap<String, String>();
@@ -476,6 +494,6 @@ public class MessageProcessorTest {
         boolean result = MessageProcessor.createJournalResumeMessage("test", -1, headers, errorHeaders);
         assertEquals(false, result);
         assertEquals(0, headers.size());
-        assertEquals(true, errorHeaders.contains("Invalid JAL-Journal-Offset"));
+        assertEquals(true, errorHeaders.contains(HttpUtils.HDRS_INVALID_JOURNAL_OFFSET));
     }
 }

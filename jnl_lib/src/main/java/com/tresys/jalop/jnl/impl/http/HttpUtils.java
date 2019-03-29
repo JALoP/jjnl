@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.log4j.Logger;
+
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
 
@@ -25,6 +27,10 @@ import com.tresys.jalop.jnl.Subscriber;
  * Utility class for creating and parsing JALoP/HTTP messages.
  */
 public class HttpUtils {
+
+    /** Logger for this class */
+    private static final Logger logger = Logger.getLogger(HttpUtils.class);
+
     public static AtomicInteger requestCount = new AtomicInteger();
     private static final int BUFFER_SIZE = 4096;
 
@@ -61,6 +67,7 @@ public class HttpUtils {
     public static final String HDRS_INVALID_AUDIT_LEN= "JAL-Invalid-Audit-Length";
     public static final String HDRS_INVALID_JOURNAL_LEN= "JAL-Invalid-Journal-Length";
     public static final String HDRS_INVALID_LOG_LEN= "JAL-Invalid-Log-Length";
+    public static final String HDRS_INVALID_JOURNAL_OFFSET= "JAL-Invalid-Journal-Offset";
     public static final String HDRS_JOURNAL_LEN = "JAL-Journal-Length";
     public static final String HDRS_JOURNAL_OFFSET = "JAL-Journal-Offset";
     public static final String HDRS_LOG_LEN = "JAL-Log-Length";
@@ -68,6 +75,7 @@ public class HttpUtils {
     public static final String HDRS_MODE = "JAL-Mode";
     public static final String HDRS_NONCE = "JAL-Id";
     public static final String HDRS_PUBLISHER_ID = "JAL-Publisher-Id";
+    public static final String HDRS_RECORD_FAILED = "JAL-Record-Failed";
     public static final String HDRS_SESSION_ID = "JAL-Session-Id";
     public static final String HDRS_SESSION_ALREADY_EXISTS = "JAL-Session-Already-Exists";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
@@ -193,7 +201,7 @@ public class HttpUtils {
 
             String headerName = headerNames.nextElement();
             String headerValue = request.getHeader(headerName);
-            System.out.println("Header Name: " + headerName + " Header Value: " + headerValue);
+            logger.debug("Header Name: " + headerName + " Header Value: " + headerValue);
 
             currHeaders.put(headerName, headerValue);
         }
@@ -486,7 +494,7 @@ public class HttpUtils {
         }
         catch (NoSuchAlgorithmException nsae)
         {
-            System.out.println("Digest algorithm not supported");
+            logger.error("Digest algorithm not supported");
             return null;
         }
     }

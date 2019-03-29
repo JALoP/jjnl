@@ -269,14 +269,14 @@ bool processJALRecordResponse(std::string dataClass)
 
 bool sendJalRecords(std::string dataClass)
 {
+    //Gets session id from header
+    std::string sessionId = headerMap["JAL-Session-Id"];
+    setSessionIdByDataClass(sessionId, dataClass);
+
     //Sending jal record after successful initialize
     fprintf(stdout, "Received initialize-ack, sending jal record\n");
     struct curl_slist *rec1headers = getJALRecordHeaders(dataClass, "2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496",
                                             "3083", "1125", "19");
-
-    //Gets session id from header
-    std::string sessionId = headerMap["JAL-Session-Id"];
-    setSessionIdByDataClass(sessionId, dataClass);
 
     if (!performHttpPost(rec1headers, true, dataClass, "test.txt"))
     {
