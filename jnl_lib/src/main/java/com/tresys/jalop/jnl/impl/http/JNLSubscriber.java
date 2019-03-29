@@ -336,6 +336,26 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         return foundSession;
     }
 
+    public void removeSession(String sessionId)
+    {
+        synchronized (this.sessMap) {
+
+            Session removeKey = null;
+
+            for (Session currSession : this.sessMap.keySet())
+            {
+                SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)currSession);
+                if (session.getSessionId().equals(sessionId))
+                {
+                    removeKey = currSession;
+                    break;
+                }
+            }
+
+            this.sessMap.remove(removeKey);
+        }
+    }
+
     public Session getSessionBySessionId(String sessionId)
     {
         Session foundSession = null;

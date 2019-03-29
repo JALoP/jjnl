@@ -83,8 +83,8 @@ public class HttpUtils {
     public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";
     public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
     public static final String HDRS_UNSUPPORTED_MODE = "JAL-Unsupported-Mode";
-    public static final String HRDS_UNSUPPORTED_PUBLISHER_ID = "JAL-Unsupported-Publisher-Id";
-    public static final String HRDS_UNSUPPORTED_SESSION_ID = "JAL-Unsupported-Session-Id";
+    public static final String HDRS_UNSUPPORTED_PUBLISHER_ID = "JAL-Unsupported-Publisher-Id";
+    public static final String HDRS_UNSUPPORTED_SESSION_ID = "JAL-Unsupported-Session-Id";
     public static final String HDRS_UNSUPPORTED_VERSION = "JAL-Unsupported-Version";
 
     //New headers added for http, not in original Utils.java, however listed in Jalop specification doc
@@ -271,7 +271,7 @@ public class HttpUtils {
 
         if (currPublisherId == null)
         {
-            errorResponseHeaders.add(HRDS_UNSUPPORTED_PUBLISHER_ID);
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_PUBLISHER_ID);
             return false;
         }
 
@@ -279,7 +279,7 @@ public class HttpUtils {
         String uuidPattern = "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
         if (!currPublisherId.matches(uuidPattern))
         {
-            errorResponseHeaders.add(HRDS_UNSUPPORTED_PUBLISHER_ID);
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_PUBLISHER_ID);
             return false;
         }
 
@@ -287,13 +287,13 @@ public class HttpUtils {
     }
 
     // Validates Session ID, must be UUID
-    public static boolean validateSessionId(String SessionId, List<String> errorResponseHeaders) //TODO add SubscriberSession as param
+    public static boolean validateSessionId(String sessionId, List<String> errorResponseHeaders) //TODO add SubscriberSession as param
     {
-        String currSessionId = checkForEmptyString(SessionId, HDRS_SESSION_ID);
+        String currSessionId = checkForEmptyString(sessionId, HDRS_SESSION_ID);
 
         if (currSessionId == null)
         {
-            errorResponseHeaders.add(HRDS_UNSUPPORTED_SESSION_ID);
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
             return false;
         }
 
@@ -301,7 +301,7 @@ public class HttpUtils {
         String uuidPattern = "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
         if (!currSessionId.matches(uuidPattern))
         {
-            errorResponseHeaders.add(HRDS_UNSUPPORTED_SESSION_ID);
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
             return false;
         }
 

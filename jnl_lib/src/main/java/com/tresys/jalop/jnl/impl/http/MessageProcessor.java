@@ -15,10 +15,8 @@ import javax.xml.crypto.dsig.DigestMethod;
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.RecordType;
-import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
-import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
@@ -119,13 +117,16 @@ public class MessageProcessor {
         //Sets up subscriber session and determines if journal resume applies.
         final Subscriber subscriber = HttpUtils.getSubscriber();
 
+   /*
+    *   //TODO need to determine what the behavior should be if session already exists. Initialize-nack?  What results in a duplicate session error?
+        //Same publisher id and record type?
+        //Same publisher id, record type and mode (live/archive)?
+
         //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
         JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
         Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr));
 
-        //TODO need to determine what the behavior should be if session already exists. Initialize-nack?  What results in a duplicate session error?
-        //Same publisher id and record type?
-        //Same publisher id, record type and mode (live/archive)?
+
         if (currSession != null)
         {
             logger.error("Session already exists for publisher: " + publisherIdStr);
@@ -137,7 +138,7 @@ public class MessageProcessor {
             response.setHeader(HttpUtils.HDRS_SESSION_ID, ((SubscriberHttpSessionImpl)currSession).getSessionId());
 
             return;
-        }
+        } */
 
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
         UUID sessionUUID = UUID.randomUUID();
@@ -238,7 +239,7 @@ public class MessageProcessor {
         Long sysMetadataSize = new Long(0);
         try
         {
-            sysMetadataSize = new Long(requestHeaders.get(Utils.HDRS_SYS_META_LEN)).longValue();
+            sysMetadataSize = new Long(requestHeaders.get(HttpUtils.HDRS_SYS_META_LEN)).longValue();
 
             if (sysMetadataSize < 0)
             {
@@ -255,7 +256,7 @@ public class MessageProcessor {
         Long appMetadataSize = new Long(0);
         try
         {
-            appMetadataSize = new Long(requestHeaders.get(Utils.HDRS_APP_META_LEN)).longValue();
+            appMetadataSize = new Long(requestHeaders.get(HttpUtils.HDRS_APP_META_LEN)).longValue();
 
             if (appMetadataSize < 0)
             {
@@ -270,13 +271,13 @@ public class MessageProcessor {
         }
 
         RecordType recType = RecordType.Unset;
-        String payloadType = requestHeaders.get(Utils.HDRS_MESSAGE);
+        String payloadType = requestHeaders.get(HttpUtils.HDRS_MESSAGE);
         Long payloadSize = new Long(0);
         if (payloadType.equalsIgnoreCase(HttpUtils.MSG_LOG) && RecordType.Log.equals(supportedRecType))
         {
             try
             {
-                payloadSize = new Long(requestHeaders.get(Utils.HDRS_LOG_LEN)).longValue();
+                payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_LOG_LEN)).longValue();
 
                 if (payloadSize < 0)
                 {
@@ -295,7 +296,7 @@ public class MessageProcessor {
         {
             try
             {
-                payloadSize = new Long(requestHeaders.get(Utils.HDRS_AUDIT_LEN)).longValue();
+                payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_AUDIT_LEN)).longValue();
 
                 if (payloadSize < 0)
                 {
@@ -314,7 +315,7 @@ public class MessageProcessor {
         {
             try
             {
-                payloadSize = new Long(requestHeaders.get(Utils.HDRS_JOURNAL_LEN)).longValue();
+                payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_JOURNAL_LEN)).longValue();
 
                 if (payloadSize < 0)
                 {
@@ -339,11 +340,8 @@ public class MessageProcessor {
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
 
         //Verifies not empty
-        try
-        {
-            jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
-        }
-        catch(IllegalArgumentException iae )
+        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        if (jalId == null)
         {
             errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
             return false;
@@ -356,7 +354,7 @@ public class MessageProcessor {
         //If null then active session does not exist for this publisher, return error
         if (sess == null)
         {
-            errorMessages.add(HttpUtils.HRDS_UNSUPPORTED_SESSION_ID);
+            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
             return false;
         }
 
