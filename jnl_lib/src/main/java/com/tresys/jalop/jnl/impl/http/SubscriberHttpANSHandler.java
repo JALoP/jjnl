@@ -47,30 +47,6 @@ public class SubscriberHttpANSHandler {
     }
 
     /**
-     * Retrieve any additional MIME headers that were sent as part of this ANS
-     * reply. Recognized MIME headers (i.e. Content-Type, Transfer-Encoding, and
-     * JALoP headers) are not included in the returned map. If there are no
-     * additional MIME headers, then this function returns {@link MimeHeaders}
-     * object.
-     *
-     * @return The {@link MimeHeaders}
-
-     */
-    /*   @SuppressWarnings("unchecked")
-    public List<MimeHeader> getAdditionalHeaders(final InputDataStream ds) throws BEEPException {
-        final InputDataStreamAdapter dsa = ds.getInputStream();
-        final Enumeration<String> headers = dsa.getHeaderNames();
-        final ArrayList<MimeHeader> ret = new ArrayList<MimeHeader>();
-        String hdr = "";
-        while (headers.hasMoreElements()) {
-            hdr = headers.nextElement();
-            if (!Arrays.asList(KNOWN_HEADERS).contains(hdr.toLowerCase()))
-                ret.add(new MimeHeader(hdr, dsa.getHeaderValue(hdr)));
-        }
-        return ret;
-    } */
-
-    /**
      * Retrieve the calculated digest.
      *
      * @return The digest of the record according to the JALoP specification.
@@ -90,7 +66,7 @@ public class SubscriberHttpANSHandler {
     public String handleJALRecord(final long sysMetadataSize, final long appMetadataSize,
             final long payloadSize, final String payloadType, final RecordType recType, final String jalId,  InputStream is)
     {
-        JalopHttpDataStream js;
+        JalopHttpDataStream js = null;
 
         md.reset();
 
@@ -137,13 +113,13 @@ public class SubscriberHttpANSHandler {
 
             js = new JalopHttpDataStream(sysMetadataSize, is);
             if (!sub.notifySysMetadata(subsess, recInfo, js)) {
-                //TODO throw new AbortChannelException("Error in notifySysMetadata");
+                throw new IOException("Error in notifySysMetadata");
             }
             js.flush();
 
             js = new JalopHttpDataStream(appMetadataSize, is);
             if (!sub.notifyAppMetadata(subsess, recInfo, js)) {
-                //TODO throw new AbortChannelException("Error in notifyAppMetadata");
+                throw new IOException("Error in notifyAppMetadata");
             }
             js.flush();
 
@@ -166,7 +142,7 @@ public class SubscriberHttpANSHandler {
             }
             js = new JalopHttpDataStream(payloadSizeToRead, is);
             if (!sub.notifyPayload(subsess, recInfo, js)) {
-                //TODO throw new AbortChannelException("Error in notifyPayload");
+                throw new IOException("Error in notifyPayload");
             }
             js.flush();
             // only the first record is a journal resume, subsequent records are normal
@@ -195,7 +171,7 @@ public class SubscriberHttpANSHandler {
 
             final byte [] digest = getRecordDigest();
             if (!sub.notifyDigest(subsess, recInfo, digest)) {
-                //TODO throw new AbortChannelException("Error in notifyDigest");
+                throw new IOException("Error in notifyDigest");
             }
 
             String hexDgst = "";
@@ -221,6 +197,20 @@ public class SubscriberHttpANSHandler {
                 log.error(e.getMessage());
             }
             return null;
+        }
+        finally
+        {
+            if (js != null)
+            {
+                try
+                {
+                    js.close();
+                }
+                catch (IOException ioe)
+                {
+                    log.error(ioe);
+                }
+            }
         }
     }
 
