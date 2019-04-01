@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -61,6 +62,13 @@ public class MessageProcessorTest {
 
         //Sets up the subscriber
         HttpSubscriberConfig config = new HttpSubscriberConfig();
+
+        List<String> allowedConfigureDigests = new ArrayList<String>();
+        allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+        config.setAllowedConfigureDigests(allowedConfigureDigests);
+
+        HttpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
         config.setOutputPath(new File("./output"));
 
         JNLSubscriber subscriber = new JNLSubscriber(config);
@@ -79,7 +87,7 @@ public class MessageProcessorTest {
         server.stop();
     }
 
-    private String sendValidInitialize(RecordType recType) throws ClientProtocolException, IOException
+    private String sendValidInitialize(RecordType recType, boolean performDigest) throws ClientProtocolException, IOException
     {
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
@@ -90,7 +98,15 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+
+        if (performDigest == true)
+        {
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        }
+        else
+        {
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+        }
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -538,7 +554,7 @@ public class MessageProcessorTest {
         assertEquals(false, result);
     }
 
-    HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage )
+    HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage)
     {
         HashMap<String, String> headers = new HashMap<String, String>();
 
@@ -614,7 +630,7 @@ public class MessageProcessorTest {
 
     @Test
     public void testProcessJALRecordMessageInvalidSystemMetadataLen() throws ClientProtocolException, IOException {
-        String [] testValues = new String[] {null, "", "junk", "-1"};
+        String [] testValues = new String[] {null, "", "junk", "-1", "0"};
 
         for (RecordType recType : RecordType.values())
         {
@@ -666,7 +682,7 @@ public class MessageProcessorTest {
                 String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-                HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", testValue, "0", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", testValue, "0", payLoadLengthHeader, jalMessage);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -702,7 +718,7 @@ public class MessageProcessorTest {
                 String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-                HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", testValue, payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", testValue, payLoadLengthHeader, jalMessage);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -725,7 +741,7 @@ public class MessageProcessorTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
 
-        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", "0", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
+        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -746,7 +762,7 @@ public class MessageProcessorTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
 
-        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", "0", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
+        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -767,7 +783,7 @@ public class MessageProcessorTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.LOG_ENDPOINT);
 
-        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", "0", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_LOG);
+        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_LOG);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -788,7 +804,7 @@ public class MessageProcessorTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
 
-        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", "0", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
+        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -809,7 +825,7 @@ public class MessageProcessorTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
 
-        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", "0", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
+        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -830,7 +846,7 @@ public class MessageProcessorTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.LOG_ENDPOINT);
 
-        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", "0", HttpUtils.HDRS_LOG_LEN, HttpUtils.MSG_AUDIT);
+        HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_LOG_LEN, HttpUtils.MSG_AUDIT);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -864,7 +880,7 @@ public class MessageProcessorTest {
                 String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-                HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, testValue, "0", "0", "0", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, testValue, "1", "0", "1", payLoadLengthHeader, jalMessage);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -896,7 +912,7 @@ public class MessageProcessorTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-            HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "0", "0", "0", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = getJalRecordHeaders(SESSION_ID, "jalId", "1", "0", "1", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -924,14 +940,14 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType);
+            String sessionId = sendValidInitialize(recType, true);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-            HashMap<String, String> headers = getJalRecordHeaders(sessionId, "jalId", "0", "0", "0", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -959,7 +975,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType);
+            String sessionId = sendValidInitialize(recType, true);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -985,11 +1001,58 @@ public class MessageProcessorTest {
 
             final HttpResponse response = client.execute(httpPost);
             final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+            final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
+            assertEquals(null, errorMessage);
 
             //Validate digest is correct for test file sent.
             assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", responseMessage);
+        }
+    }
+
+    @Test
+    public void testProcessJALRecordMessageValidRecordDigestOff() throws ClientProtocolException, IOException {
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            String sessionId = sendValidInitialize(recType, false);
+
+            HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
+            String jalMessage = recType.toString().toLowerCase() +  "-record";
+
+            HashMap<String, String> headers = getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+
+            for (Map.Entry<String, String> entry : headers.entrySet())
+            {
+                httpPost.setHeader(entry.getKey(), entry.getValue());
+            }
+
+            //Adds jal record to post
+            File resourcesDirectory = new File("src/test/resources");
+
+            String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+            HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+            httpPost.setEntity(entity);
+
+            HttpClient client = HttpClientBuilder.create().build();
+
+            final HttpResponse response = client.execute(httpPost);
+            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+            final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final int responseStatus = response.getStatusLine().getStatusCode();
+            assertEquals(200, responseStatus);
+            assertEquals(null, errorMessage);
+
+            //Validate that no digest was sent since digest was configured to be off.
+            assertEquals("", responseMessage);
         }
     }
 
@@ -1002,7 +1065,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType);
+            String sessionId = sendValidInitialize(recType, true);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1045,7 +1108,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType);
+            String sessionId = sendValidInitialize(recType, true);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1088,7 +1151,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType);
+            String sessionId = sendValidInitialize(recType, true);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 

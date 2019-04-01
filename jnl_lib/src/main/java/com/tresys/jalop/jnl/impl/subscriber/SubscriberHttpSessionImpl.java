@@ -39,10 +39,10 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     private volatile boolean errored;
     private String publisherId;
     private String sessionId;
-    private String configureDigest;
+    private boolean performDigest;
 
     /**
-     * Create a {@link SubscriberSessionImpl} object.
+     * Create a {@link SubscriberHttpSessionImpl} object.
      *
      * @param remoteAddress
      *            The InetAddress used for the transfers.
@@ -63,7 +63,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     public SubscriberHttpSessionImpl(final String publisherId, final String sessionId,
             final RecordType recordType, final Subscriber subscriber,
             final String digestMethod, final String xmlEncoding,
-            final int pendingDigestTimeoutSeconds, final int pendingDigestMax, final String configureDigest) {
+            final int pendingDigestTimeoutSeconds, final int pendingDigestMax,final boolean performDigest) {
 
         if (recordType == null || recordType.equals(RecordType.Unset)) {
             throw new IllegalArgumentException(
@@ -86,10 +86,6 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
             throw new IllegalArgumentException("'sessionId' is required.");
         }
 
-        if (configureDigest == null || configureDigest.trim().isEmpty()) {
-            throw new IllegalArgumentException("'configureDigest' is required.");
-        }
-
         if (subscriber == null) {
             throw new IllegalArgumentException("'subscriber' cannot be null.");
         }
@@ -108,7 +104,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
             this.subscriberHandler = new SubscriberHttpANSHandler(
                     MessageDigest
                             .getInstance(getDigestType(digestMethod.trim())),
-                    this);
+                    this, performDigest);
         } catch (final NoSuchAlgorithmException e) {
             throw new IllegalArgumentException(
                     "'digestMethod' must be a valid DigestMethod", e);
@@ -117,7 +113,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         this.recordType = recordType;
         this.digestMethod = digestMethod.trim();
         this.xmlEncoding = xmlEncoding.trim();
-        this.configureDigest = configureDigest.trim();
+        this.performDigest = performDigest;
         this.publisherId = publisherId.trim();
         this.sessionId = sessionId.trim();
         this.subscriber = subscriber;
@@ -181,9 +177,9 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         this.errored = true;
     }
 
-    public String getConfigureDigest()
+    public boolean getConfigureDigest()
     {
-        return configureDigest;
+        return performDigest;
     }
 
     @Override

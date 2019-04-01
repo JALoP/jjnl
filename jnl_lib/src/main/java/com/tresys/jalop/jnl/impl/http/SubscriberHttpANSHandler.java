@@ -26,13 +26,14 @@ public class SubscriberHttpANSHandler {
     private final MessageDigest md;
     private boolean payloadCorrect;
     private boolean payloadComplete;
+    private boolean performDigest;
 
 
     private final SubscriberHttpSessionImpl subsess;
     static Logger log = Logger.getLogger(SubscriberHttpANSHandler.class);
 
     /**
-     * Create a SubscriberANSHandler for a record using the
+     * Create a SubscriberHttpANSHandler for a record using the
 
      *
      * @param md
@@ -40,10 +41,11 @@ public class SubscriberHttpANSHandler {
      *            calculations.
      */
     public SubscriberHttpANSHandler(final MessageDigest md,
-            final SubscriberHttpSessionImpl subsess) {
+            final SubscriberHttpSessionImpl subsess, boolean performDigest) {
         super();
         this.md = md;
         this.subsess = subsess;
+        this.performDigest = performDigest;
     }
 
     /**
@@ -56,7 +58,7 @@ public class SubscriberHttpANSHandler {
      *             the remote is invalid (i.e. reports 100 bytes of payload, but
      *             only contains 50).
      */
-    public byte[] getRecordDigest() throws IncompleteRecordException {
+    private byte[] getRecordDigest() throws IncompleteRecordException {
         if (!this.payloadComplete || !this.payloadCorrect)
             throw new IncompleteRecordException();
 
@@ -132,7 +134,11 @@ public class SubscriberHttpANSHandler {
                 int bytesRead = 0;
 
                 while((bytesRead = resumeInputStream.read(buffer)) > -1) {
-                    md.update(buffer, 0, bytesRead);
+
+                    if (performDigest == true)
+                    {
+                        md.update(buffer, 0, bytesRead);
+                    }
                 }
 
                 if(log.isDebugEnabled()) {
@@ -146,6 +152,8 @@ public class SubscriberHttpANSHandler {
             }
             js.flush();
             // only the first record is a journal resume, subsequent records are normal
+            //TODO - need to determine if this is correct, this is how the java code worked before, however this only handles resuming one record.
+            //if multiple recored resumes are required then this will not work.
             subsess.setJournalResumeOffset(0);
             subsess.setJournalResumeIS(null);
 
@@ -169,16 +177,21 @@ public class SubscriberHttpANSHandler {
 
             payloadComplete = true;
 
-            final byte [] digest = getRecordDigest();
-            if (!sub.notifyDigest(subsess, recInfo, digest)) {
-                throw new IOException("Error in notifyDigest");
-            }
-
+            //Only perform digest if enabled.
             String hexDgst = "";
-            for (byte b : digest) {
-                hexDgst = hexDgst + String.format("%02x",b);
-            }
+            if (performDigest == true)
+            {
+                final byte [] digest = getRecordDigest();
+                if (!sub.notifyDigest(subsess, recInfo, digest))
+                {
+                    throw new IOException("Error in notifyDigest");
+                }
 
+                for (byte b : digest)
+                {
+                    hexDgst = hexDgst + String.format("%02x",b);
+                }
+            }
             subsess.addDigest(recInfo.getNonce(), hexDgst);
 
             return hexDgst;
@@ -220,8 +233,7 @@ public class SubscriberHttpANSHandler {
      *
      * @param size the size to give the instance of JalopDataStream
      */
-    JalopHttpDataStream getJalopDataStreamInstance(final long size, final InputStream is,
-            final MessageDigest md)
+    JalopHttpDataStream getJalopDataStreamInstance(final long size, final InputStream is)
                     throws UnexpectedMimeValueException, IOException {
         return new JalopHttpDataStream(size, is);
     }
@@ -259,7 +271,10 @@ public class SubscriberHttpANSHandler {
                     throw new IOException();
                 }
 
-                md.update((byte) ret);
+                if (performDigest == true)
+                {
+                    md.update((byte) ret);
+                }
                 this.bytesRead++;
             }
 
@@ -309,12 +324,15 @@ public class SubscriberHttpANSHandler {
                     // but no more data in the stream
                     throw new IOException("Could not read data of requested length");
                 } else {
-                    // continue waiting for bytes from DataStreamAdapter
-                    log.error("DataStreamAdapter return -1 on read from SubscriberANSHandler");
+                    // continue waiting for bytes from InputStream
+                    log.error("InputStream return -1 on read from SubscriberHttpANSHandler");
                 }
             }
 
-            md.update(b, off, new_len);
+            if (performDigest == true)
+            {
+                md.update(b, off, new_len);
+            }
             if (this.bytesRead == this.dataSize) {
                 // check for break string
                 final byte brk[] = new byte[5];

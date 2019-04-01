@@ -38,7 +38,7 @@ public class SubscriberHttpSessionImplTest {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1,
-                2, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                2, true);
 
         return sessionImpl;
     }
@@ -56,7 +56,7 @@ public class SubscriberHttpSessionImplTest {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1,
-                1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                1, true);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class SubscriberHttpSessionImplTest {
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(null,
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class SubscriberHttpSessionImplTest {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "", HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1,
-                1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                1, true);
     }
 
     @Test
@@ -90,7 +90,7 @@ public class SubscriberHttpSessionImplTest {
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 null, HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", null, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Unset, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, null, SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), null,
-                XML_COMPRESSION_NONE, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -145,7 +145,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), "",
-                XML_COMPRESSION_NONE, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -156,7 +156,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
-                null, 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                null, 1, 1, true);
     }
 
     @Test
@@ -167,29 +167,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
-                "", 1, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-    }
-
-    @Test
-    public void ConstructorNullConfigureDigestTest()
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("'configureDigest' is required.");
-
-        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, null);
-    }
-
-    @Test
-    public void ConstructorEmptyConfigureDigestTest()
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("'configureDigest' is required.");
-
-        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, "");
+                "", 1, 1, true);
     }
 
     @Test
@@ -201,7 +179,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 0, 1, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 0, 1, true);
     }
 
     @Test
@@ -213,7 +191,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 0, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+                XML_COMPRESSION_NONE, 1, 0, true);
     }
 
     @Test
@@ -223,7 +201,7 @@ public class SubscriberHttpSessionImplTest {
         assertEquals(RecordType.Audit, sessionImpl.getRecordType());
         assertEquals(SHA256_STR, sessionImpl.getDigestMethod());
         assertEquals(XML_COMPRESSION_NONE, sessionImpl.getXmlEncoding());
-        assertEquals(HttpUtils.MSG_CONFIGURE_DIGEST_ON, sessionImpl.getConfigureDigest());
+        assertEquals(true, sessionImpl.getConfigureDigest());
         assertEquals("ae8a54d7-dd7c-4c50-a7e7-f948a140c556", sessionImpl.getPublisherId());
         assertEquals("ae8a54d7-dd7c-4c50-a7e7-f948a140c556", sessionImpl.getSessionId());
         assertEquals(2, sessionImpl.getPendingDigestMax());

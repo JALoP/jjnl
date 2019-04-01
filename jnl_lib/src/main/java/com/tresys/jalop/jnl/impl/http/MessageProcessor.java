@@ -114,6 +114,12 @@ public class MessageProcessor {
             return;
         }
 
+        boolean performDigest = true;
+        if (selectedConfDigestChallenge.equals(HttpUtils.MSG_CONFIGURE_DIGEST_OFF))
+        {
+            performDigest = false;
+        }
+
         //Sets up subscriber session and determines if journal resume applies.
         final Subscriber subscriber = HttpUtils.getSubscriber();
 
@@ -146,7 +152,7 @@ public class MessageProcessor {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
                 HttpUtils.getRecordType(supportedDataClass), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
-                1, selectedConfDigestChallenge/*contextImpl.getDefaultPendingDigestMax()*/);
+                1, performDigest/*contextImpl.getDefaultPendingDigestMax()*/);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 
@@ -184,6 +190,8 @@ public class MessageProcessor {
         }
 
         //Sets JAL-Id to indicate journal resume
+        //TODO - need to determine if this is correct, this is how the java code worked before, however this only handles resuming one record.
+        //if multiple record resumes are required then this will not work.
         successResponseHeaders.put(HttpUtils.HDRS_NONCE, nonce);
         successResponseHeaders.put(HttpUtils.HDRS_JOURNAL_OFFSET, Long.toString(offset));
 
@@ -231,7 +239,7 @@ public class MessageProcessor {
         String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
         if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
         {
-            logger.error("Initialize message failed due to invalid Session ID value of: " + sessionIdStr);
+            logger.error("JAL record message failed due to invalid Session ID value of: " + sessionIdStr);
             return false;
         }
 
@@ -241,7 +249,7 @@ public class MessageProcessor {
         {
             sysMetadataSize = new Long(requestHeaders.get(HttpUtils.HDRS_SYS_META_LEN)).longValue();
 
-            if (sysMetadataSize < 0)
+            if (sysMetadataSize <= 0)
             {
                 errorMessages.add(HttpUtils.HDRS_INVALID_SYS_META_LEN);
                 return false;
@@ -279,7 +287,7 @@ public class MessageProcessor {
             {
                 payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_LOG_LEN)).longValue();
 
-                if (payloadSize < 0)
+                if (payloadSize <= 0)
                 {
                     errorMessages.add(HttpUtils.HDRS_INVALID_LOG_LEN);
                     return false;
@@ -298,7 +306,7 @@ public class MessageProcessor {
             {
                 payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_AUDIT_LEN)).longValue();
 
-                if (payloadSize < 0)
+                if (payloadSize <= 0)
                 {
                     errorMessages.add(HttpUtils.HDRS_INVALID_AUDIT_LEN);
                     return false;
@@ -317,7 +325,7 @@ public class MessageProcessor {
             {
                 payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_JOURNAL_LEN)).longValue();
 
-                if (payloadSize < 0)
+                if (payloadSize <= 0)
                 {
                     errorMessages.add(HttpUtils.HDRS_INVALID_JOURNAL_LEN);
                     return false;
