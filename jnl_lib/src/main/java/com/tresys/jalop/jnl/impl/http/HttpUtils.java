@@ -20,6 +20,7 @@ import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
 
@@ -123,10 +124,8 @@ public class HttpUtils {
     public static final String MSG_SYNC = "sync";
     public static final String MSG_PUBLISH = "publish";
     public static final String MSG_SUBSCRIBE = "subscribe";
-    public static final String MSG_PUBLISH_LIVE = "publish-live";
-    public static final String MSG_SUBSCRIBE_LIVE = "subscribe-live";
-    public static final String MSG_PUBLISH_ARCHIVE = "publish-archival";
-    public static final String MSG_SUBSCRIBE_ARCHIVE = "subscribe-archival";
+    public static final String MSG_LIVE = "live";
+    public static final String MSG_ARCHIVE = "archival";
 
     public static final String NONCE = "nonce";
     public static final String STATUS = "status";
@@ -322,7 +321,7 @@ public class HttpUtils {
         }
 
         //Checks if supported mode
-        if (!currMode.equals(MSG_PUBLISH_LIVE) && !currMode.equals(MSG_PUBLISH_ARCHIVE))
+        if (!currMode.equals(MSG_LIVE) && !currMode.equals(MSG_ARCHIVE))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_MODE);
             return false;
@@ -523,5 +522,21 @@ public class HttpUtils {
         }
 
         return recordType;
+    }
+
+    public static Mode getMode(String modeStr)
+    {
+        Mode mode = Mode.Unset;
+
+        if (modeStr != null)
+        {
+            if (modeStr.equalsIgnoreCase(MSG_LIVE)) {
+                mode = Mode.Live;
+            } else if (modeStr.equalsIgnoreCase(MSG_ARCHIVE)) {
+                mode = Mode.Archive;
+            }
+        }
+
+        return mode;
     }
 }

@@ -31,9 +31,9 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     private long journalResumeOffset;
     private InputStream journalResumeIS;
     private SubscriberHttpANSHandler subscriberHandler;
-    private Mode mode = Mode.Unset;
 
     private final RecordType recordType;
+    private final Mode mode;
     private final String digestMethod;
     private final String xmlEncoding;
     private volatile boolean errored;
@@ -61,13 +61,17 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
      *            The maximum number of digests to queue.
      */
     public SubscriberHttpSessionImpl(final String publisherId, final String sessionId,
-            final RecordType recordType, final Subscriber subscriber,
+            final RecordType recordType, final Mode mode, final Subscriber subscriber,
             final String digestMethod, final String xmlEncoding,
             final int pendingDigestTimeoutSeconds, final int pendingDigestMax,final boolean performDigest) {
 
         if (recordType == null || recordType.equals(RecordType.Unset)) {
             throw new IllegalArgumentException(
                     "'recordType' cannot be null or Unset.");
+        }
+
+        if (mode == null || mode.equals(Mode.Unset)) {
+            throw new IllegalArgumentException("'mode' cannot be null or Unset.");
         }
 
         if (digestMethod == null || digestMethod.trim().isEmpty()) {
@@ -111,6 +115,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         }
 
         this.recordType = recordType;
+        this.mode = mode;
         this.digestMethod = digestMethod.trim();
         this.xmlEncoding = xmlEncoding.trim();
         this.performDigest = performDigest;
@@ -310,61 +315,4 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
             }
         }
     }
-
-
-    /*@Override
-public void run() {
-
-if (log.isDebugEnabled()) {
-    log.debug("SubscriberSessionImpl running");
-}
-
-try {
-
-    final Channel digestChannel = createDigestChannel();
-
-    while (this.isOk()) {
-
-        if (this.digestMap.size() < this.pendingDigestMax) {
-            synchronized (this) {
-                final long waitTime = this.pendingDigestTimeoutSeconds * 1000;
-                this.wait(waitTime);
-            }
-        }
-
-        Map<String, String> digestsToSend = new HashMap<String, String>();
-        synchronized (this) {
-            if (this.digestMap.isEmpty()) {
-                continue;
-            }
-
-            digestsToSend = this.digestMap;
-            this.digestMap = new HashMap<String, String>();
-        }
-
-        final OutputDataStream digestOds = Utils
-                .createDigestMessage(digestsToSend);
-
-        digestChannel.sendMSG(digestOds, new DigestListener(this,
-                digestsToSend));
-    }
-
-} catch (final BEEPError e) {
-    if (log.isEnabledFor(Level.ERROR)) {
-        log.error(e.getMessage());
-    }
-    setErrored();
-} catch (final BEEPException e) {
-    if (log.isEnabledFor(Level.ERROR)) {
-        log.error(e.getMessage());
-    }
-    setErrored();
-} catch (final InterruptedException e) {
-    if (log.isEnabledFor(Level.ERROR)) {
-        log.error(e.getMessage());
-    }
-    setErrored();
-}
-}*/
-
 }

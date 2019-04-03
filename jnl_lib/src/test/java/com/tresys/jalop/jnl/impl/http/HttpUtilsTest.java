@@ -56,9 +56,9 @@ public class HttpUtilsTest {
     }
 
     @Test
-    public void testValidateModeWorksWithPublishLive() {
+    public void testValidateModeWorksWithLive() {
 
-        final String mode = "publish-live";
+        final String mode = "live";
         final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
         assertTrue(returned);
@@ -66,9 +66,9 @@ public class HttpUtilsTest {
     }
 
     @Test
-    public void testValidateModeWorksWithPublishArchive() {
+    public void testValidateModeWorksWithArchive() {
 
-        final String mode = "publish-archival";
+        final String mode = "archival";
         final List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
         assertTrue(returned);

@@ -119,7 +119,7 @@ struct curl_slist * getInitializeHeaders(std::string dataClass)
     headers = curl_slist_append(headers, "JAL-Message: initialize");
 
     //Valid initialize headers
-    headers = curl_slist_append(headers, "JAL-Mode: publish-live");
+    headers = curl_slist_append(headers, "JAL-Mode: live");
     headers = curl_slist_append(headers, "JAL-Publisher-Id: ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
     headers = curl_slist_append(headers, "JAL-Accept-Digest: junk digest,http://www.w3.org/2001/04/xmlenc#sha256");
     headers = curl_slist_append(headers, "JAL-Accept-XML-Compression: junk compression, none");

@@ -317,7 +317,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         return sub.getSubscribeRequest(sess);
     }
 
-    public Session getSessionByPublisherId(String publisherId, RecordType recordType)
+    public Session getSessionByPublisherId(String publisherId, RecordType recordType, Mode mode)
     {
         Session foundSession = null;
         synchronized (this.sessMap) {
@@ -325,7 +325,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             for (Session currSession : this.sessMap.keySet())
             {
                 SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)currSession);
-                if (session.getPublisherId().equals(publisherId) && session.getRecordType().equals(recordType))
+                if (session.getPublisherId().equals(publisherId) && session.getRecordType().equals(recordType) && session.getMode().equals(mode))
                 {
                     foundSession = currSession;
                     break;

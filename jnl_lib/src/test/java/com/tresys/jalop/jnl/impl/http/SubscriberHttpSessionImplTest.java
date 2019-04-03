@@ -9,6 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
@@ -36,7 +37,7 @@ public class SubscriberHttpSessionImplTest {
     public SubscriberHttpSessionImpl getValidSession()
     {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1,
                 2, true);
 
@@ -54,9 +55,8 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'publisherId' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1,
-                1, true);
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"),
+                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -66,8 +66,8 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'publisherId' is required.");
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(null,
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"),
+                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -77,9 +77,8 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'sessionId' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "", HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1,
-                1, true);
+                "", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
+                XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -89,7 +88,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'sessionId' is required.");
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                null, HttpUtils.getRecordType("audit"), getSubscriber(), SHA256_STR,
+                null, HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1, 1, true);
     }
 
@@ -100,7 +99,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'recordType' cannot be null or Unset.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", null, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", null, HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1, 1, true);
     }
 
@@ -111,8 +110,30 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'recordType' cannot be null or Unset.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Unset, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Unset, Mode.Archive, getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1, 1, true);
+    }
+
+    @Test
+    public void ConstructorEmptyModeTest()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("'mode' cannot be null or Unset.");
+
+        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), null, getSubscriber(), SHA256_STR,
+                XML_COMPRESSION_NONE, 1, 1, true);
+    }
+
+    @Test
+    public void ConstructorUnsetModeTest()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("'mode' cannot be null or Unset.");
+
+        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), Mode.Unset,
+                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true);
     }
 
     @Test
@@ -122,7 +143,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'subscriber' cannot be null.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, null, SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, null, SHA256_STR,
                 XML_COMPRESSION_NONE, 1, 1, true);
     }
 
@@ -133,7 +154,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'digestMethod' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), null,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), null,
                 XML_COMPRESSION_NONE, 1, 1, true);
     }
 
@@ -144,7 +165,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'digestMethod' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), "",
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), "",
                 XML_COMPRESSION_NONE, 1, 1, true);
     }
 
@@ -155,7 +176,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'xmlEncoding' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
                 null, 1, 1, true);
     }
 
@@ -166,7 +187,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'xmlEncoding' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
                 "", 1, 1, true);
     }
 
@@ -178,7 +199,7 @@ public class SubscriberHttpSessionImplTest {
                 + "must be a positive number.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 0, 1, true);
     }
 
@@ -190,7 +211,7 @@ public class SubscriberHttpSessionImplTest {
                 + "must be a positive number.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1, 0, true);
     }
 
@@ -199,6 +220,7 @@ public class SubscriberHttpSessionImplTest {
     {
         final SubscriberHttpSessionImpl sessionImpl = getValidSession();
         assertEquals(RecordType.Audit, sessionImpl.getRecordType());
+        assertEquals(Mode.Archive, sessionImpl.getMode());
         assertEquals(SHA256_STR, sessionImpl.getDigestMethod());
         assertEquals(XML_COMPRESSION_NONE, sessionImpl.getXmlEncoding());
         assertEquals(true, sessionImpl.getConfigureDigest());

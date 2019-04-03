@@ -93,7 +93,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, UUID.randomUUID().toString());
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, recType.toString().toLowerCase());
@@ -119,11 +119,13 @@ public class MessageProcessorTest {
     @Test
     public void testInitializeJournalReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -142,11 +144,13 @@ public class MessageProcessorTest {
     @Test
     public void testInitializeAuditReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
@@ -165,11 +169,13 @@ public class MessageProcessorTest {
     @Test
     public void testInitializeLogReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.LOG_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.LOG);
@@ -189,11 +195,13 @@ public class MessageProcessorTest {
     @Test
     public void testNullDigestReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
@@ -211,11 +219,13 @@ public class MessageProcessorTest {
     @Test
     public void testEmptyDigestReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -234,11 +244,13 @@ public class MessageProcessorTest {
     @Test
     public void testNullXmlCompressionReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
@@ -256,11 +268,13 @@ public class MessageProcessorTest {
     @Test
     public void testEmptyXmlCompressionReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, "");
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -279,11 +293,13 @@ public class MessageProcessorTest {
     @Test
     public void testNullConfigureDigestChallengeReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -301,11 +317,13 @@ public class MessageProcessorTest {
     @Test
     public void testEmptyConfigureDigestChallengeReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -324,11 +342,13 @@ public class MessageProcessorTest {
     @Test
     public void testInitializeWithListsReturnsInitializeAck() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, String.join(",", HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]));
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -351,7 +371,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "");
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, String.join(",", HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]));
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -368,11 +388,44 @@ public class MessageProcessorTest {
     }
 
     @Test
+    public void testDuplicatePublisherReturnsInitializeNack() throws ClientProtocolException, IOException {
+
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
+
+        final HttpResponse nextResponse = client.execute(httpPost);
+        final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int nextResponseStatus = nextResponse.getStatusLine().getStatusCode();
+        assertEquals(200, nextResponseStatus);
+        assertEquals("initialize-nack", nextResponseMessage);
+    }
+
+    @Test
     public void testInvalidModeReturnsInitializeNack() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -393,11 +446,13 @@ public class MessageProcessorTest {
     @Test
     public void testInvalidDigestReturnsInitializeNack() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -416,11 +471,13 @@ public class MessageProcessorTest {
     @Test
     public void testInvalidXmlCompressionReturnsInitializeNack() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -439,11 +496,13 @@ public class MessageProcessorTest {
     @Test
     public void testInvalidDataClassReturnsInitializeNack() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, "invalid");
@@ -462,11 +521,13 @@ public class MessageProcessorTest {
     @Test
     public void testInvalidVersionReturnsInitializeNack() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
@@ -485,11 +546,13 @@ public class MessageProcessorTest {
     @Test
     public void testInvalidConfigureDigestChallengeReturnsInitializeNack() throws ClientProtocolException, IOException {
 
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, "ae8a54d7-dd7c-4c50-a7e7-f948a140c556");
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_PUBLISH_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);

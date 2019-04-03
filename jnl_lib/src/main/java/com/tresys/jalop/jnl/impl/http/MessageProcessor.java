@@ -15,6 +15,7 @@ import javax.xml.crypto.dsig.DigestMethod;
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
@@ -123,14 +124,10 @@ public class MessageProcessor {
         //Sets up subscriber session and determines if journal resume applies.
         final Subscriber subscriber = HttpUtils.getSubscriber();
 
-   /*
-    *   //TODO need to determine what the behavior should be if session already exists. Initialize-nack?  What results in a duplicate session error?
-        //Same publisher id and record type?
-        //Same publisher id, record type and mode (live/archive)?
-
         //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
         JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
-        Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr));
+        //Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
+        Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
 
 
         if (currSession != null)
@@ -144,19 +141,23 @@ public class MessageProcessor {
             response.setHeader(HttpUtils.HDRS_SESSION_ID, ((SubscriberHttpSessionImpl)currSession).getSessionId());
 
             return;
-        } */
+        }
 
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
         UUID sessionUUID = UUID.randomUUID();
         final String sessionId = sessionUUID.toString();
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
-                HttpUtils.getRecordType(supportedDataClass), subscriber, selectedDigest,
+                HttpUtils.getRecordType(supportedDataClass), HttpUtils.getMode(modeStr), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
                 1, performDigest/*contextImpl.getDefaultPendingDigestMax()*/);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 
-        if(subRequest.getResumeOffset() > 0 && RecordType.Journal.equals(HttpUtils.getRecordType(supportedDataClass))) {
+        //If there is a Journal Offset, the Record Type is journal, and the communication Mode is Archive,
+        //Send a journal jesume message
+        if( subRequest.getResumeOffset() > 0 &&
+            RecordType.Journal.equals(HttpUtils.getRecordType(supportedDataClass)) &&
+            Mode.Archive.equals(HttpUtils.getMode(modeStr))) {
             if(logger.isDebugEnabled()) {
                 logger.debug("Sending a journal resume message.");
             }
@@ -239,7 +240,7 @@ public class MessageProcessor {
         String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
         if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
         {
-            logger.error("JAL record message failed due to invalid Session ID value of: " + sessionIdStr);
+            logger.error("JAL Record message failed due to invalid Session ID value of: " + sessionIdStr);
             return false;
         }
 
@@ -287,7 +288,7 @@ public class MessageProcessor {
             {
                 payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_LOG_LEN)).longValue();
 
-                if (payloadSize <= 0)
+                if (payloadSize < 0)
                 {
                     errorMessages.add(HttpUtils.HDRS_INVALID_LOG_LEN);
                     return false;
@@ -325,7 +326,7 @@ public class MessageProcessor {
             {
                 payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_JOURNAL_LEN)).longValue();
 
-                if (payloadSize <= 0)
+                if (payloadSize < 0)
                 {
                     errorMessages.add(HttpUtils.HDRS_INVALID_JOURNAL_LEN);
                     return false;

@@ -1,31 +1,32 @@
 This is an implementation of a library that supports sending and receiving of
-JALoP Records over a network using the JALoP/BEEP protocol.
+JAL Records over a network using the Journaling, Auditing, and Logging Protocol
+over HTTP.
 
 Building and Installing
-This project uses the maven (maven.apache.org) build tool version 3.2.1, and 
-is tested using the Oracle Java SE Development Kit 7u51. Other versions of
-the JDK/JVM and maven should work, but have not been tested.
+This project uses the maven (maven.apache.org) build tool, and 
+is tested using the OpenJDK Runtime Environment (build 1.8.0_X).
 
-The JJNL uses a multi-module layout, and the entire project can be built by
-running maven commands in the jnl_parent directory. The various modules are:
+The Java JALoP Network Library (JJNL) uses a multi-module layout, and the
+entire project can be built by running maven commands in the jnl_parent
+directory. The various modules are:
 
  - jnl_parent - This is the top-level project. Running maven commands within
       this directory affects all modules in the project. The jnl_parent module
       contains common configuration and dependency information.
 
- - jnl_lib - This module contains the code for the Java JALoP Network Library.
+ - jnl_lib - This module contains the code for the JJNL.
 
  - jnl_test - This module contains a utility program that acts as a JALoP Network
-      Store. It uses the JNL to either listen for incoming connections, or
-      initiate a connection to a remote. It's behaviour is governed by a
-      configuration file.  The path to the configuration file is passed as a
-      command line argument.
+      Store. It uses the JNL to either listen for incoming connections. It's
+      behaviour is governed by a configuration file.  The path to the configuration
+      file is passed as a command line argument.
 
 Installation Instructions:
 
 1. Download and install maven:
 	(Follow instructions at http://maven.apache.org/download.html)
 
+# TODO remove this when we remove BEEP
 2. Install the target beepcore library
     # Go to the root jjnl directory and run the following commands to determine the required beepcore version:
         ver=$(gawk 'BEGIN{RS="<[^>]+>"}{if (RT=="</beepcore.version>"){print $1}}' jnl_parent/pom.xml)
@@ -42,15 +43,11 @@ Installation Instructions:
 3. Package JALoP JNL project
 	# Go to the root directory for the jjnl repository. 
 	# Go into the jnl_parent subdirectory:
-        cd ../../../../../jnl_parent
+        cd {path_to}/jnl_parent
 
 	# Build the jjnl library using maven:
 		mvn clean
 		mvn package
-
-	# Note:
-	# On Solaris use the following option when building under Java 7 due to JMockit / Java 7 configuration issues.
-		mvn package -DskipTests=true
 
 Other Options:
 --------------
@@ -71,8 +68,5 @@ To generate Javadoc documentation, run:
 The generated documents will appear in the directory target/site.
 
 This project is built and tested in the following environments:
-  RedHat Enterprise Linux (RHEL) 5 on x86_64
-  RHEL 6 on x86_64
-  RHEL 6 on i386
-  Solaris 10 TX 09/10 on i386
-
+  RedHat Enterprise Linux (RHEL) 6 on x86_64
+  RHEL 7 on x86_64
