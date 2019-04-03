@@ -14,6 +14,7 @@ import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
@@ -126,7 +127,6 @@ public class MessageProcessor {
 
         //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
         JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
-        //Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
         Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
 
 
