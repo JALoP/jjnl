@@ -41,6 +41,12 @@ public class MessageProcessorTest {
     private static int HTTP_PORT = 8080;
     private static String SESSION_ID = "fe8a54d7-dd7c-4c50-a7e7-f948a140c556";
 
+    private static final String APP_METADATA_FILE = "app_metadata.xml";
+    private static final String PAYLOAD_FILE = "payload";
+    private static final String SYS_METADATA_FILE = "sys_metadata.xml";
+    private static final String JAL_RECORD_FILE = "jal_record.bin";
+    private static final String BREAK_STR = "BREAK";
+
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
@@ -51,7 +57,14 @@ public class MessageProcessorTest {
      */
     @BeforeClass
     public static void startWebServiceServer() throws Exception {
-        server = new Server(HTTP_PORT);
+        server = getWebServer();
+
+        server.start();
+    }
+
+    public static Server getWebServer()
+    {
+        Server server = new Server(HTTP_PORT);
 
         ServletHandler handler = new ServletHandler();
         server.setHandler(handler);
@@ -74,7 +87,7 @@ public class MessageProcessorTest {
         JNLSubscriber subscriber = new JNLSubscriber(config);
         HttpUtils.setSubscriber(subscriber);
 
-        server.start();
+        return server;
     }
 
     /**
@@ -87,11 +100,50 @@ public class MessageProcessorTest {
         server.stop();
     }
 
-    private String sendValidInitialize(RecordType recType, boolean performDigest) throws ClientProtocolException, IOException
+    public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage)
+    {
+        HashMap<String, String> headers = new HashMap<String, String>();
+
+        headers.put(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+
+        if (sessionId != null)
+        {
+            headers.put(HttpUtils.HDRS_SESSION_ID, sessionId);
+        }
+
+        if (jalId != null)
+        {
+            headers.put(HttpUtils.HDRS_NONCE, jalId);
+        }
+
+        if (systemMetadataLen != null)
+        {
+            headers.put(HttpUtils.HDRS_SYS_META_LEN, systemMetadataLen);
+        }
+
+        if (appMetadataLen != null)
+        {
+            headers.put(HttpUtils.HDRS_APP_META_LEN, appMetadataLen);
+        }
+
+        if (payloadLength != null && jalLengthHeader != null)
+        {
+            headers.put(jalLengthHeader, payloadLength);
+        }
+
+        if (jalMessage != null)
+        {
+            headers.put(HttpUtils.HDRS_MESSAGE, jalMessage);
+        }
+
+        return headers;
+    }
+
+    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId) throws ClientProtocolException, IOException
     {
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, UUID.randomUUID().toString());
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
@@ -617,45 +669,6 @@ public class MessageProcessorTest {
         assertEquals(false, result);
     }
 
-    HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage)
-    {
-        HashMap<String, String> headers = new HashMap<String, String>();
-
-        headers.put(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-
-        if (sessionId != null)
-        {
-            headers.put(HttpUtils.HDRS_SESSION_ID, sessionId);
-        }
-
-        if (jalId != null)
-        {
-            headers.put(HttpUtils.HDRS_NONCE, jalId);
-        }
-
-        if (systemMetadataLen != null)
-        {
-            headers.put(HttpUtils.HDRS_SYS_META_LEN, systemMetadataLen);
-        }
-
-        if (appMetadataLen != null)
-        {
-            headers.put(HttpUtils.HDRS_APP_META_LEN, appMetadataLen);
-        }
-
-        if (payloadLength != null && jalLengthHeader != null)
-        {
-            headers.put(jalLengthHeader, payloadLength);
-        }
-
-        if (jalMessage != null)
-        {
-            headers.put(HttpUtils.HDRS_MESSAGE, jalMessage);
-        }
-
-        return headers;
-    }
-
     @Test
     public void testProcessJALRecordMessageInvalidSessionId() throws ClientProtocolException, IOException {
         String [] testValues = new String[] {null, "", "junk"};
@@ -996,6 +1009,7 @@ public class MessageProcessorTest {
 
     @Test
     public void testProcessJALRecordMessageEmptyPayloadRecord() throws ClientProtocolException, IOException {
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -1003,7 +1017,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true);
+            String sessionId = sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1031,6 +1045,7 @@ public class MessageProcessorTest {
 
     @Test
     public void testProcessJALRecordMessageValidRecord() throws ClientProtocolException, IOException {
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -1038,7 +1053,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true);
+            String sessionId = sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1076,6 +1091,7 @@ public class MessageProcessorTest {
 
     @Test
     public void testProcessJALRecordMessageValidRecordDigestOff() throws ClientProtocolException, IOException {
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -1083,7 +1099,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, false);
+            String sessionId = sendValidInitialize(recType, false, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1121,6 +1137,7 @@ public class MessageProcessorTest {
 
     @Test
     public void testProcessJALRecordMessageValidRecordInvalidSysMetadataLen() throws ClientProtocolException, IOException {
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -1128,7 +1145,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true);
+            String sessionId = sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1164,6 +1181,7 @@ public class MessageProcessorTest {
 
     @Test
     public void testProcessJALRecordMessageValidRecordInvalidAppMetadataLen() throws ClientProtocolException, IOException {
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -1171,7 +1189,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true);
+            String sessionId = sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1207,6 +1225,7 @@ public class MessageProcessorTest {
 
     @Test
     public void testProcessJALRecordMessageValidRecordInvalidPayloadLen() throws ClientProtocolException, IOException {
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -1214,7 +1233,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true);
+            String sessionId = sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
