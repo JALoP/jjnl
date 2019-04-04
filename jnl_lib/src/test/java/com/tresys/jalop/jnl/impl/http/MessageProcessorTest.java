@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -41,11 +42,9 @@ public class MessageProcessorTest {
     private static int HTTP_PORT = 8080;
     private static String SESSION_ID = "fe8a54d7-dd7c-4c50-a7e7-f948a140c556";
 
-    private static final String APP_METADATA_FILE = "app_metadata.xml";
-    private static final String PAYLOAD_FILE = "payload";
-    private static final String SYS_METADATA_FILE = "sys_metadata.xml";
-    private static final String JAL_RECORD_FILE = "jal_record.bin";
-    private static final String BREAK_STR = "BREAK";
+    private static String jjnlDirPath = "";
+    private static String outputDirStr = "";
+    private static File resourcesDirectory;
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
@@ -57,6 +56,11 @@ public class MessageProcessorTest {
      */
     @BeforeClass
     public static void startWebServiceServer() throws Exception {
+        //gets jjnl dir path
+        resourcesDirectory = new File("src/test/resources");
+        jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../..";
+        outputDirStr = jjnlDirPath + "/jnl_lib/output";
+
         server = getWebServer();
 
         server.start();
@@ -90,6 +94,15 @@ public class MessageProcessorTest {
         return server;
     }
 
+    private static void cleanOutputDirectory() throws IOException
+    {
+        if (outputDirStr != null && outputDirStr.contains("output"))
+        {
+            File outputDir = new File(outputDirStr);
+            FileUtils.deleteDirectory(outputDir);
+        }
+    }
+
     /**
      * Stops the web service server.
      *
@@ -98,6 +111,8 @@ public class MessageProcessorTest {
     @AfterClass
     public static void stopWebServiceServer() throws Exception {
         server.stop();
+
+        cleanOutputDirectory();
     }
 
     public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage)
