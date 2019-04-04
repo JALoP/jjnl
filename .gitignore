@@ -1,0 +1,10 @@
+/jnl_lib/target/
+/jnl_lib/coverage-report
+/jnl_lib/.settings
+/jnl_lib/.classpath
+/jnl_test/.settings
+/jnl_test/coverage-report
+/jnl_test/output
+/jnl_test/.classpath
+/lib
+/jnl_parent/.settings
