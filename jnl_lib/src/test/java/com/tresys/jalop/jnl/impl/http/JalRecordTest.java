@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,6 +68,7 @@ public class JalRecordTest {
     private static String jalopTestDataDir = "";
     private static String inputDirStr = "";
     private static String outputDirStr = "";
+    private static String jalopTestDataRepoDir = "";
     private static File resourcesDirectory;
 
     @Rule
@@ -86,6 +88,14 @@ public class JalRecordTest {
         inputDirStr = jjnlDirPath + "/input";
         jalopTestDataDir = jjnlDirPath + "/../jalop/test-input";
         outputDirStr = jjnlDirPath + "/jnl_lib/output";
+        jalopTestDataRepoDir = jjnlDirPath + "/../jalop-test-data";
+
+        //Ensures input dir exists
+        File inputDir = new File(inputDirStr);
+        if (!inputDir.exists())
+        {
+            inputDir.mkdir();
+        }
 
         //Clears out input and output directories
         cleanAllDirectories();
@@ -210,13 +220,24 @@ public class JalRecordTest {
     private boolean generateRecords(RecordType recType, long numRecords, String sysFilename, String appFilename, String payloadFilename)
     {
         cleanInputDirectory(recType);
+        String testDataPath = "";
+
+        //Special case for 100MB file, which is located in jalop-test-data-repo
+        if (payloadFilename == PAYLOAD_100MB)
+        {
+            testDataPath = jalopTestDataRepoDir + "/input/audit";
+        }
+        else
+        {
+            testDataPath = jalopTestDataDir;
+        }
         try
         {
             String[] cmd = {
                     "python",
                     jjnlDirPath + "/generate_records.py",
                     recType.toString().toLowerCase(), inputDirStr, Long.toString(numRecords), jalopTestDataDir + "/" + sysFilename, jalopTestDataDir + "/" + appFilename,
-                    jalopTestDataDir + "/" + payloadFilename
+                    testDataPath + "/" + payloadFilename
             };
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor();
@@ -231,6 +252,18 @@ public class JalRecordTest {
             ie.printStackTrace();
             return false;
         }
+
+        //Checks to ensure the number of records specified were actually generated
+        File inputDir = new File(inputDirStr + "/" + recType.toString().toLowerCase());
+        File[] files = inputDir.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory();
+            }
+        });
+
+        assertEquals(false, files == null);
+        assertEquals(numRecords, files.length);
 
         return true;
     }
@@ -870,7 +903,7 @@ public class JalRecordTest {
     }
 
     //NOTE comment in this test to stress test the system, this test takes over 10 minutes to run as it sends 3 GB of JAL records over audit,log,journal channels
-    /*@Test
+ /*   @Test
     public void test1gigEachRecTypeConcurrent() throws ClientProtocolException, IOException {
 
         String publisherId = UUID.randomUUID().toString();
