@@ -9,15 +9,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.tresys.jalop.jnl.RecordType;
+
 
 @SuppressWarnings("serial")
 public class JNLJournalServlet extends HttpServlet implements JNLServlet
 {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(JNLJournalServlet.class);
-
-
-    static final int BUFFER_SIZE = 4096;
 
     /**
      * Create a JNLTest object based on the specified configuration.
@@ -34,12 +33,12 @@ public class JNLJournalServlet extends HttpServlet implements JNLServlet
             HttpServletResponse response)
                     throws ServletException, IOException {
 
-    	MessageProcessor.handleRequest(request, response, getSupportedDataClass());
+    	MessageProcessor.handleRequest(request, response, getSupportedRecordType());
     }
 
     @Override
-    public String getSupportedDataClass() {
-        return "journal";
+    public RecordType getSupportedRecordType(){
+        return RecordType.Journal;
     }
 }
 

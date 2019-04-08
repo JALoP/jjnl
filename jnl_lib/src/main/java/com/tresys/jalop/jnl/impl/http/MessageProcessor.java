@@ -29,91 +29,101 @@ public class MessageProcessor {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(MessageProcessor.class);
 
-    public static void processInitializeMessage(HttpServletRequest request, HttpServletResponse response, String supportedDataClass) throws IOException
+    public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
+        if (errorMessages == null)
+        {
+            throw new IllegalArgumentException("errorMessages is required");
+        }
+
+        if (requestHeaders == null)
+        {
+            throw new IllegalArgumentException("requestHeaders is required");
+        }
+
+        if (successResponseHeaders == null)
+        {
+            throw new IllegalArgumentException("successResponseHeaders is required");
+        }
+
+        if (supportedRecType == null)
+        {
+            throw new IllegalArgumentException("supportedRecType is required");
+        }
+
         logger.info(HttpUtils.MSG_INIT + " message received.");
 
-        HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
-        List <String> errorResponseHeaders = new ArrayList<String>();
-
-        String publisherIdStr = request.getHeader(HttpUtils.HDRS_PUBLISHER_ID);
-        if (!HttpUtils.validatePublisherId(publisherIdStr, errorResponseHeaders))
+        String publisherIdStr = requestHeaders.get(HttpUtils.HDRS_PUBLISHER_ID);
+        if (!HttpUtils.validatePublisherId(publisherIdStr, errorMessages))
         {
             logger.error("Initialize message failed due to invalid Publisher ID value of: " + publisherIdStr);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-            return;
+            return false;
         }
 
         //Validates mode, must be publish live or publish archive, sets any error in response.
-        String modeStr = request.getHeader(HttpUtils.HDRS_MODE);
-        if (!HttpUtils.validateMode(modeStr, errorResponseHeaders))
+        String modeStr = requestHeaders.get(HttpUtils.HDRS_MODE);
+        if (!HttpUtils.validateMode(modeStr, errorMessages))
         {
             logger.error("Initialize message failed due to invalid mode value of: " + modeStr);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-            return;
+            return false;
         }
 
         //Validates supported digest
-        String digestStr = request.getHeader(HttpUtils.HDRS_ACCEPT_DIGEST);
+        String digestStr =requestHeaders.get(HttpUtils.HDRS_ACCEPT_DIGEST);
         if (digestStr == null || digestStr.isEmpty())
         {
             digestStr = DigestMethod.SHA256;
         }
 
-        String selectedDigest = HttpUtils.validateDigests(digestStr, successResponseHeaders, errorResponseHeaders);
+        String selectedDigest = HttpUtils.validateDigests(digestStr, successResponseHeaders, errorMessages);
         if (selectedDigest == null)
         {
             logger.error("Initialize message failed due to none of the following digests supported: " + digestStr);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-            return;
+            return false;
         }
 
         //Validates supported xml compression
-        String xmlCompressionsStr = request.getHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION);
+        String xmlCompressionsStr = requestHeaders.get(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION);
         if (xmlCompressionsStr == null || xmlCompressionsStr.isEmpty())
         {
             xmlCompressionsStr = HttpUtils.SUPPORTED_XML_COMPRESSIONS[0];
         }
 
-        String selectedXmlCompression = HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorResponseHeaders);
+        String selectedXmlCompression = HttpUtils.validateXmlCompression(xmlCompressionsStr, successResponseHeaders, errorMessages);
         if (selectedXmlCompression == null)
         {
             logger.error("Initialize message failed due to none of the following xml compressions supported: " + xmlCompressionsStr);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-            return;
+            return false;
         }
 
         //Validates data class
-        String dataClassStr = request.getHeader(HttpUtils.HDRS_DATA_CLASS);
-        if (!HttpUtils.validateDataClass(dataClassStr, supportedDataClass, errorResponseHeaders))
+        String dataClassStr = requestHeaders.get(HttpUtils.HDRS_DATA_CLASS);
+        if (!HttpUtils.validateDataClass(dataClassStr, supportedRecType, errorMessages))
         {
             logger.error("Initialize message failed due to unsupported data class: " + dataClassStr);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-            return;
+            return false;
         }
 
         //Validates version
-        String versionStr = request.getHeader(HttpUtils.HDRS_VERSION);
-        if (!HttpUtils.validateVersion(versionStr, errorResponseHeaders))
+        String versionStr = requestHeaders.get(HttpUtils.HDRS_VERSION);
+        if (!HttpUtils.validateVersion(versionStr, errorMessages))
         {
             logger.error("Initialize message failed due to unsupported version: " + versionStr);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-            return;
+            return false;
         }
 
         //Validates configure digest challenge
-        String confDigestChallengeStr = request.getHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
+        String confDigestChallengeStr = requestHeaders.get(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
         if (confDigestChallengeStr == null || confDigestChallengeStr.isEmpty())
         {
             confDigestChallengeStr = HttpUtils.MSG_CONFIGURE_DIGEST_ON;
         }
 
-        String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorResponseHeaders);
+        String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorMessages);
         if (selectedConfDigestChallenge == null)
         {
             logger.error("Initialize message failed due to unsupported configure digest challenge: " + confDigestChallengeStr);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-            return;
+            return false;
         }
 
         boolean performDigest = true;
@@ -129,44 +139,41 @@ public class MessageProcessor {
         JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
         Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
 
-
         if (currSession != null)
         {
             logger.error("Session already exists for publisher: " + publisherIdStr);
-            errorResponseHeaders.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
-            MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
+            errorMessages.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
 
-            //TODO - sending session id in initialize-nack for testing, so test publisher can still send until this logic is finalized.
-            //Add the session ID before we send the initialize-ack message
-            response.setHeader(HttpUtils.HDRS_SESSION_ID, ((SubscriberHttpSessionImpl)currSession).getSessionId());
+            //TODO - remove later, this is just for testing to allow for test publisher to send records after session already exists error message
+            successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, ((SubscriberHttpSessionImpl)currSession).getSessionId());
 
-            return;
+            return false;
         }
 
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
         UUID sessionUUID = UUID.randomUUID();
         final String sessionId = sessionUUID.toString();
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
-                HttpUtils.getRecordType(supportedDataClass), HttpUtils.getMode(modeStr), subscriber, selectedDigest,
+                supportedRecType, HttpUtils.getMode(modeStr), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
                 1, performDigest/*contextImpl.getDefaultPendingDigestMax()*/);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 
         //If there is a Journal Offset, the Record Type is journal, and the communication Mode is Archive,
-        //Send a journal jesume message
+        //Send a journal resume message
         if( subRequest.getResumeOffset() > 0 &&
-            RecordType.Journal.equals(HttpUtils.getRecordType(supportedDataClass)) &&
+            RecordType.Journal.equals(supportedRecType) &&
             Mode.Archive.equals(HttpUtils.getMode(modeStr))) {
             if(logger.isDebugEnabled()) {
                 logger.debug("Sending a journal resume message.");
             }
 
             //Adds journal resume header
-            if (!createJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorResponseHeaders))
+            if (!createJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorMessages))
             {
-                MessageProcessor.setInitializeNackResponse(errorResponseHeaders, response);
-                return;
+                logger.error("Create Journal resume message failed.");
+                return false;
             }
         } else {
             //If no errors, return initialize-ack with supported digest/encoding
@@ -174,8 +181,9 @@ public class MessageProcessor {
 
             //Add the session ID before we send the initialize-ack message
             successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, sessionId);
-            MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
         }
+
+        return true;
     }
 
     public static Boolean createJournalResumeMessage(final String nonce,
@@ -399,7 +407,7 @@ public class MessageProcessor {
         }
     }
 
-    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, String supportedDataClass)
+    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
     {
         try
         {
@@ -414,7 +422,25 @@ public class MessageProcessor {
             String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
             if (messageType.equals(HttpUtils.MSG_INIT))
             {
-                MessageProcessor.processInitializeMessage(request, response, supportedDataClass);
+                List<String> errorMessages = new ArrayList<String>();
+                HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
+                if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, errorMessages))
+                {
+                    //TODO - sending session id in initialize-nack for testing if session exist error occurs, so test publisher can still send until this logic is finalized.
+                    //Add the session ID before we send the initialize-ack message
+                    if (errorMessages.contains(HttpUtils.HDRS_SESSION_ALREADY_EXISTS))
+                    {
+                        response.setHeader(HttpUtils.HDRS_SESSION_ID, successResponseHeaders.get(HttpUtils.HDRS_SESSION_ID));
+                    }
+
+                    //Send initialize-nack on error
+                    MessageProcessor.setInitializeNackResponse(errorMessages, response);
+                }
+                else
+                {
+                    //Send initialize-ack on success
+                    MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
+                }
             }
             else if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL)
                     || messageType.equals(HttpUtils.MSG_AUDIT)) // process
@@ -424,7 +450,7 @@ public class MessageProcessor {
                 List<String> errorMessages = new ArrayList<String>();
                 DigestResult digestResult = new DigestResult();
                 if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
-                        HttpUtils.getRecordType(supportedDataClass), digestResult, errorMessages))
+                        supportedRecType, digestResult, errorMessages))
                 {
                     // Set error message in the header
                     MessageProcessor.setErrorResponse(errorMessages, response);
@@ -434,7 +460,6 @@ public class MessageProcessor {
                     // Sets digest in the header if successful
                     response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
                 }
-
             }
             else
             {

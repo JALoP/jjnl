@@ -392,18 +392,26 @@ public class HttpUtils {
 
 
     //Validates dataClass, must be journal, audit, or log
-    public static boolean validateDataClass(String dataClass, String supportedDataClass, List<String> errorResponseHeaders)
+    public static boolean validateDataClass(String dataClass, RecordType supportedRecType, List<String> errorResponseHeaders)
     {
         String currDataClass = checkForEmptyString(dataClass, HDRS_DATA_CLASS);
+
+        if (supportedRecType == null)
+        {
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
+            logger.error("supportedRecType is required.");
+            return false;
+        }
 
         if (currDataClass == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
+            logger.error("dataClass is required.");
             return false;
         }
 
         //Checks if supported data class.
-        if (!currDataClass.equals(supportedDataClass))
+        if (!currDataClass.equals(supportedRecType.toString().toLowerCase()))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
             return false;

@@ -264,7 +264,7 @@ public class HttpUtilsTest {
     public void testValidateDataClassWorksForJournal() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "journal";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Journal, errorResponseHeaders);
         assertTrue(returned);
     }
 
@@ -272,7 +272,7 @@ public class HttpUtilsTest {
     public void testValidateDataClassWorksForAudit() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "audit";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Audit, errorResponseHeaders);
         assertTrue(returned);
     }
 
@@ -280,22 +280,21 @@ public class HttpUtilsTest {
     public void testValidateDataClassWorksForLog() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "log";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Log, errorResponseHeaders);
         assertTrue(returned);
     }
 
-    public void testValidateDataClassFailsForEmptyDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
+    public void testValidateDataClassFailsForNullDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, dataClass, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateDataClass(dataClass,null, errorResponseHeaders);
         assertFalse(returned);
     }
 
     public void testValidateDataClassFailsForInvalidDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "invalid";
-        final String mode = "journal";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, mode, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Journal, errorResponseHeaders);
         assertFalse(returned);
     }
 
