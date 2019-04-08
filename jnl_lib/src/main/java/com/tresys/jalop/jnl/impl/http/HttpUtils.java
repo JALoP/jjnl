@@ -62,6 +62,7 @@ public class HttpUtils {
     public static final String HDRS_INVALID_AUDIT_LEN= "JAL-Invalid-Audit-Length";
     public static final String HDRS_INVALID_JOURNAL_LEN= "JAL-Invalid-Journal-Length";
     public static final String HDRS_INVALID_LOG_LEN= "JAL-Invalid-Log-Length";
+    public static final String HDRS_INVALID_JAL_COUNT= "JAL-Invalid-JAL-Count";
     public static final String HDRS_INVALID_JOURNAL_OFFSET= "JAL-Invalid-Journal-Offset";
     public static final String HDRS_JOURNAL_LEN = "JAL-Journal-Length";
     public static final String HDRS_JOURNAL_OFFSET = "JAL-Journal-Offset";

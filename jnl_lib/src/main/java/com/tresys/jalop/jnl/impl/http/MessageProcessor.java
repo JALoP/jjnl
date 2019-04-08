@@ -219,6 +219,83 @@ public class MessageProcessor {
         return true;
     }
 
+    public static Map<String, String> processDigestMessage(long jalCount,
+            final InputStream is) throws IOException
+    {
+        // get the digest map from the input stream
+        final Map<String, String> digestMap = new HashMap<String, String>();
+        final int numLeft = is.available();
+        final byte[] messageArray = new byte[numLeft];
+        try {
+            is.read(messageArray);
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
+        final String msgStr = new String(messageArray);
+
+        final String[] pairs = HttpUtils.checkForEmptyString(msgStr, "payload").split("\\s+|=");
+
+        for (int x = 0; x < jalCount * 2; x += 2) {
+            pairs[x] = HttpUtils.checkForEmptyString(pairs[x], HttpUtils.MSG_DIGEST);
+            pairs[x + 1] = HttpUtils.checkForEmptyString(pairs[x + 1], HttpUtils.NONCE);
+            digestMap.put(pairs[x + 1], pairs[x]);
+        }
+
+        return digestMap;
+    }
+
+    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, List<String> errorMessages)
+    {
+        if (errorMessages == null)
+        {
+            throw new IllegalArgumentException("errorMessages is required");
+        }
+
+        if (requestHeaders == null)
+        {
+            throw new IllegalArgumentException("requestHeaders is required");
+        }
+
+        if (requestInputStream == null)
+        {
+            throw new IllegalArgumentException("requestInputStream is required");
+        }
+
+        if (supportedRecType == null)
+        {
+            throw new IllegalArgumentException("supportedRecType is required");
+        }
+
+        //Gets the session Id from header
+        String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
+        if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
+        {
+            logger.error("JAL Record message failed due to invalid Session ID value of: " + sessionIdStr);
+            return false;
+        }
+
+        // Get the jal count from the header
+        Long jalCount = new Long(0);
+        try
+        {
+            jalCount = new Long(requestHeaders.get(HttpUtils.HDRS_COUNT)).longValue();
+
+            if (jalCount <= 0)
+            {
+                errorMessages.add(HttpUtils.HDRS_INVALID_JAL_COUNT);
+                return false;
+            }
+        }
+        catch(NumberFormatException nfe )
+        {
+            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_COUNT);
+            return false;
+        }
+
+
+        return true;
+    }
+
     @VisibleForTesting
     static boolean processJALRecordMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
     {
@@ -461,7 +538,7 @@ public class MessageProcessor {
 
             Integer currRequestCount = HttpUtils.requestCount.incrementAndGet();
 
-            logger.info("request: " + currRequestCount.toString() + " started");
+            logger.debug("request: " + currRequestCount.toString() + " started");
 
             // Init message
             String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
@@ -511,6 +588,19 @@ public class MessageProcessor {
                 else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
                 {
                     MessageProcessor.processJournalMissingMessage(supportedRecType, response, errorMessages);
+                }
+                else if (messageType.equals(HttpUtils.MSG_DIGEST_RESP))
+                {
+                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, request.getInputStream(),
+                            supportedRecType, errorMessages))
+                    {
+                        // Set error message in the header
+                        MessageProcessor.setErrorResponse(errorMessages, response);
+                    }
+                    else
+                    {
+                        //Send sync message
+                    }
                 }
                 else
                 {
