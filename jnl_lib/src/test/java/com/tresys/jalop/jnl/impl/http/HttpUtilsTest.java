@@ -2,6 +2,7 @@ package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
@@ -20,6 +22,30 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
  * Tests for common utility class.
  */
 public class HttpUtilsTest {
+
+    //This method disables the debug logging for the http client in the console, only comment out this method if you wish to see this output.
+    //Unless there is some need to view this data, this should be called all the time before any tests using httpclient to prevent cluttered console output.
+    public static void disableHttpClientLogging()
+    {
+        //Following logger config settings get rid of the httpclient debug logging in the console.
+        //Only comment out these lines if you wish to see the http client debug statements
+        java.util.logging.Logger.getLogger("org.apache.http.wire").setLevel(java.util.logging.Level.FINEST);
+        java.util.logging.Logger.getLogger("org.apache.http.headers").setLevel(java.util.logging.Level.FINEST);
+        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+        System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
+        System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire", "ERROR");
+        System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http", "ERROR");
+        System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.headers", "ERROR");
+    }
+
+    @Test
+    public void testGetAllowedConfigureDigests()
+    {
+        HttpUtils.setAllowedConfigureDigests(null);
+        List<String> configureDigests = HttpUtils.getAllowedConfigureDigests();
+        assertNotNull(configureDigests);
+        assertEquals(1, configureDigests.size());
+    }
 
     @Test
     public void testValidatePublisherIdWorksWithUUID() {
@@ -284,11 +310,16 @@ public class HttpUtilsTest {
         assertTrue(returned);
     }
 
-    public void testValidateDataClassFailsForNullDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
+    public void testValidateDataClassFailsForEmptyDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String dataClass = "";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass,null, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateDataClass(dataClass,RecordType.Journal, errorResponseHeaders);
         assertFalse(returned);
+        
+        final String dataClass2 = null;
+        List <String> errorResponseHeaders2 = new ArrayList<String>();
+        final boolean returned2= HttpUtils.validateDataClass(dataClass2,RecordType.Journal, errorResponseHeaders2);
+        assertFalse(returned2);        
     }
 
     public void testValidateDataClassFailsForInvalidDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
@@ -504,5 +535,31 @@ public class HttpUtilsTest {
 
         RecordType recordTypeNull = HttpUtils.getRecordType(null);
         assertEquals(RecordType.Unset, recordTypeNull);
+    }
+
+    @Test
+    public void testGetModeEmpty()
+    {
+        Mode mode = HttpUtils.getMode(null);
+        assertEquals(Mode.Unset, mode);
+
+        mode = HttpUtils.getMode("");
+        assertEquals(Mode.Unset, mode);
+    }
+
+    @Test
+    public void testGetModeLive()
+    {
+        Mode mode = HttpUtils.getMode(HttpUtils.MSG_LIVE);
+
+        assertEquals(Mode.Live, mode);
+    }
+
+    @Test
+    public void testGetModeArchive()
+    {
+        Mode mode = HttpUtils.getMode(HttpUtils.MSG_ARCHIVE);
+
+        assertEquals(Mode.Archive, mode);
     }
 }

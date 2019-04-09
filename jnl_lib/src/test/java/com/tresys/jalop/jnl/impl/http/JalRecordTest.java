@@ -90,6 +90,11 @@ public class JalRecordTest {
         outputDirStr = jjnlDirPath + "/jnl_lib/output";
         jalopTestDataRepoDir = jjnlDirPath + "/../jalop-test-data";
 
+        HttpUtilsTest.disableHttpClientLogging();
+
+        //Comment in the line below if you wish to limit the number of debug statements in the console from the jjnl library.
+        //LogManager.getRootLogger().setLevel(Level.WARN);
+
         //Ensures input dir exists
         File inputDir = new File(inputDirStr);
         if (!inputDir.exists())

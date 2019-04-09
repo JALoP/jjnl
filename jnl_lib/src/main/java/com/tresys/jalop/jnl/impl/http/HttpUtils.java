@@ -1,12 +1,5 @@
 package com.tresys.jalop.jnl.impl.http;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -156,17 +149,6 @@ public class HttpUtils {
 
     public static void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
         HttpUtils.allowedConfigureDigests = allowedConfigureDigests;
-    }
-
-    public static String getDigest(MessageDigest md)
-    {
-        byte[] digest = md.digest();
-        String hexDgst = "";
-        for (byte b : digest) {
-            hexDgst = hexDgst + String.format("%02x",b);
-        }
-
-        return hexDgst;
     }
 
     public static List<String> parseHeaderList(String currHeader)
@@ -466,44 +448,6 @@ public class HttpUtils {
 
         errorResponseHeaders.add(HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE);
         return null;
-    }
-
-    public static String readBinaryDataFromRequest(HttpServletRequest request, int currRequestCount) throws IOException
-    {
-        try
-        {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-
-            //Handle the binary data that was posted from the client in the request
-            byte[] readRequestBuffer = new byte[BUFFER_SIZE];
-            String outputDirStr = System.getProperty("user.home") + "/jalop/jjnl/subscriberOutput/";
-            File outputDir = new File(outputDirStr);
-            if (!outputDir.isDirectory())
-            {
-                outputDir.mkdirs();
-            }
-            File fileUpload = new File(outputDirStr + currRequestCount +".bin");
-            try (
-                InputStream input = request.getInputStream(); //Reading the binary post data in the request
-                OutputStream output = new FileOutputStream(fileUpload);
-                )
-            {
-                for (int length = 0; (length = input.read(readRequestBuffer)) > 0;)
-                {
-                    //Builds digest
-                    md.update(readRequestBuffer, 0, length);
-                    output.write(readRequestBuffer, 0, length);
-                }
-            }
-
-            //Generates digest
-            return HttpUtils.getDigest(md);
-        }
-        catch (NoSuchAlgorithmException nsae)
-        {
-            logger.error("Digest algorithm not supported");
-            return null;
-        }
     }
 
     public static Subscriber getSubscriber() {

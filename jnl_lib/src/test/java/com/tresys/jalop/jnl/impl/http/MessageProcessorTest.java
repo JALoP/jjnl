@@ -56,6 +56,9 @@ public class MessageProcessorTest {
      */
     @BeforeClass
     public static void startWebServiceServer() throws Exception {
+
+        HttpUtilsTest.disableHttpClientLogging();
+
         //gets jjnl dir path
         resourcesDirectory = new File("src/test/resources");
         jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../..";

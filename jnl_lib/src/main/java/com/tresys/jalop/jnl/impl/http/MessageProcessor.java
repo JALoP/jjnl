@@ -212,11 +212,6 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
-    public static void setErrorResponse(String errorMessage, HttpServletResponse response)
-    {
-        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, errorMessage);
-    }
-
     public static boolean processJALRecordMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
