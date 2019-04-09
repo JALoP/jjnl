@@ -60,7 +60,7 @@ public class MessageProcessor {
             return false;
         }
 
-        //Validates mode, must be publish live or publish archive, sets any error in response.
+        //Validates mode, must be live or archive, sets any error in response.
         String modeStr = requestHeaders.get(HttpUtils.HDRS_MODE);
         if (!HttpUtils.validateMode(modeStr, errorMessages))
         {

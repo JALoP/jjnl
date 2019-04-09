@@ -315,11 +315,11 @@ public class HttpUtilsTest {
         List <String> errorResponseHeaders = new ArrayList<String>();
         final boolean returned = HttpUtils.validateDataClass(dataClass,RecordType.Journal, errorResponseHeaders);
         assertFalse(returned);
-        
+
         final String dataClass2 = null;
         List <String> errorResponseHeaders2 = new ArrayList<String>();
         final boolean returned2= HttpUtils.validateDataClass(dataClass2,RecordType.Journal, errorResponseHeaders2);
-        assertFalse(returned2);        
+        assertFalse(returned2);
     }
 
     public void testValidateDataClassFailsForInvalidDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
