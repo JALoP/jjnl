@@ -38,22 +38,22 @@ public class JNLException extends Exception {
 	public JNLException(final String string) {
 		super(string);
 	}
-	
+
 	/**
 	 * Create an Exception that is specific to the JALoP Network Library.
 	 *
 	 * @param string	The message that describes the exception.
-	 */	
+	 */
 	public JNLException(String message, Throwable cause)
 	{
 		super(message, cause);
 	}
-	
+
 	/**
 	 * Create an Exception that is specific to the JALoP Network Library.
 	 *
 	 * @param string	The message that describes the exception.
-	 */	
+	 */
 	public JNLException(Throwable cause)
 	{
 		super(cause);

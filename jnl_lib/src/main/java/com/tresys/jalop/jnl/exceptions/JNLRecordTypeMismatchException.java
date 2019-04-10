@@ -31,14 +31,14 @@ import java.io.Serializable;
 public class JNLRecordTypeMismatchException extends JNLException {
 
 	/**
-	 * Create an Exception that is specific to the JALoP Network Library and an JNL RecordType mismatch 
+	 * Create an Exception that is specific to the JALoP Network Library and an JNL RecordType mismatch
 	 *
 	 * @param string	The message that describes the exception.
 	 */
 	public JNLRecordTypeMismatchException(final String string) {
 		super(string);
 	}
-	
+
 	/**
 	 * the serial version, because {@link Exception} implements
 	 * {@link Serializable}

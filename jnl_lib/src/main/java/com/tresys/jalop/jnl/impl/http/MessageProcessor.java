@@ -29,17 +29,17 @@ public class MessageProcessor {
 
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(MessageProcessor.class);
-    
-    private static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response) throws JNLRecordTypeMismatchException 
+
+    private static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response) throws JNLRecordTypeMismatchException
     {
-    	logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
-    	if (!RecordType.Journal.equals(supportedRecType))
-		{
-    		throw new JNLRecordTypeMismatchException("Expected an " + RecordType.Journal + " record type but received " +supportedRecType);
-		}
-    	response.setStatus(HttpServletResponse.SC_OK);
+        logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
+        if (!RecordType.Journal.equals(supportedRecType))
+        {
+            throw new JNLRecordTypeMismatchException("Expected an " + RecordType.Journal + " record type but received " +supportedRecType);
+        }
+        response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
-    }    
+    }
 
     public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
@@ -470,7 +470,7 @@ public class MessageProcessor {
             }
             else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
             {
-            	MessageProcessor.processJournalMissingMessage(supportedRecType, response);
+                MessageProcessor.processJournalMissingMessage(supportedRecType, response);
             }
             else
             {
