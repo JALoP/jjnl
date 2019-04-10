@@ -26,39 +26,19 @@ package com.tresys.jalop.jnl.exceptions;
 import java.io.Serializable;
 
 /**
- * Base class for all JNL exceptions.
+ * This class represents that the wrong RecordType was detected when processing a message by an endpoint.
  */
-public class JNLException extends Exception {
+public class JNLRecordTypeMismatchException extends JNLException {
 
 	/**
-	 * Create an Exception that is specific to the JALoP Network Library.
+	 * Create an Exception that is specific to the JALoP Network Library and an JNL RecordType mismatch 
 	 *
 	 * @param string	The message that describes the exception.
 	 */
-	public JNLException(final String string) {
+	public JNLRecordTypeMismatchException(final String string) {
 		super(string);
 	}
 	
-	/**
-	 * Create an Exception that is specific to the JALoP Network Library.
-	 *
-	 * @param string	The message that describes the exception.
-	 */	
-	public JNLException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
-	
-	/**
-	 * Create an Exception that is specific to the JALoP Network Library.
-	 *
-	 * @param string	The message that describes the exception.
-	 */	
-	public JNLException(Throwable cause)
-	{
-		super(cause);
-	}
-
 	/**
 	 * the serial version, because {@link Exception} implements
 	 * {@link Serializable}

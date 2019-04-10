@@ -19,6 +19,7 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.exceptions.JNLRecordTypeMismatchException;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
@@ -28,6 +29,17 @@ public class MessageProcessor {
 
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(MessageProcessor.class);
+    
+    private static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response) throws JNLRecordTypeMismatchException 
+    {
+    	logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
+    	if (!RecordType.Journal.equals(supportedRecType))
+		{
+    		throw new JNLRecordTypeMismatchException("Expected an " + RecordType.Journal + " record type but received " +supportedRecType);
+		}
+    	response.setStatus(HttpServletResponse.SC_OK);
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
+    }    
 
     public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
@@ -456,12 +468,21 @@ public class MessageProcessor {
                     response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
                 }
             }
+            else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
+            {
+            	MessageProcessor.processJournalMissingMessage(supportedRecType, response);
+            }
             else
             {
                 logger.error("Invalid message received: " + messageType + " , returning server error");
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return;
             }
+        }
+        catch (JNLRecordTypeMismatchException e)
+        {
+            logger.error("Failed to process message. Cause: " + e);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
         catch (IOException ioe)
         {

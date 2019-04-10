@@ -111,6 +111,8 @@ public class HttpUtils {
     public static final String MSG_INIT = "initialize";
     public static final String MSG_INIT_ACK = "initialize-ack";
     public static final String MSG_INIT_NACK = "initialize-nack";
+    public static final String MSG_JOURNAL_MISSING = "journal-missing";
+    public static final String MSG_JOURNAL_MISSING_RESPONSE = "journal-missing-response";
     public static final String MSG_JOURNAL = "journal-record";
     public static final String MSG_JOURNAL_RESUME = "journal-resume";
     public static final String MSG_LOG = "log-record";

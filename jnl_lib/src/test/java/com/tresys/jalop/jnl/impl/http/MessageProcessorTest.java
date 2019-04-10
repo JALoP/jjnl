@@ -2,6 +2,7 @@ package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -157,6 +158,15 @@ public class MessageProcessorTest {
         return headers;
     }
 
+    /**
+     * This will send a valid initialize message and get back a session id.
+     * @param recType
+     * @param performDigest
+     * @param publisherId
+     * @return a valid sessionID
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
     public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId) throws ClientProtocolException, IOException
     {
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
@@ -1353,4 +1363,81 @@ public class MessageProcessorTest {
         assertEquals(0, headers.size());
         assertEquals(true, errorHeaders.contains(HttpUtils.HDRS_INVALID_JOURNAL_OFFSET));
     }
+    
+    @Test
+    /**
+     * Testing that when we send a JOURNAL_MISSING message to the Journal end point that it returns an HTTP status of OK (200)
+     * and a message of JOURNAL_MISSING_RESPONSE
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
+    public void testProcessJournalMissingMessageToJournalEndPoint() throws ClientProtocolException, IOException 
+    {
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+    	String sessionID = sendValidInitialize(RecordType.Journal, false, publisherId);
+    			
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING);
+        httpPost.setHeader(HttpUtils.HDRS_NONCE, "1000"); //sets the jalID
+        
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE, responseMessage);
+    }  
+    
+    @Test
+    /**
+     * Testing that if we send a JOURNAL_MISSING message to an audit endpoint that we get back an HTTP status of Bad Request (400)
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
+    public void testProcessJournalMissingMessageToAuditEndPoint() throws ClientProtocolException, IOException 
+    {
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+    	String sessionID = sendValidInitialize(RecordType.Audit, false, publisherId);
+    			
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING);
+        httpPost.setHeader(HttpUtils.HDRS_NONCE, "1000"); //sets the jalID
+        
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertNull(response.getFirstHeader(HttpUtils.HDRS_MESSAGE));
+        assertEquals(400, responseStatus);
+    }  
+    
+    @Test
+    /**
+     * Testing that if we send a JOURNAL_MISSING message to an log endpoint that we get back an HTTP status of Bad Request (400)
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
+    public void testProcessJournalMissingMessageToLogEndPoint() throws ClientProtocolException, IOException 
+    {
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+    	String sessionID = sendValidInitialize(RecordType.Log, false, publisherId);
+    			
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.LOG_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING);
+        httpPost.setHeader(HttpUtils.HDRS_NONCE, "1000"); //sets the jalID
+        
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertNull(response.getFirstHeader(HttpUtils.HDRS_MESSAGE));
+        assertEquals(400, responseStatus);
+    }  
 }
