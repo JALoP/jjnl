@@ -1,13 +1,16 @@
 package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +46,9 @@ public class MessageProcessorTest {
     private static Server server;
     private static int HTTP_PORT = 8080;
     private static String SESSION_ID = "fe8a54d7-dd7c-4c50-a7e7-f948a140c556";
+    private static String CERT_FINGERPRINT = "0a7be6d47ac528d8ce0e1c59b4d052be88f5ddc4601caec1f1dcda8a09766723";
+    private static String CERT_FILENAME = "cert.pem";
+    private static String DIFFERENT_CERT_FILENAME = "different_cert.pem";
 
     private static String jjnlDirPath = "";
     private static String outputDirStr = "";
@@ -97,6 +103,50 @@ public class MessageProcessorTest {
         HttpUtils.setSubscriber(subscriber);
 
         return server;
+    }
+
+    public static String getCertForHeader(String filename)
+    {
+        String content = null;
+        String fingerprint = null;
+        String filePath = resourcesDirectory.getAbsolutePath() + "/" + filename;
+        try
+        {
+            content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+
+        if (content != null)
+        {
+            content = content.replace("\n", "");
+        }
+        return content;
+    }
+
+    public static String getCertFingerprintForHeader(String filename)
+    {
+        String content = null;
+        String fingerprint = null;
+        String filePath = resourcesDirectory.getAbsolutePath() + "/" + filename;
+        try
+        {
+            content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+
+        if (content != null)
+        {
+            fingerprint = HttpUtils.getCertFingerprintFromHeader(content);
+        }
+        return fingerprint;
     }
 
     private static void cleanOutputDirectory() throws IOException
@@ -212,6 +262,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -237,6 +288,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -262,6 +314,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.LOG);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
 
         HttpClient client = HttpClientBuilder.create().build();
@@ -287,6 +340,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -312,6 +366,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -336,6 +391,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -361,6 +417,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -385,6 +442,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -410,6 +468,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "");
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -435,6 +494,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, String.join(",", HttpUtils.MSG_CONFIGURE_DIGEST_ON));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -469,7 +529,7 @@ public class MessageProcessorTest {
     }
 
     @Test
-    public void testDuplicatePublisherReturnsInitializeNack() throws ClientProtocolException, IOException {
+    public void testDuplicatePublisherWithDifferentCertReturnsInitializeNack() throws ClientProtocolException, IOException {
 
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
@@ -483,6 +543,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -492,11 +553,47 @@ public class MessageProcessorTest {
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
 
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(DIFFERENT_CERT_FILENAME));
         final HttpResponse nextResponse = client.execute(httpPost);
         final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int nextResponseStatus = nextResponse.getStatusLine().getStatusCode();
         assertEquals(200, nextResponseStatus);
         assertEquals("initialize-nack", nextResponseMessage);
+    }
+
+    @Test
+    public void testDuplicatePublisherWithSameCertReturnsInitializeAck() throws ClientProtocolException, IOException {
+
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+        final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final String firstSessionId = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-ack", responseMessage);
+
+        final HttpResponse nextResponse = client.execute(httpPost);
+        final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final String secondSessionId = nextResponse.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
+        final int nextResponseStatus = nextResponse.getStatusLine().getStatusCode();
+        assertEquals(200, nextResponseStatus);
+        assertEquals("initialize-ack", nextResponseMessage);
+        assertFalse(firstSessionId.equals(secondSessionId));
     }
 
     @Test
@@ -656,7 +753,7 @@ public class MessageProcessorTest {
         exception.expectMessage("requestHeaders is required");
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
         List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(null, RecordType.Audit, successResponseHeaders, errorMessages);
+        boolean result = MessageProcessor.processInitializeMessage(null, RecordType.Audit, CERT_FINGERPRINT,  successResponseHeaders, errorMessages);
         assertEquals(false, result);
     }
 
@@ -667,7 +764,7 @@ public class MessageProcessorTest {
         exception.expectMessage("successResponseHeaders is required");
         HashMap<String, String> requestHeaders = new HashMap<String, String>();
         List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, null, errorMessages);
+        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, CERT_FINGERPRINT,  null, errorMessages);
         assertEquals(false, result);
     }
 
@@ -678,7 +775,19 @@ public class MessageProcessorTest {
         exception.expectMessage("errorMessages is required");
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
         HashMap<String, String> requestHeaders = new HashMap<String, String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, successResponseHeaders, null);
+        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, CERT_FINGERPRINT, successResponseHeaders, null);
+        assertEquals(false, result);
+    }
+
+    @Test
+    public void testProcessInitializeMessageNullCertFingerprint() throws IOException
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("certFingerprint is required");
+        HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
+        HashMap<String, String> requestHeaders = new HashMap<String, String>();
+        List<String> errorMessages = new ArrayList<String>();
+        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, null, successResponseHeaders, errorMessages);
         assertEquals(false, result);
     }
 
@@ -690,7 +799,7 @@ public class MessageProcessorTest {
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
         HashMap<String, String> requestHeaders = new HashMap<String, String>();
         List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, null, successResponseHeaders, errorMessages);
+        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, null, CERT_FINGERPRINT, successResponseHeaders, errorMessages);
         assertEquals(false, result);
     }
 

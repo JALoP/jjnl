@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
-import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.JNLMessageProcessingException;
@@ -65,8 +64,9 @@ public class MessageProcessor {
         }
     }
 
-    public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
+    public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, String certFingerprint, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
+        System.out.println(certFingerprint);
         if (errorMessages == null)
         {
             throw new IllegalArgumentException("errorMessages is required");
@@ -85,6 +85,11 @@ public class MessageProcessor {
         if (supportedRecType == null)
         {
             throw new IllegalArgumentException("supportedRecType is required");
+        }
+
+        if (certFingerprint == null)
+        {
+            throw new IllegalArgumentException("certFingerprint is required");
         }
 
         logger.info(HttpUtils.MSG_INIT + " message received.");
@@ -173,17 +178,23 @@ public class MessageProcessor {
 
         //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
         JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
-        Session currSession = jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
+        SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
 
         if (currSession != null)
         {
-            logger.error("Session already exists for publisher: " + publisherIdStr);
-            errorMessages.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
+            //Checks if cert fingerprints match, if not then initialize-nack, otheriwse remove old session and create new
+            if (!certFingerprint.equals(currSession.getCertFingerprint()))
+            {
+                logger.error("Session already exists for publisher: " + publisherIdStr);
+                errorMessages.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
 
-            //TODO - remove later, this is just for testing to allow for test publisher to send records after session already exists error message
-            successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, ((SubscriberHttpSessionImpl)currSession).getSessionId());
-
-            return false;
+                return false;
+            }
+            else
+            {
+                //remove old session
+                jnlSubscriber.removeSession(currSession.getSessionId());
+            }
         }
 
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
@@ -192,7 +203,7 @@ public class MessageProcessor {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
                 supportedRecType, HttpUtils.getMode(modeStr), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
-                1, performDigest/*contextImpl.getDefaultPendingDigestMax()*/);
+                1, performDigest, certFingerprint/*contextImpl.getDefaultPendingDigestMax()*/);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 
@@ -449,8 +460,20 @@ public class MessageProcessor {
             String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
             if (messageType.equals(HttpUtils.MSG_INIT))
             {
+                //Gets the cert from the header and ensure successful cert fingerprint extraction otherwise initialize-nack
+                String cert = request.getHeader("X-Client-Certificate");
+                String certFingerprint = HttpUtils.getCertFingerprintFromHeader(cert);
+
+                if (certFingerprint == null)
+                {
+                    //Send initialize-nack on error
+                    errorMessages.add(HttpUtils.HDRS_INVALID_USER_CERT);
+                    MessageProcessor.setInitializeNackResponse(errorMessages, response);
+                    return;
+                }
+
                 HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-                if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, errorMessages))
+                if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, certFingerprint, successResponseHeaders, errorMessages))
                 {
                     //TODO - sending session id in initialize-nack for testing if session exist error occurs, so test publisher can still send until this logic is finalized.
                     //Add the session ID before we send the initialize-ack message

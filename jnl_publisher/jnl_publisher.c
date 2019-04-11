@@ -32,6 +32,9 @@
 #include <vector>
 #include <unordered_map>
 #include <boost/algorithm/string.hpp>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
 
 std::unordered_map<std::string, std::string> headerMap;
 
@@ -128,6 +131,16 @@ struct curl_slist * getInitializeHeaders(std::string dataClass)
     headers = curl_slist_append(headers, dataClassMsg.c_str());
     headers = curl_slist_append(headers, "JAL-Version: 2.0.0.0");
     headers = curl_slist_append(headers, "JAL-Accept-Configure-Digest-Challenge: on");
+
+    //Adds the cert to the http header, the cert contents in the header must be all in one line with no new lines
+    //to be compliant with Jetty
+    std::ifstream infile { "./cert.pem" };
+    std::stringstream buffer;
+    buffer << infile.rdbuf();
+    std::string cert = buffer.str();
+    cert.erase(std::remove(cert.begin(), cert.end(), '\n'), cert.end());
+    std::string certHeader = "X-Client-Certificate: " + cert;
+    headers = curl_slist_append(headers, certHeader.c_str());
 
     return headers;
 }
@@ -311,14 +324,6 @@ bool processInitializeResponse(std::string dataClass)
         else
         {
             fprintf(stdout, "initialize-nack received. Jalop connection rejected.\n");
-
-            //Special case for now just for testing, if initialize-nack due to session already exists, then just send
-            //This way the subscriber doesn't have to shutdown just to send again for testing.
-            if (headerMap["JAL-Error-Message"] == "JAL-Session-Already-Exists")
-            {
-                fprintf(stdout, "TESTING ONLY! Session already exists so sending jal record\n");
-                return sendJalRecords(dataClass);
-            }
             return false;
         }
     }

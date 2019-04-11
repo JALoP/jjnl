@@ -1,16 +1,30 @@
 package com.tresys.jalop.jnl.impl.http;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.Mode;
@@ -62,6 +76,7 @@ public class HttpUtils {
     public static final String HDRS_INVALID_JOURNAL_LEN= "JAL-Invalid-Journal-Length";
     public static final String HDRS_INVALID_LOG_LEN= "JAL-Invalid-Log-Length";
     public static final String HDRS_INVALID_JOURNAL_OFFSET= "JAL-Invalid-Journal-Offset";
+    public static final String HDRS_INVALID_USER_CERT= "JAL-Invalid-User-Cert";
     public static final String HDRS_JOURNAL_LEN = "JAL-Journal-Length";
     public static final String HDRS_JOURNAL_OFFSET = "JAL-Journal-Offset";
     public static final String HDRS_LOG_LEN = "JAL-Log-Length";
@@ -88,11 +103,14 @@ public class HttpUtils {
     public static final String HDRS_XML_COMPRESSION = "JAL-XML-Compression";
     public static final String HDRS_UNSUPPORTED_DATACLASS = "JAL-Unsupported-Data-Class";
     public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
+    public static final String HDRS_CLIENT_CERTIFICATE = "X-Client-Certificate";
 
     //Additional constants
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
     public static final String[] SUPPORTED_VERSIONS = new String[] {"2.0.0.0"};
 
+    public static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
+    public static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
 
     public static final String DEFAULT_CONTENT_TYPE =
             "application/octet-stream";
@@ -151,6 +169,109 @@ public class HttpUtils {
 
     public static void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
         HttpUtils.allowedConfigureDigests = allowedConfigureDigests;
+    }
+
+    private static X509Certificate getCertFromFile(String filePath)
+    {
+        X509Certificate cer = null;
+        try
+        {
+            CertificateFactory fact = CertificateFactory.getInstance("X.509");
+
+            FileInputStream is = new FileInputStream (filePath);
+            cer = (X509Certificate) fact.generateCertificate(is);
+
+            //Deletes files after loading
+            File tmpFile = new File(filePath);
+           // tmpFile.delete();
+        }
+        catch (CertificateException ce)
+        {
+            logger.error("There was an error getting the user certificate from the file path: " + filePath);
+        }
+        catch (FileNotFoundException fnfe)
+        {
+            logger.error("The user certificate was not found at the following file path: " + filePath);
+        }
+
+        return cer;
+    }
+
+    private static String getCertFingerprint(X509Certificate cert)
+    {
+        try
+        {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] der = cert.getEncoded();
+            md.update(der);
+            byte[] digest = md.digest();
+            String digestHex = DatatypeConverter.printHexBinary(digest);
+            return digestHex.toLowerCase();
+        }
+        catch (NoSuchAlgorithmException nsae)
+        {
+            logger.error("There was an error related to receiving the certificate fingerprint.");
+            logger.error(nsae);
+        }
+        catch (CertificateEncodingException cee)
+        {
+            logger.error("There was an error related to the encoding of the user certificate.");
+            logger.error(cee);
+        }
+
+        return "";
+    }
+
+    public static String getCertFingerprintFromHeader(String cert)
+    {
+        String certFingerPrint = null;
+        if (cert == null)
+        {
+            return null;
+        }
+
+        //Fixes certificate formatting
+        cert=cert.replace("\n", "");
+        cert=cert.replace(BEGIN_CERTIFICATE,"-----BEGIN_CERTIFICATE-----").replace(END_CERTIFICATE,"-----END_CERTIFICATE-----");
+        cert=cert.replace(" ", "\n");
+        cert=cert.replace("-----BEGIN_CERTIFICATE-----",BEGIN_CERTIFICATE).replace("-----END_CERTIFICATE-----",END_CERTIFICATE);
+        cert=cert.trim();
+
+        //Extracts the base cert
+        String certBody = StringUtils.substringBetween(cert, BEGIN_CERTIFICATE, END_CERTIFICATE);
+
+        //Formats cert correctly for java library to parse
+        String formatedCert = BEGIN_CERTIFICATE + "\n" + certBody + END_CERTIFICATE + "\n";
+
+        try
+        {
+            //Writes cert from header to tmp dir to load cert later to get fingerprint
+            String filePath = "";
+            UUID uuid = UUID.randomUUID();
+            String randomUUIDString = uuid.toString();
+            filePath = "/tmp/" + File.separator + randomUUIDString + ".crt";
+            PrintWriter out = new PrintWriter(filePath);
+            out.write(formatedCert);
+            out.close();
+
+            X509Certificate x509cert = getCertFromFile(filePath);
+
+            if (x509cert != null)
+            {
+                certFingerPrint = getCertFingerprint(x509cert);
+            }
+            else
+            {
+                logger.error("The user certficate from the file path (" + filePath + ") failed to be parsed from the https header.");
+                return null;
+            }
+        }
+        catch (IOException ioe)
+        {
+            logger.error(ioe);
+        }
+
+        return certFingerPrint;
     }
 
     public static List<String> parseHeaderList(String currHeader)

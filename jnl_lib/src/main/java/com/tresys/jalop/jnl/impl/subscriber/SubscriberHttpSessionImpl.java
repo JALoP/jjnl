@@ -40,6 +40,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     private String publisherId;
     private String sessionId;
     private boolean performDigest;
+    private String certFingerprint;
 
     /**
      * Create a {@link SubscriberHttpSessionImpl} object.
@@ -63,7 +64,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     public SubscriberHttpSessionImpl(final String publisherId, final String sessionId,
             final RecordType recordType, final Mode mode, final Subscriber subscriber,
             final String digestMethod, final String xmlEncoding,
-            final int pendingDigestTimeoutSeconds, final int pendingDigestMax,final boolean performDigest) {
+            final int pendingDigestTimeoutSeconds, final int pendingDigestMax,final boolean performDigest, final String certFingerprint) {
 
         if (recordType == null || recordType.equals(RecordType.Unset)) {
             throw new IllegalArgumentException(
@@ -104,6 +105,11 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
                     + "must be a positive number.");
         }
 
+        if (certFingerprint == null || certFingerprint.trim().isEmpty())
+        {
+            throw new IllegalArgumentException("'certFingerprint' is required.");
+        }
+
         try {
             this.subscriberHandler = new SubscriberHttpANSHandler(
                     MessageDigest
@@ -126,6 +132,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         this.pendingDigestTimeoutSeconds = pendingDigestTimeoutSeconds;
         this.digestMap = new HashMap<String, String>();
         this.journalResumeOffset = 0;
+        this.certFingerprint = certFingerprint;
     }
 
     protected String getDigestType(final String algorithm) {
@@ -144,6 +151,11 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     public SubscriberHttpANSHandler getsubscriberHandler()
     {
         return this.subscriberHandler;
+    }
+
+    public String getCertFingerprint()
+    {
+        return this.certFingerprint;
     }
 
     /**
