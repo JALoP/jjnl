@@ -105,11 +105,10 @@ public class MessageProcessorTest {
         return server;
     }
 
-    public static String getCertForHeader(String filename)
+    public static String getCertForHeader(String filename, String testDir)
     {
         String content = null;
-        String fingerprint = null;
-        String filePath = resourcesDirectory.getAbsolutePath() + "/" + filename;
+        String filePath = testDir + "/" + filename;
         try
         {
             content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
@@ -127,11 +126,11 @@ public class MessageProcessorTest {
         return content;
     }
 
-    public static String getCertFingerprintForHeader(String filename)
+    public static String getCertFingerprintForHeader(String filename, String testDir)
     {
         String content = null;
         String fingerprint = null;
-        String filePath = resourcesDirectory.getAbsolutePath() + "/" + filename;
+        String filePath = testDir + "/" + filename;
         try
         {
             content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
@@ -218,7 +217,7 @@ public class MessageProcessorTest {
      * @throws ClientProtocolException
      * @throws IOException
      */
-    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId) throws ClientProtocolException, IOException
+    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId, String testDir) throws ClientProtocolException, IOException
     {
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
@@ -229,6 +228,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, testDir));
 
         if (performDigest == true)
         {
@@ -262,7 +262,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -288,7 +288,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -314,7 +314,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.LOG);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
 
         HttpClient client = HttpClientBuilder.create().build();
@@ -340,7 +340,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -366,7 +366,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -391,7 +391,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -417,7 +417,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -442,7 +442,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -468,7 +468,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "");
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -494,7 +494,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, String.join(",", HttpUtils.MSG_CONFIGURE_DIGEST_ON));
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -543,7 +543,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -553,7 +553,7 @@ public class MessageProcessorTest {
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
 
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(DIFFERENT_CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(DIFFERENT_CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
         final HttpResponse nextResponse = client.execute(httpPost);
         final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int nextResponseStatus = nextResponse.getStatusLine().getStatusCode();
@@ -576,7 +576,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME));
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -1200,7 +1200,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true, publisherId);
+            String sessionId = sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1236,7 +1236,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true, publisherId);
+            String sessionId = sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1282,7 +1282,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, false, publisherId);
+            String sessionId = sendValidInitialize(recType, false, publisherId, resourcesDirectory.getAbsolutePath());
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1328,7 +1328,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true, publisherId);
+            String sessionId = sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1372,7 +1372,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true, publisherId);
+            String sessionId = sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1416,7 +1416,7 @@ public class MessageProcessorTest {
                 continue;
             }
 
-            String sessionId = sendValidInitialize(recType, true, publisherId);
+            String sessionId = sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
 
             HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
 

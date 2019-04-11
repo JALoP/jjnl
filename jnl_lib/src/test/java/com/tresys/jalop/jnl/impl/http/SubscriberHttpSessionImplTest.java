@@ -182,6 +182,28 @@ public class SubscriberHttpSessionImplTest {
     }
 
     @Test
+    public void ConstructorEmptyCertFingerprint()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("'certFingerprint' is required.");
+
+        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), "SHA256_STR",
+                XML_COMPRESSION_NONE, 1, 1, true, "");
+    }
+
+    @Test
+    public void ConstructorNullCertFingerprint()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("'certFingerprint' is required.");
+
+        final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), "SHA256_STR",
+                XML_COMPRESSION_NONE, 1, 1, true, null);
+    }
+
+    @Test
     public void ConstructorEmptyXmlCompressionTest()
     {
         exception.expect(IllegalArgumentException.class);
