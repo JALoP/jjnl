@@ -51,7 +51,7 @@ public class MessageProcessor {
         logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
         if (!RecordType.Journal.equals(supportedRecType))
         {
-        	addErrorMessage(errorMessages, "Expected an " + RecordType.Journal + " record type but received " + supportedRecType);
+            addErrorMessage(errorMessages, "Expected an " + RecordType.Journal + " record type but received " + supportedRecType);
         }
         if (!CollectionUtils.isEmpty(errorMessages))
         {
