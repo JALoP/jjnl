@@ -39,13 +39,13 @@ public class MessageProcessor {
      */
     private static void addErrorMessage(Collection<String> errorMessages, String errorMessage)
     {
-    	if (errorMessages == null)
-    	{
-    		errorMessages = new ArrayList<>();
-    	}
-    	errorMessages.add(errorMessage);
+        if (errorMessages == null)
+        {
+            errorMessages = new ArrayList<>();
+        }
+        errorMessages.add(errorMessage);
     }
-    
+
     private static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response, final Collection<String> errorMessages) throws JNLMessageProcessingException
     {
         logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
@@ -55,7 +55,7 @@ public class MessageProcessor {
         }
         if (!CollectionUtils.isEmpty(errorMessages))
         {
-        	throw new JNLMessageProcessingException("Failed to process Journal Missing Message.");
+            throw new JNLMessageProcessingException("Failed to process Journal Missing Message.");
         }
         else
         {
@@ -274,9 +274,9 @@ public class MessageProcessor {
         {
             throw new IllegalArgumentException("supportedRecType is required");
         }
-        
+
         String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
-        
+
         // Get the segment lengths from the header
         Long sysMetadataSize = new Long(0);
         try
@@ -434,7 +434,7 @@ public class MessageProcessor {
 
     public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
     {
-    	//Used to capture all error messages that occur during the processing of this message
+        //Used to capture all error messages that occur during the processing of this message
         List<String> errorMessages = new ArrayList<>();
         try
         {
@@ -468,7 +468,7 @@ public class MessageProcessor {
                     MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
                 }
             }
-            else //if not an init message 
+            else //if not an init message
             {
                 //Gets the session Id from header
                 String sessionIdStr = currHeaders.get(HttpUtils.HDRS_SESSION_ID);
@@ -478,7 +478,7 @@ public class MessageProcessor {
                     logger.error(errMsg);
                     throw new JNLMessageProcessingException("Session ID is either invalid or not found.");
                 }
-                
+
                 if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL)
                     || messageType.equals(HttpUtils.MSG_AUDIT)) // process
                                                                 // binary if jal

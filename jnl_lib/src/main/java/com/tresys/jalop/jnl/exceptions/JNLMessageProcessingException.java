@@ -26,7 +26,7 @@ package com.tresys.jalop.jnl.exceptions;
 import java.io.Serializable;
 
 /**
- * This class represents that something went wrong when processing a message. This class can be extended to encompass specific types of 
+ * This class represents that something went wrong when processing a message. This class can be extended to encompass specific types of
  * message processing errors.
  */
 public class JNLMessageProcessingException extends JNLException {
