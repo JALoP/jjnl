@@ -3,6 +3,7 @@ package com.tresys.jalop.jnl.impl.http;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.Mode;
@@ -19,7 +21,7 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
-import com.tresys.jalop.jnl.exceptions.JNLRecordTypeMismatchException;
+import com.tresys.jalop.jnl.exceptions.JNLMessageProcessingException;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
@@ -30,15 +32,37 @@ public class MessageProcessor {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(MessageProcessor.class);
 
-    private static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response) throws JNLRecordTypeMismatchException
+    /**
+     * Null-safe way to add strings to an arraylist of strings. This is specially intended for the use of adding errorMessages.
+     * @param errorMessages : The arrayList storing the error messages
+     * @param errorMessage : The new error message to add to the list.
+     */
+    private static void addErrorMessage(Collection<String> errorMessages, String errorMessage)
+    {
+    	if (errorMessages == null)
+    	{
+    		errorMessages = new ArrayList<>();
+    	}
+    	errorMessages.add(errorMessage);
+    }
+    
+    private static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response, final Collection<String> errorMessages) throws JNLMessageProcessingException
     {
         logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
         if (!RecordType.Journal.equals(supportedRecType))
         {
-            throw new JNLRecordTypeMismatchException("Expected an " + RecordType.Journal + " record type but received " +supportedRecType);
+        	addErrorMessage(errorMessages, "Expected an " + RecordType.Journal + " record type but received " + supportedRecType);
         }
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
+        if (!CollectionUtils.isEmpty(errorMessages))
+        {
+        	throw new JNLMessageProcessingException("Failed to process Journal Missing Message.");
+        }
+        else
+        {
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
+            logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message processed");
+        }
     }
 
     public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
@@ -250,15 +274,9 @@ public class MessageProcessor {
         {
             throw new IllegalArgumentException("supportedRecType is required");
         }
-
-        //Gets the session Id from header
+        
         String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
-        if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
-        {
-            logger.error("JAL Record message failed due to invalid Session ID value of: " + sessionIdStr);
-            return false;
-        }
-
+        
         // Get the segment lengths from the header
         Long sysMetadataSize = new Long(0);
         try
@@ -416,6 +434,8 @@ public class MessageProcessor {
 
     public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
     {
+    	//Used to capture all error messages that occur during the processing of this message
+        List<String> errorMessages = new ArrayList<>();
         try
         {
             // Gets all the headers from the request
@@ -429,7 +449,6 @@ public class MessageProcessor {
             String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
             if (messageType.equals(HttpUtils.MSG_INIT))
             {
-                List<String> errorMessages = new ArrayList<String>();
                 HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
                 if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, errorMessages))
                 {
@@ -449,40 +468,51 @@ public class MessageProcessor {
                     MessageProcessor.setInitializeAckResponse(successResponseHeaders, response);
                 }
             }
-            else if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL)
+            else //if not an init message 
+            {
+                //Gets the session Id from header
+                String sessionIdStr = currHeaders.get(HttpUtils.HDRS_SESSION_ID);
+                if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
+                {
+                    String errMsg = "JAL Record message failed due to invalid Session ID value of: " + sessionIdStr;
+                    logger.error(errMsg);
+                    throw new JNLMessageProcessingException("Session ID is either invalid or not found.");
+                }
+                
+                if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL)
                     || messageType.equals(HttpUtils.MSG_AUDIT)) // process
                                                                 // binary if jal
                                                                 // record data
-            {
-                List<String> errorMessages = new ArrayList<String>();
-                DigestResult digestResult = new DigestResult();
-                if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
-                        supportedRecType, digestResult, errorMessages))
                 {
-                    // Set error message in the header
-                    MessageProcessor.setErrorResponse(errorMessages, response);
+                    DigestResult digestResult = new DigestResult();
+                    if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
+                            supportedRecType, digestResult, errorMessages))
+                    {
+                        // Set error message in the header
+                        MessageProcessor.setErrorResponse(errorMessages, response);
+                    }
+                    else
+                    {
+                        // Sets digest in the header if successful
+                        response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
+                    }
+                }
+                else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
+                {
+                    MessageProcessor.processJournalMissingMessage(supportedRecType, response, errorMessages);
                 }
                 else
                 {
-                    // Sets digest in the header if successful
-                    response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
+                    logger.error("Invalid message received: " + messageType + " , returning server error");
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    return;
                 }
             }
-            else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
-            {
-                MessageProcessor.processJournalMissingMessage(supportedRecType, response);
-            }
-            else
-            {
-                logger.error("Invalid message received: " + messageType + " , returning server error");
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                return;
-            }
         }
-        catch (JNLRecordTypeMismatchException e)
+        catch (JNLMessageProcessingException e)
         {
             logger.error("Failed to process message. Cause: " + e);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            MessageProcessor.setErrorResponse(errorMessages, response);
         }
         catch (IOException ioe)
         {

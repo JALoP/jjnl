@@ -1,6 +1,7 @@
 package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 
@@ -1413,7 +1414,8 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertNull(response.getFirstHeader(HttpUtils.HDRS_MESSAGE));
-        assertEquals(400, responseStatus);
+        assertNotNull(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertEquals(200, responseStatus);
     }
 
     @Test
@@ -1438,6 +1440,6 @@ public class MessageProcessorTest {
         final HttpResponse response = client.execute(httpPost);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertNull(response.getFirstHeader(HttpUtils.HDRS_MESSAGE));
-        assertEquals(400, responseStatus);
+        assertEquals(200, responseStatus);
     }
 }
