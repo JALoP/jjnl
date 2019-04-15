@@ -1485,7 +1485,7 @@ public class MessageProcessorTest {
     {
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
-        String sessionID = sendValidInitialize(RecordType.Journal, false, publisherId);
+        String sessionID = sendValidInitialize(RecordType.Journal, false, publisherId, resourcesDirectory.getAbsolutePath());
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
@@ -1511,7 +1511,7 @@ public class MessageProcessorTest {
     {
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
-        String sessionID = sendValidInitialize(RecordType.Audit, false, publisherId);
+        String sessionID = sendValidInitialize(RecordType.Audit, false, publisherId, resourcesDirectory.getAbsolutePath());
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
@@ -1537,7 +1537,7 @@ public class MessageProcessorTest {
     {
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
-        String sessionID = sendValidInitialize(RecordType.Log, false, publisherId);
+        String sessionID = sendValidInitialize(RecordType.Log, false, publisherId, resourcesDirectory.getAbsolutePath());
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + HttpUtils.LOG_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
