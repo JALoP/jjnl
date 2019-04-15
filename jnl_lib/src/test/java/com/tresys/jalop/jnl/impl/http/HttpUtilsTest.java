@@ -23,21 +23,6 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
  */
 public class HttpUtilsTest {
 
-    //This method disables the debug logging for the http client in the console, only comment out this method if you wish to see this output.
-    //Unless there is some need to view this data, this should be called all the time before any tests using httpclient to prevent cluttered console output.
-    public static void disableHttpClientLogging()
-    {
-        //Following logger config settings get rid of the httpclient debug logging in the console.
-        //Only comment out these lines if you wish to see the http client debug statements
-        java.util.logging.Logger.getLogger("org.apache.http.wire").setLevel(java.util.logging.Level.FINEST);
-        java.util.logging.Logger.getLogger("org.apache.http.headers").setLevel(java.util.logging.Level.FINEST);
-        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
-        System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
-        System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire", "ERROR");
-        System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http", "ERROR");
-        System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.headers", "ERROR");
-    }
-
     @Test
     public void testGetAllowedConfigureDigests()
     {

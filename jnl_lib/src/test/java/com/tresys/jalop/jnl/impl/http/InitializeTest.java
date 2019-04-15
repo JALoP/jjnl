@@ -4,18 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -33,7 +29,7 @@ import com.tresys.jalop.jnl.RecordType;
 /**
  * Tests for common utility class.
  */
-public class MessageProcessorTest {
+public class InitializeTest {
 
     private static Server server;
     private static String jjnlDirPath = "";
@@ -75,7 +71,6 @@ public class MessageProcessorTest {
         TestResources.cleanOutputDirectory(outputDirStr);
     }
 
-
     @Test
     public void testInitializeJournalReturnsInitializeAck() throws ClientProtocolException, IOException {
 
@@ -100,6 +95,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -126,6 +127,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -145,7 +152,6 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
         httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
 
-
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
@@ -153,6 +159,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -178,6 +190,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -204,6 +222,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -229,6 +253,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -255,6 +285,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -280,6 +316,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -306,6 +348,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -332,6 +380,12 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
     }
 
     @Test
@@ -356,6 +410,44 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_PUBLISHER_ID, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
+    }
+
+    @Test
+    public void testMissingCertReturnsInitializeNack() throws ClientProtocolException, IOException {
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+        final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_INVALID_USER_CERT, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
     }
 
     @Test
@@ -383,12 +475,24 @@ public class MessageProcessorTest {
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
 
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
+
         httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(TestResources.DIFFERENT_CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
         final HttpResponse nextResponse = client.execute(httpPost);
         final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int nextResponseStatus = nextResponse.getStatusLine().getStatusCode();
         assertEquals(200, nextResponseStatus);
         assertEquals("initialize-nack", nextResponseMessage);
+
+        final Header errorHeader2 = nextResponse.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader2);
+        assertEquals(HttpUtils.HDRS_SESSION_ALREADY_EXISTS, errorHeader2.getValue());
+
+        final Header sessionHeader2 = nextResponse.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader2);
     }
 
     @Test
@@ -417,6 +521,9 @@ public class MessageProcessorTest {
         assertEquals(200, responseStatus);
         assertEquals("initialize-ack", responseMessage);
 
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
+
         final HttpResponse nextResponse = client.execute(httpPost);
         final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final String secondSessionId = nextResponse.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
@@ -424,6 +531,9 @@ public class MessageProcessorTest {
         assertEquals(200, nextResponseStatus);
         assertEquals("initialize-ack", nextResponseMessage);
         assertFalse(firstSessionId.equals(secondSessionId));
+
+        final Header errorHeader2 = nextResponse.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader2);
     }
 
     @Test
@@ -441,6 +551,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -449,6 +560,13 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_MODE, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
     }
 
     @Test
@@ -466,6 +584,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -474,6 +593,13 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DIGEST, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
     }
 
     @Test
@@ -491,6 +617,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -499,6 +626,13 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_XML_COMPRESSION, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
     }
 
     @Test
@@ -516,6 +650,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -524,6 +659,13 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
     }
 
     @Test
@@ -541,6 +683,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION,"invalid");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -549,6 +692,13 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_VERSION, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
     }
 
     @Test
@@ -566,6 +716,7 @@ public class MessageProcessorTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "invalid");
+        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -574,135 +725,13 @@ public class MessageProcessorTest {
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals("initialize-nack", responseMessage);
-    }
 
-    @Test
-    public void testProcessInitializeMessageNullRequestHeaders() throws IOException
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("requestHeaders is required");
-        HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-        List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(null, RecordType.Audit, TestResources.CERT_FINGERPRINT,  successResponseHeaders, errorMessages);
-        assertEquals(false, result);
-    }
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE, errorHeader.getValue());
 
-    @Test
-    public void testProcessInitializeMessageNullSuccessResponseHeaders() throws IOException
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("successResponseHeaders is required");
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
-        List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, TestResources.CERT_FINGERPRINT,  null, errorMessages);
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessInitializeMessageNullErrorMessages() throws IOException
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("errorMessages is required");
-        HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, TestResources.CERT_FINGERPRINT, successResponseHeaders, null);
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessInitializeMessageNullCertFingerprint() throws IOException
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("certFingerprint is required");
-        HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
-        List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, null, successResponseHeaders, errorMessages);
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessInitializeMessageNullSupportedRecType() throws IOException
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("supportedRecType is required");
-        HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
-        List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, null, TestResources.CERT_FINGERPRINT, successResponseHeaders, errorMessages);
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessJALRecordMessageNullDigestResultParam()
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("digestResult is required");
-        byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, new ArrayList<String>());
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessJALRecordMessageNullErrorMessagesParam()
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("errorMessages is required");
-        byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, new DigestResult(), null);
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessJALRecordMessageNullRequestHeadersParam()
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("requestHeaders is required");
-        byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(null, new ByteArrayInputStream(test), RecordType.Audit, new DigestResult(), new ArrayList<String>());
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessJALRecordMessageNullRequestInputStreamParam()
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("requestInputStream is required");
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), null, RecordType.Audit, new DigestResult(), new ArrayList<String>());
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessJALRecordMessageNullSupportedRecordTypeParam()
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("supportedRecType is required");
-        byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), new ByteArrayInputStream(test), null, new DigestResult(), new ArrayList<String>());
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testCreateJournalResumeMessageEmptyNounce()
-    {
-        HashMap<String, String> successHeaders = new HashMap<String, String>();
-        List<String> errorHeaders = new ArrayList<String>();
-        boolean result = MessageProcessor.createJournalResumeMessage(null, 0, successHeaders, errorHeaders);
-        assertEquals(null, successHeaders.get(HttpUtils.HDRS_NONCE));
-        assertEquals("0", successHeaders.get(HttpUtils.HDRS_JOURNAL_OFFSET));
-        assertEquals(0, errorHeaders.size());
-        assertTrue(result);
-    }
-
-    @Test
-    public void testCreateJournalResumeMessageInvalidJalOffset()
-    {
-        HashMap<String, String> headers = new HashMap<String, String>();
-        List<String> errorHeaders = new ArrayList<String>();
-        boolean result = MessageProcessor.createJournalResumeMessage("test", -1, headers, errorHeaders);
-        assertEquals(false, result);
-        assertEquals(0, headers.size());
-        assertEquals(true, errorHeaders.contains(HttpUtils.HDRS_INVALID_JOURNAL_OFFSET));
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
     }
 
     @Test

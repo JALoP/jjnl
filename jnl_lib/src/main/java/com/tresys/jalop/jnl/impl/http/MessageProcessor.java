@@ -182,7 +182,7 @@ public class MessageProcessor {
 
         if (currSession != null)
         {
-            //Checks if cert fingerprints match, if not then initialize-nack, otheriwse remove old session and create new
+            //Checks if cert fingerprints match, if not then initialize-nack, otherwise remove old session and create new
             if (!certFingerprint.equals(currSession.getCertFingerprint()))
             {
                 logger.error("Session already exists for publisher: " + publisherIdStr);
@@ -475,13 +475,6 @@ public class MessageProcessor {
                 HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
                 if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, certFingerprint, successResponseHeaders, errorMessages))
                 {
-                    //TODO - sending session id in initialize-nack for testing if session exist error occurs, so test publisher can still send until this logic is finalized.
-                    //Add the session ID before we send the initialize-ack message
-                    if (errorMessages.contains(HttpUtils.HDRS_SESSION_ALREADY_EXISTS))
-                    {
-                        response.setHeader(HttpUtils.HDRS_SESSION_ID, successResponseHeaders.get(HttpUtils.HDRS_SESSION_ID));
-                    }
-
                     //Send initialize-nack on error
                     MessageProcessor.setInitializeNackResponse(errorMessages, response);
                 }
