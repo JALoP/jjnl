@@ -52,6 +52,11 @@
 			<artifactId>jetty-servlet</artifactId>
 			<version>9.4.14.v20181114</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.0</version>
+		</dependency>
 
 		<!-- Need to comment out for eclipse dev -->
 		<!-- TODO remove these when we remove BEEP -->
