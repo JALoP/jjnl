@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.util.Arrays;
 
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -19,6 +20,11 @@ public class SubscriberHttpSessionImplTest {
     public static final String SHA256_STR = "http://www.w3.org/2001/04/xmlenc#sha256";
     public static final String XML_COMPRESSION_NONE = "none";
     private static String CERT_FINGERPRINT = "0a7be6d47ac528d8ce0e1c59b4d052be88f5ddc4601caec1f1dcda8a09766723";
+
+    @BeforeClass
+    public static void init() throws Exception {
+        TestResources.configureLogging();
+    }
 
     public Subscriber getSubscriber()
     {

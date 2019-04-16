@@ -196,19 +196,19 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             if (recordTypeSet.contains(RecordType.Log))
             {
-                System.out.println("Log endpoint is active.");
+                logger.info("Log endpoint is active.");
                 handler.addServlet(JNLLogServlet.class, HttpUtils.LOG_ENDPOINT);
             }
 
             if (recordTypeSet.contains(RecordType.Audit))
             {
-                System.out.println("Audit endpoint is active.");
+                logger.info("Audit endpoint is active.");
                 handler.addServlet(JNLAuditServlet.class, HttpUtils.AUDIT_ENDPOINT);
             }
 
             if (recordTypeSet.contains(RecordType.Journal))
             {
-                System.out.println("Journal endpoint is active.");
+                logger.info("Journal endpoint is active.");
                 handler.addServlet(JNLJournalServlet.class, HttpUtils.JOURNAL_ENDPOINT);
             }
 
@@ -220,8 +220,8 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             String enabledProtocols[] = engine.getEnabledProtocols();
             String enabledCiphers[] = engine.getEnabledCipherSuites();
 
-            System.out.println("JALoP Jetty Server only supports the following protocols: " + Arrays.toString(enabledProtocols));
-            System.out.println("JALoP Jetty Server only supports the following ciphers: " + Arrays.toString(enabledCiphers));
+            logger.info("JALoP Jetty Server only supports the following protocols: " + Arrays.toString(enabledProtocols));
+            logger.info("JALoP Jetty Server only supports the following ciphers: " + Arrays.toString(enabledCiphers));
 
             // The use of server.join() the will make the current thread join and
             // wait until the server is done executing.
@@ -229,7 +229,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             // http://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html#join()
             server.join();
         } else {
-            System.out.println("Invalid configuration, only subscriber mode is supported");
+            logger.error("Invalid configuration, only subscriber mode is supported");
         }
     }
 

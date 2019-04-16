@@ -16,6 +16,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -34,9 +36,8 @@ public class TestResources {
 
     private static String certHeaderStr = null;
 
-    //This method disables the debug logging for the http client in the console, only comment out this method if you wish to see this output.
-    //Unless there is some need to view this data, this should be called all the time before any tests using httpclient to prevent cluttered console output.
-    public static void disableHttpClientLogging()
+    //Disables all http client logging
+    private static void disableHttpClientLogging()
     {
         //Following logger config settings get rid of the httpclient debug logging in the console.
         //Only comment out these lines if you wish to see the http client debug statements
@@ -48,6 +49,17 @@ public class TestResources {
         System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http", "ERROR");
         System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.headers", "ERROR");
     }
+
+    public static void configureLogging()
+    {
+        //This method disables the debug logging for the http client in the console, only comment out this method if you wish to see this output.
+        //Unless there is some need to view this data, this should be called all the time before any tests using httpclient to prevent cluttered console output.
+        disableHttpClientLogging();
+
+        //Set the log level (OFF by default for no app log messages for easier unit test output viewing)
+        LogManager.getRootLogger().setLevel(Level.OFF);
+    }
+
 
     public static Server getWebServer()
     {

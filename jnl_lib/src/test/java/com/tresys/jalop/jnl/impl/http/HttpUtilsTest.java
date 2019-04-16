@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.tresys.jalop.jnl.Mode;
@@ -22,6 +23,11 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
  * Tests for common utility class.
  */
 public class HttpUtilsTest {
+
+    @BeforeClass
+    public static void init() throws Exception {
+        TestResources.configureLogging();
+    }
 
     @Test
     public void testGetAllowedConfigureDigests()

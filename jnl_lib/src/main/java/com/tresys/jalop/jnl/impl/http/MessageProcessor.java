@@ -66,7 +66,6 @@ public class MessageProcessor {
 
     public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, String certFingerprint, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
-        System.out.println(certFingerprint);
         if (errorMessages == null)
         {
             throw new IllegalArgumentException("errorMessages is required");
@@ -185,10 +184,12 @@ public class MessageProcessor {
             //Checks if cert fingerprints match, if not then initialize-nack, otherwise remove old session and create new
             if (!certFingerprint.equals(currSession.getCertFingerprint()))
             {
-                logger.error("Session already exists for publisher: " + publisherIdStr);
-                errorMessages.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
 
-                return false;
+                //TODO determine if initialize-nack or just return a new session, right now will return a new session
+               // logger.error("Session already exists for publisher: " + publisherIdStr);
+               // errorMessages.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
+
+               // return false;
             }
             else
             {
