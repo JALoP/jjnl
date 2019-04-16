@@ -41,6 +41,7 @@ public class HttpUtils {
 
     public static AtomicInteger requestCount = new AtomicInteger();
     private static final int BUFFER_SIZE = 4096;
+    public static final int MAX_HEADER_SIZE = 32768;
 
     public static final String AUDIT = "audit";
     public static final String BINARY = "binary";

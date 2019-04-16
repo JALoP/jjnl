@@ -16,7 +16,11 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletHandler;
 
 import com.tresys.jalop.jnl.RecordType;
@@ -50,6 +54,13 @@ public class TestResources {
         Server server = new Server(HTTP_PORT);
 
         ServletHandler handler = new ServletHandler();
+        HttpConfiguration http_config = new HttpConfiguration();
+        http_config.setRequestHeaderSize(HttpUtils.MAX_HEADER_SIZE);
+
+        ServerConnector http = new ServerConnector(server,
+                new HttpConnectionFactory(http_config));
+        http.setPort(HTTP_PORT);
+        server.setConnectors(new Connector[] { http, });
         server.setHandler(handler);
 
         handler.addServletWithMapping(JNLJournalServlet.class, HttpUtils.JOURNAL_ENDPOINT);

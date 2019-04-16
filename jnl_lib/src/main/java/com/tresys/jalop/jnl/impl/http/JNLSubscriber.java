@@ -106,28 +106,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
                 throw new FileNotFoundException(keystoreFile.getAbsolutePath());
             }
 
-            // HTTP Configuration
-            // HttpConfiguration is a collection of configuration information
-            // appropriate for http and https. The default scheme for http is
-            // <code>http</code> of course, as the default for secured http is
-            // <code>https</code> but we show setting the scheme to show it can be
-            // done. The port for secured communication is also set here.
-            HttpConfiguration http_config = new HttpConfiguration();
-            http_config.setSecureScheme("https");
-            http_config.setSecurePort(config.getPort());
-            //   http_config.setOutputBufferSize(32768);
-
-            // HTTP connector
-            // The first server connector we create is the one for http, passing in
-            // the http configuration we configured above so it can get things like
-            // the output buffer size, etc. We also set the port (8080) and
-            // configure an idle timeout.
-            ServerConnector http = new ServerConnector(server,
-                    new HttpConnectionFactory(http_config));
-            http.setPort(8080);
-            http.setIdleTimeout(30000);
-            http.setHost(config.getAddress());
-
             // SSL Context Factory for HTTPS
             // SSL requires a certificate so we configure a factory for ssl contents
             // with information pointing to what keystore the ssl connection needs
@@ -170,10 +148,12 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             // SecureRequestCustomizer which is how a new connector is able to
             // resolve the https connection before handing control over to the Jetty
             // Server.
-            HttpConfiguration https_config = new HttpConfiguration(http_config);
+            HttpConfiguration https_config = new HttpConfiguration();
+            https_config.setRequestHeaderSize(HttpUtils.MAX_HEADER_SIZE);
             SecureRequestCustomizer src = new SecureRequestCustomizer();
             src.setStsMaxAge(2000);
             src.setStsIncludeSubDomains(true);
+
             https_config.addCustomizer(src);
 
             // HTTPS connector
@@ -183,8 +163,9 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             ServerConnector https = new ServerConnector(server,
                     new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString()),
                     new HttpConnectionFactory(https_config));
-            https.setPort(8444);
+            https.setPort(config.getPort());
             https.setIdleTimeout(500000);
+            https.setHost(config.getAddress());
 
             // Here you see the server having multiple connectors registered with
             // it, now requests can flow into the server from both http and https
@@ -193,7 +174,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             // has something to pass requests off to.
 
             // Set the connectors
-            server.setConnectors(new Connector[] { http, https });
+            server.setConnectors(new Connector[] { https });
 
             // Passing in the class for the Servlet allows jetty to instantiate an
             // instance of that Servlet and mount it on a given context path.
