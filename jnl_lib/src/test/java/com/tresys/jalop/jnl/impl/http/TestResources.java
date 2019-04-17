@@ -50,14 +50,13 @@ public class TestResources {
         System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.headers", "ERROR");
     }
 
-    public static void configureLogging()
+    public static void configureLogging(Level logLevel)
     {
         //This method disables the debug logging for the http client in the console, only comment out this method if you wish to see this output.
         //Unless there is some need to view this data, this should be called all the time before any tests using httpclient to prevent cluttered console output.
         disableHttpClientLogging();
 
-        //Set the log level (OFF by default for no app log messages for easier unit test output viewing)
-        LogManager.getRootLogger().setLevel(Level.OFF);
+        LogManager.getRootLogger().setLevel(logLevel);
     }
 
 

@@ -22,6 +22,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Level;
 import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -88,7 +89,7 @@ public class JalRecordTest {
         outputDirStr = jjnlDirPath + "/jnl_lib/output";
         jalopTestDataRepoDir = jjnlDirPath + "/../jalop-test-data";
 
-        TestResources.configureLogging();
+        TestResources.configureLogging(Level.INFO);
 
         //Ensures input dir exists
         File inputDir = new File(inputDirStr);

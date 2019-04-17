@@ -18,6 +18,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Level;
 import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -48,7 +49,7 @@ public class InitializeTest {
     @BeforeClass
     public static void startWebServiceServer() throws Exception {
 
-        TestResources.configureLogging();
+        TestResources.configureLogging(Level.OFF);
 
         //gets jjnl dir path
         resourcesDirectory = new File("src/test/resources");
@@ -91,6 +92,11 @@ public class InitializeTest {
         System.out.println("DR1.012.007 - initialize:  JAL-Configure-Digest-Challenge");
         System.out.println("DR1.012.007.001 - initialize:  JAL-Configure-Digest-Challenge Required Values");
         System.out.println("DR1.012.007.002 - initialize:  JAL-Configure-Digest-Challenge Optional Values");
+        System.out.println("DR1.014 - initialize-ack");
+        System.out.println("DR1.014.001 - initialize-ack:  Communication Accepted");
+        System.out.println("DR1.014.001.001 - initialize-ack:  Communication Accepted - JAL-XML-Compression");
+        System.out.println("DR1.014.001.002 - initialize-ack:  Communication Accepted - JAL-Digest");
+        System.out.println("DR1.014.001.003 - initialize-ack:  Communication Accepted - JAL-Configure-Digest-Challenge");
 
 
         UUID publisherUUID = UUID.randomUUID();
@@ -144,6 +150,17 @@ public class InitializeTest {
                             assertNull(errorHeader);
                             assertNotNull(sessionHeader);
                         }
+
+                        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                        final Header configureDigestHeader = response.getFirstHeader(HttpUtils.HDRS_CONFIGURE_DIGEST_CHALLENGE);
+                        final Header xmlCompressionHeader = response.getFirstHeader(HttpUtils.HDRS_XML_COMPRESSION);
+
+                        assertNotNull(digestHeader);
+                        assertEquals(DigestMethod.SHA256, digestHeader.getValue());
+                        assertNotNull(configureDigestHeader);
+                        assertEquals(configureDigest, configureDigestHeader.getValue());
+                        assertNotNull(xmlCompressionHeader);
+                        assertEquals(xmlCompression, xmlCompressionHeader.getValue());
                     }
                 }
             }
@@ -252,6 +269,8 @@ public class InitializeTest {
 
         System.out.println("----testNullDigestReturnsInitializeAck----");
         System.out.println("DR1.012.004.003 - initialize:  JAL-Accept-Digest Value Order - Missing JAL-Accept-Digest returns sha256");
+        System.out.println("DR1.014.001.002 - initialize-ack:  Communication Accepted - JAL-Digest");
+
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
@@ -291,6 +310,7 @@ public class InitializeTest {
 
         System.out.println("----testEmptyDigestReturnsInitializeAck----");
         System.out.println("DR1.012.004.003 - initialize:  JAL-Accept-Digest Value Order - Empty JAL-Accept-Digest returns sha256");
+        System.out.println("DR1.014.001.002 - initialize-ack:  Communication Accepted - JAL-Digest");
 
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
@@ -332,6 +352,8 @@ public class InitializeTest {
 
         System.out.println("----testNullXmlCompressionReturnsInitializeAck----");
         System.out.println("DR1.012.003.003 - initialize:  JAL-Accept-XML-Compression Value Order - Missing JAL-Accept-XML-Compression returns none");
+        System.out.println("DR1.014.001.001 - initialize-ack:  Communication Accepted - JAL-XML-Compression");
+
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
         final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
@@ -370,6 +392,7 @@ public class InitializeTest {
     public void testEmptyXmlCompressionReturnsInitializeAck() throws ClientProtocolException, IOException {
         System.out.println("----testEmptyXmlCompressionReturnsInitializeAck----");
         System.out.println("DR1.012.003.003 - initialize:  JAL-Accept-XML-Compression Value Order - Empty JAL-Accept-XML-Compression returns none");
+        System.out.println("DR1.014.001.001 - initialize-ack:  Communication Accepted - JAL-XML-Compression");
 
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
@@ -410,6 +433,7 @@ public class InitializeTest {
 
         System.out.println("----testNullConfigureDigestChallengeReturnsInitializeAck---");
         System.out.println("DR1.012.007.003 - initialize:  JAL-Configure-Digest-Challenge Value Order - Missing JAL-Configure-Digest-Challenge returns on");
+        System.out.println("DR1.014.001.003 - initialize-ack:  Communication Accepted - JAL-Configure-Digest-Challenge");
 
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
@@ -450,6 +474,7 @@ public class InitializeTest {
 
         System.out.println("----testEmptyConfigureDigestChallengeReturnsInitializeAck---");
         System.out.println("DR1.012.007.003 - initialize:  JAL-Configure-Digest-Challenge Value Order - Empty JAL-Configure-Digest-Challenge returns on");
+        System.out.println("DR1.014.001.003 - initialize-ack:  Communication Accepted - JAL-Configure-Digest-Challenge");
 
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
@@ -562,6 +587,7 @@ public class InitializeTest {
 
         final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
         assertNotNull(sessionHeader);
+        System.out.println("----testXmlCompressionOrderList success----\n");
     }
 
     @Test

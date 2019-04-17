@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.util.Arrays;
 
+import org.apache.log4j.Level;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,7 +24,7 @@ public class SubscriberHttpSessionImplTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        TestResources.configureLogging();
+        TestResources.configureLogging(Level.DEBUG);
     }
 
     public Subscriber getSubscriber()
