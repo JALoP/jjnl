@@ -37,7 +37,7 @@ public class MessageProcessorTest {
         exception.expectMessage("requestHeaders is required");
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
         List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(null, RecordType.Audit, TestResources.CERT_FINGERPRINT,  successResponseHeaders, errorMessages);
+        boolean result = MessageProcessor.processInitializeMessage(null, RecordType.Audit, successResponseHeaders, errorMessages);
         assertEquals(false, result);
     }
 
@@ -48,7 +48,7 @@ public class MessageProcessorTest {
         exception.expectMessage("successResponseHeaders is required");
         HashMap<String, String> requestHeaders = new HashMap<String, String>();
         List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, TestResources.CERT_FINGERPRINT,  null, errorMessages);
+        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, null, errorMessages);
         assertEquals(false, result);
     }
 
@@ -59,19 +59,7 @@ public class MessageProcessorTest {
         exception.expectMessage("errorMessages is required");
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
         HashMap<String, String> requestHeaders = new HashMap<String, String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, TestResources.CERT_FINGERPRINT, successResponseHeaders, null);
-        assertEquals(false, result);
-    }
-
-    @Test
-    public void testProcessInitializeMessageNullCertFingerprint() throws IOException
-    {
-        exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("certFingerprint is required");
-        HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
-        List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, null, successResponseHeaders, errorMessages);
+        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, successResponseHeaders, null);
         assertEquals(false, result);
     }
 
@@ -83,7 +71,7 @@ public class MessageProcessorTest {
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
         HashMap<String, String> requestHeaders = new HashMap<String, String>();
         List<String> errorMessages = new ArrayList<String>();
-        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, null, TestResources.CERT_FINGERPRINT, successResponseHeaders, errorMessages);
+        boolean result = MessageProcessor.processInitializeMessage(requestHeaders, null, successResponseHeaders, errorMessages);
         assertEquals(false, result);
     }
 

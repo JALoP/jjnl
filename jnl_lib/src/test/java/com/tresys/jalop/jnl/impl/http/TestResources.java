@@ -2,8 +2,6 @@ package com.tresys.jalop.jnl.impl.http;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,11 +28,6 @@ import com.tresys.jalop.jnl.RecordType;
 public class TestResources {
     public static int HTTP_PORT = 8080;
     public static String SESSION_ID = "fe8a54d7-dd7c-4c50-a7e7-f948a140c556";
-    public static String CERT_FINGERPRINT = "0a7be6d47ac528d8ce0e1c59b4d052be88f5ddc4601caec1f1dcda8a09766723";
-    public static String CERT_FILENAME = "cert.pem";
-    public static String DIFFERENT_CERT_FILENAME = "different_cert.pem";
-
-    private static String certHeaderStr = null;
 
     //Disables all http client logging
     private static void disableHttpClientLogging()
@@ -93,59 +86,6 @@ public class TestResources {
         HttpUtils.setSubscriber(subscriber);
 
         return server;
-    }
-
-    public static String getCertForHeader(String filename, String testDir)
-    {
-        String content = null;
-        String filePath = testDir + "/" + filename;
-        try
-        {
-            content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            return null;
-        }
-
-        if (content != null)
-        {
-            content = content.replace("\n", "");
-        }
-        return content;
-    }
-
-    public static String getCertForHeader(String testDir)
-    {
-       if (certHeaderStr == null)
-       {
-           certHeaderStr = getCertForHeader(CERT_FILENAME, testDir);
-       }
-
-       return certHeaderStr;
-    }
-
-    public static String getCertFingerprintForHeader(String filename, String testDir)
-    {
-        String content = null;
-        String fingerprint = null;
-        String filePath = testDir + "/" + filename;
-        try
-        {
-            content = new String ( Files.readAllBytes( Paths.get(filePath) ) );
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            return null;
-        }
-
-        if (content != null)
-        {
-            fingerprint = HttpUtils.getCertFingerprintFromHeader(content);
-        }
-        return fingerprint;
     }
 
     public static void cleanOutputDirectory(String outputDirStr) throws IOException
@@ -216,7 +156,6 @@ public class TestResources {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, getCertForHeader(CERT_FILENAME, testDir));
 
         if (performDigest == true)
         {

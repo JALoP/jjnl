@@ -1,10 +1,8 @@
 package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -127,7 +125,7 @@ public class InitializeTest {
                         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, recType.toString().toLowerCase());
                         httpPost.setHeader(HttpUtils.HDRS_VERSION, "2.0.0.0");
                         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, configureDigest);
-                        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
                         HttpClient client = HttpClientBuilder.create().build();
 
@@ -183,7 +181,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -215,7 +213,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -247,7 +245,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.LOG);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -282,7 +280,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -324,7 +322,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -365,7 +363,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -406,7 +404,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -446,7 +444,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -488,7 +486,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "");
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -528,7 +526,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "invalid, invalid2, off, on");
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -568,7 +566,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, String.join(",", HttpUtils.MSG_CONFIGURE_DIGEST_ON));
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -603,7 +601,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, String.join(",", HttpUtils.MSG_CONFIGURE_DIGEST_ON));
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -619,124 +617,6 @@ public class InitializeTest {
 
         final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
         assertNull(sessionHeader);
-    }
-
-    @Test
-    public void testMissingCertReturnsInitializeNack() throws ClientProtocolException, IOException {
-        UUID publisherUUID = UUID.randomUUID();
-        final String publisherId = publisherUUID.toString();
-        final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
-        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
-        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-
-        HttpClient client = HttpClientBuilder.create().build();
-
-        final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-        final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(200, responseStatus);
-        assertEquals("initialize-nack", responseMessage);
-
-        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        assertNotNull(errorHeader);
-        assertEquals(HttpUtils.HDRS_INVALID_USER_CERT, errorHeader.getValue());
-
-        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
-        assertNull(sessionHeader);
-    }
-
-    @Test
-    public void testDuplicatePublisherWithDifferentCertReturnsInitializeAck() throws ClientProtocolException, IOException {
-
-        UUID publisherUUID = UUID.randomUUID();
-        final String publisherId = publisherUUID.toString();
-        final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
-        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
-        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
-
-        HttpClient client = HttpClientBuilder.create().build();
-
-        final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-        final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(200, responseStatus);
-        assertEquals("initialize-ack", responseMessage);
-
-        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        assertNull(errorHeader);
-        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
-        assertNotNull(sessionHeader);
-
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(TestResources.DIFFERENT_CERT_FILENAME, resourcesDirectory.getAbsolutePath()));
-        final HttpResponse nextResponse = client.execute(httpPost);
-        final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-        final int nextResponseStatus = nextResponse.getStatusLine().getStatusCode();
-        assertEquals(200, nextResponseStatus);
-        assertEquals("initialize-ack", nextResponseMessage);
-
-        final Header errorHeader2 = nextResponse.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        assertNull(errorHeader2);
-
-        //Session ids must be different
-        final Header sessionHeader2 = nextResponse.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
-        assertNotNull(sessionHeader2);
-        assertTrue(!sessionHeader2.getValue().equals(sessionHeader.getValue()));
-    }
-
-    @Test
-    public void testDuplicatePublisherWithSameCertReturnsInitializeAck() throws ClientProtocolException, IOException {
-
-        UUID publisherUUID = UUID.randomUUID();
-        final String publisherId = publisherUUID.toString();
-        final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
-        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
-        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.AUDIT);
-        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
-
-        HttpClient client = HttpClientBuilder.create().build();
-
-        final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-        final String firstSessionId = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
-        final int responseStatus = response.getStatusLine().getStatusCode();
-        assertEquals(200, responseStatus);
-        assertEquals("initialize-ack", responseMessage);
-
-        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        assertNull(errorHeader);
-
-        final HttpResponse nextResponse = client.execute(httpPost);
-        final String nextResponseMessage = nextResponse.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-        final String secondSessionId = nextResponse.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
-        final int nextResponseStatus = nextResponse.getStatusLine().getStatusCode();
-        assertEquals(200, nextResponseStatus);
-        assertEquals("initialize-ack", nextResponseMessage);
-        assertFalse(firstSessionId.equals(secondSessionId));
-
-        final Header errorHeader2 = nextResponse.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        assertNull(errorHeader2);
     }
 
     @Test
@@ -757,7 +637,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -795,7 +675,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -833,7 +713,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -870,7 +750,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, "invalid");
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -907,7 +787,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION,"invalid");
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 
@@ -945,7 +825,7 @@ public class InitializeTest {
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, "invalid");
-        httpPost.setHeader(HttpUtils.HDRS_CLIENT_CERTIFICATE, TestResources.getCertForHeader(resourcesDirectory.getAbsolutePath()));
+
 
         HttpClient client = HttpClientBuilder.create().build();
 

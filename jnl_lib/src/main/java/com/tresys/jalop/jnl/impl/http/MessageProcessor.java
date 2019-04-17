@@ -64,7 +64,7 @@ public class MessageProcessor {
         }
     }
 
-    public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, String certFingerprint, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
+    public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
         if (errorMessages == null)
         {
@@ -84,11 +84,6 @@ public class MessageProcessor {
         if (supportedRecType == null)
         {
             throw new IllegalArgumentException("supportedRecType is required");
-        }
-
-        if (certFingerprint == null)
-        {
-            throw new IllegalArgumentException("certFingerprint is required");
         }
 
         logger.info(HttpUtils.MSG_INIT + " message received.");
@@ -181,21 +176,8 @@ public class MessageProcessor {
 
         if (currSession != null)
         {
-            //Checks if cert fingerprints match, if not then initialize-nack, otherwise remove old session and create new
-            if (!certFingerprint.equals(currSession.getCertFingerprint()))
-            {
-
-                //TODO determine if initialize-nack or just return a new session, right now will return a new session
-               // logger.error("Session already exists for publisher: " + publisherIdStr);
-               // errorMessages.add(HttpUtils.HDRS_SESSION_ALREADY_EXISTS);
-
-               // return false;
-            }
-            else
-            {
-                //remove old session
-                jnlSubscriber.removeSession(currSession.getSessionId());
-            }
+            //TODO right now a new session is added no matter whether it exists or not
+            //Eventually add session cap/cleanup per session timeout
         }
 
         //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
@@ -204,7 +186,7 @@ public class MessageProcessor {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
                 supportedRecType, HttpUtils.getMode(modeStr), subscriber, selectedDigest,
                 selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
-                1, performDigest, certFingerprint/*contextImpl.getDefaultPendingDigestMax()*/);
+                1, performDigest/*contextImpl.getDefaultPendingDigestMax()*/);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 
@@ -461,20 +443,8 @@ public class MessageProcessor {
             String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
             if (messageType.equals(HttpUtils.MSG_INIT))
             {
-                //Gets the cert from the header and ensure successful cert fingerprint extraction otherwise initialize-nack
-                String cert = request.getHeader("X-Client-Certificate");
-                String certFingerprint = HttpUtils.getCertFingerprintFromHeader(cert);
-
-                if (certFingerprint == null)
-                {
-                    //Send initialize-nack on error
-                    errorMessages.add(HttpUtils.HDRS_INVALID_USER_CERT);
-                    MessageProcessor.setInitializeNackResponse(errorMessages, response);
-                    return;
-                }
-
                 HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-                if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, certFingerprint, successResponseHeaders, errorMessages))
+                if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, errorMessages))
                 {
                     //Send initialize-nack on error
                     MessageProcessor.setInitializeNackResponse(errorMessages, response);

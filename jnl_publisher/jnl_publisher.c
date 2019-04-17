@@ -132,16 +132,6 @@ struct curl_slist * getInitializeHeaders(std::string dataClass)
     headers = curl_slist_append(headers, "JAL-Version: 2.0.0.0");
     headers = curl_slist_append(headers, "JAL-Accept-Configure-Digest-Challenge: on");
 
-    //Adds the cert to the http header, the cert contents in the header must be all in one line with no new lines
-    //to be compliant with Jetty
-    std::ifstream infile { "./cert.pem" };
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-    std::string cert = buffer.str();
-    cert.erase(std::remove(cert.begin(), cert.end(), '\n'), cert.end());
-    std::string certHeader = "X-Client-Certificate: " + cert;
-    headers = curl_slist_append(headers, certHeader.c_str());
-
     return headers;
 }
 
