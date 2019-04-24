@@ -16,6 +16,7 @@ import javax.xml.crypto.dsig.DigestMethod;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.Logger;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
@@ -36,7 +37,8 @@ public class MessageProcessor {
      * @param errorMessages : The arrayList storing the error messages
      * @param errorMessage : The new error message to add to the list.
      */
-    private static void addErrorMessage(Collection<String> errorMessages, String errorMessage)
+    @VisibleForTesting
+    static void addErrorMessage(Collection<String> errorMessages, String errorMessage)
     {
         if (errorMessages == null)
         {
@@ -45,7 +47,8 @@ public class MessageProcessor {
         errorMessages.add(errorMessage);
     }
 
-    private static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response, final Collection<String> errorMessages) throws JNLMessageProcessingException
+    @VisibleForTesting
+    static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response, final Collection<String> errorMessages) throws JNLMessageProcessingException
     {
         logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
         if (!RecordType.Journal.equals(supportedRecType))
@@ -64,7 +67,8 @@ public class MessageProcessor {
         }
     }
 
-    public static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
+    @VisibleForTesting
+    static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
         if (errorMessages == null)
         {
@@ -215,7 +219,8 @@ public class MessageProcessor {
         return true;
     }
 
-    public static boolean processJALRecordMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
+    @VisibleForTesting
+    static boolean processJALRecordMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -384,13 +389,15 @@ public class MessageProcessor {
         return true;
     }
 
-    public static void setInitializeNackResponse(List<String> errorMessages, HttpServletResponse response)
+    @VisibleForTesting
+    static void setInitializeNackResponse(List<String> errorMessages, HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_NACK);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
-    public static void setInitializeAckResponse(HashMap<String, String> responseHeaders, HttpServletResponse response)
+    @VisibleForTesting
+    static void setInitializeAckResponse(HashMap<String, String> responseHeaders, HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_ACK);
 
@@ -399,21 +406,24 @@ public class MessageProcessor {
         }
     }
 
-    private static void setJournalMissingReponse(final HttpServletResponse response)
+    @VisibleForTesting
+    static void setJournalMissingReponse(final HttpServletResponse response)
     {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
         logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message processed");
     }
 
-    public static void setDigestChallengeResponse(final DigestResult digestResult, final HttpServletResponse response)
+    @VisibleForTesting
+    static void setDigestChallengeResponse(final DigestResult digestResult, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
         response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
         logger.info(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
     }
 
-    public static Boolean setJournalResumeMessage(final String nonce,
+    @VisibleForTesting
+    static Boolean setJournalResumeMessage(final String nonce,
             final long offset, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders) {
         HttpUtils.checkForEmptyString(nonce, HttpUtils.HDRS_NONCE);
 
@@ -434,7 +444,8 @@ public class MessageProcessor {
         return true;
     }
 
-    public static void setErrorResponse(List<String> errorMessages, HttpServletResponse response)
+    @VisibleForTesting
+    static void setErrorResponse(List<String> errorMessages, HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
