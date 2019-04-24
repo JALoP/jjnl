@@ -440,7 +440,7 @@ public class BaseConfig {
         }
         throw new ConfigurationException(this.source, "Expected '" + DATA_CLASS
                 + "' to be one of '" + JOURNAL + "', '" + AUDIT + "', or '"
-                + LOG + "' (found '" + dataClass + "'.");
+                + LOG + "' (found '" + dataClass + "').");
     }
 
     /**
