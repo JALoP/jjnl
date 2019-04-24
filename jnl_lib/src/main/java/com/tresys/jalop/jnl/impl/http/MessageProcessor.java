@@ -17,6 +17,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
@@ -244,7 +245,7 @@ public class MessageProcessor {
         return digestMap;
     }
 
-    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, List<String> errorMessages)
+    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, List<String> errorMessages)
     {
         if (errorMessages == null)
         {
@@ -256,42 +257,33 @@ public class MessageProcessor {
             throw new IllegalArgumentException("requestHeaders is required");
         }
 
-        if (requestInputStream == null)
-        {
-            throw new IllegalArgumentException("requestInputStream is required");
-        }
-
-        if (supportedRecType == null)
-        {
-            throw new IllegalArgumentException("supportedRecType is required");
-        }
-
         //Gets the session Id from header
         String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
         if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
         {
-            logger.error("JAL Record message failed due to invalid Session ID value of: " + sessionIdStr);
+            logger.error("Digest response message failed due to invalid Session ID value of: " + sessionIdStr);
             return false;
         }
 
-        // Get the jal count from the header
-        Long jalCount = new Long(0);
-        try
+        //Checks the jal Id
+        String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
+        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        if (jalId == null)
         {
-            jalCount = new Long(requestHeaders.get(HttpUtils.HDRS_COUNT)).longValue();
-
-            if (jalCount <= 0)
-            {
-                errorMessages.add(HttpUtils.HDRS_INVALID_JAL_COUNT);
-                return false;
-            }
-        }
-        catch(NumberFormatException nfe )
-        {
-            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_COUNT);
+            logger.error("Digest response message failed due to invalid JAL Id value of: " + jalId);
+            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
             return false;
         }
 
+        //Checks digest status
+        String digestStatusStr = requestHeaders.get(HttpUtils.HDRS_DIGEST_STATUS);
+        DigestStatus digestStatus = HttpUtils.getDigestStatus(digestStatusStr);
+        if (digestStatus.equals(DigestStatus.Unknown))
+        {
+            logger.error("Digest response message failed due to invalid digest status value of: " + digestStatusStr);
+            errorMessages.add(HttpUtils.HDRS_INVALID_DIGEST_STATUS);
+            return false;
+        }
 
         return true;
     }
@@ -591,8 +583,7 @@ public class MessageProcessor {
                 }
                 else if (messageType.equals(HttpUtils.MSG_DIGEST_RESP))
                 {
-                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, request.getInputStream(),
-                            supportedRecType, errorMessages))
+                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, errorMessages))
                     {
                         // Set error message in the header
                         MessageProcessor.setErrorResponse(errorMessages, response);

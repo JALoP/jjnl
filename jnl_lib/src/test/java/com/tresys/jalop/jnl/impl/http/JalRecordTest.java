@@ -97,26 +97,10 @@ public class JalRecordTest {
         }
 
         //Clears out input and output directories
-        cleanAllDirectories();
+        TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
 
         server = TestResources.getWebServer();
         server.start();
-    }
-
-    private static void cleanAllDirectories() throws IOException
-    {
-        for (RecordType recType : RecordType.values())
-        {
-
-            if (recType.equals(RecordType.Unset))
-            {
-                continue;
-            }
-            cleanInputDirectory(recType, inputDirStr);
-        }
-
-        //Clears out input and output directories
-        cleanOutputDirectory("");
     }
 
     /**
@@ -129,7 +113,7 @@ public class JalRecordTest {
         server.stop();
 
         //Clears out input and output directories
-        cleanAllDirectories();
+        TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
     }
 
     private class JalRecordLength
@@ -207,7 +191,7 @@ public class JalRecordTest {
         }
     }
 
-    private static void cleanOutputDirectory(String publisherId) throws IOException
+    private static void cleanOutputDirectoryByPublisherId(String publisherId) throws IOException
     {
         if (outputDirStr != null && outputDirStr.contains("output"))
         {
@@ -218,7 +202,7 @@ public class JalRecordTest {
 
     private boolean generateRecords(RecordType recType, long numRecords, String sysFilename, String appFilename, String payloadFilename)
     {
-        cleanInputDirectory(recType, inputDirStr);
+        TestResources.cleanInputDirectory(recType, inputDirStr);
         String testDataPath = "";
 
         //Special case for 100MB file, which is located in jalop-test-data-repo
@@ -263,26 +247,6 @@ public class JalRecordTest {
 
         assertEquals(false, files == null);
         assertEquals(numRecords, files.length);
-
-        return true;
-    }
-
-    private static boolean cleanInputDirectory(RecordType recType, String inputDirStr)
-    {
-        File inputDir = new File(inputDirStr + "/" + recType.toString().toLowerCase());
-
-        try
-        {
-            if (inputDirStr != null && inputDirStr.contains("input"))
-            {
-                FileUtils.deleteDirectory(inputDir);
-            }
-        }
-        catch (IOException ioe)
-        {
-            ioe.printStackTrace();
-            return false;
-        }
 
         return true;
     }
@@ -958,7 +922,7 @@ public class JalRecordTest {
             finally
             {
                 //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
-                cleanOutputDirectory(publisherId);
+                cleanOutputDirectoryByPublisherId(publisherId);
 
                 try
                 {
@@ -968,7 +932,7 @@ public class JalRecordTest {
                 catch(Exception e)
                 {
                 }
-                cleanInputDirectory(recType, inputDirStr);
+                TestResources.cleanInputDirectory(recType, inputDirStr);
             }
         }
     }
@@ -995,7 +959,7 @@ public class JalRecordTest {
             finally
             {
                 //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
-                cleanOutputDirectory(publisherId);
+                cleanOutputDirectoryByPublisherId(publisherId);
 
                 try
                 {
@@ -1005,7 +969,7 @@ public class JalRecordTest {
                 catch(Exception e)
                 {
                 }
-                cleanInputDirectory(recType, inputDirStr);
+                TestResources.cleanInputDirectory(recType, inputDirStr);
             }
         }
     }
@@ -1032,7 +996,7 @@ public class JalRecordTest {
             finally
             {
                 //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
-                cleanOutputDirectory(publisherId);
+                cleanOutputDirectoryByPublisherId(publisherId);
 
                 try
                 {
@@ -1042,7 +1006,7 @@ public class JalRecordTest {
                 catch(Exception e)
                 {
                 }
-                cleanInputDirectory(recType, inputDirStr);
+                TestResources.cleanInputDirectory(recType, inputDirStr);
             }
         }
     }
@@ -1175,7 +1139,7 @@ public class JalRecordTest {
             assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
         }
 
-        cleanOutputDirectory(publisherId);
+        cleanOutputDirectoryByPublisherId(publisherId);
     }
 
     @Test
@@ -1241,7 +1205,7 @@ public class JalRecordTest {
             }
         }
 
-        cleanOutputDirectory(publisherId);
+        cleanOutputDirectoryByPublisherId(publisherId);
     }
 
     @Test
@@ -1410,7 +1374,7 @@ public class JalRecordTest {
             finally
             {
                 //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
-                cleanOutputDirectory(publisherId);
+                cleanOutputDirectoryByPublisherId(publisherId);
 
                 try
                 {
@@ -1420,7 +1384,7 @@ public class JalRecordTest {
                 catch(Exception e)
                 {
                 }
-                cleanInputDirectory(recType, inputDirStr);
+                TestResources.cleanInputDirectory(recType, inputDirStr);
             }
         }
     }
@@ -1480,7 +1444,7 @@ public class JalRecordTest {
                             //flag error
                             assertTrue(false);
                         }
-                        cleanInputDirectory(currRecType, inputDirStr);
+                        TestResources.cleanInputDirectory(currRecType, inputDirStr);
                     }
                 }
             });
@@ -1505,7 +1469,7 @@ public class JalRecordTest {
         }
 
         //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
-        cleanOutputDirectory(publisherId);
+        cleanOutputDirectoryByPublisherId(publisherId);
     }
 
     //NOTE comment in this test to stress test the system, this test takes over 10 minutes to run as it sends 3 GB of JAL records over audit,log,journal channels
@@ -1591,6 +1555,6 @@ public class JalRecordTest {
         }
 
         //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
-        cleanOutputDirectory(publisherId);
+        cleanOutputDirectoryByPublisherId(publisherId);
     } */
 }

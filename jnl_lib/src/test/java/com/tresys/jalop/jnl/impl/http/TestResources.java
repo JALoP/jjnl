@@ -1,17 +1,24 @@
 package com.tresys.jalop.jnl.impl.http;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Level;
@@ -90,6 +97,42 @@ public class TestResources {
         return server;
     }
 
+    public static void cleanAllDirectories(String inputDirStr, String outputDirStr) throws IOException
+    {
+        for (RecordType recType : RecordType.values())
+        {
+
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+            cleanInputDirectory(recType, inputDirStr);
+        }
+
+        //Clears out input and output directories
+        cleanOutputDirectory(outputDirStr);
+    }
+
+    public static boolean cleanInputDirectory(RecordType recType, String inputDirStr)
+    {
+        File inputDir = new File(inputDirStr + "/" + recType.toString().toLowerCase());
+
+        try
+        {
+            if (inputDirStr != null && inputDirStr.contains("input"))
+            {
+                FileUtils.deleteDirectory(inputDir);
+            }
+        }
+        catch (IOException ioe)
+        {
+            ioe.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
     public static void cleanOutputDirectory(String outputDirStr) throws IOException
     {
         if (outputDirStr != null && outputDirStr.contains("output"))
@@ -97,6 +140,46 @@ public class TestResources {
             File outputDir = new File(outputDirStr);
             FileUtils.deleteDirectory(outputDir);
         }
+    }
+
+    public static String sendValidJalRecord(RecordType recType) throws ClientProtocolException, IOException
+    {
+        String publisherId = UUID.randomUUID().toString();
+        File resourcesDirectory = new File("src/test/resources");
+        String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+
+        HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+        String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
+        String jalMessage = recType.toString().toLowerCase() +  "-record";
+
+        String jalId = UUID.randomUUID().toString();
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+
+        for (Map.Entry<String, String> entry : headers.entrySet())
+        {
+            httpPost.setHeader(entry.getKey(), entry.getValue());
+        }
+
+        //Adds jal record to post
+        String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+        HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+        httpPost.setEntity(entity);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+        final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals(null, errorMessage);
+
+        //Validate digest is correct for test file sent.
+        assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", responseMessage);
+
+        return jalId;
     }
 
     public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage)

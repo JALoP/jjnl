@@ -13,6 +13,7 @@ import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
 
+import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
@@ -56,6 +57,8 @@ public class HttpUtils {
     public static final String HDRS_COUNT = "JAL-Count";
     public static final String HDRS_DATA_CLASS = "JAL-Data-Class";
     public static final String HDRS_DIGEST = "JAL-Digest";
+    public static final String HDRS_DIGEST_STATUS = "JAL-Digest-Status";
+    public static final String HDRS_INVALID_DIGEST_STATUS = "JAL-Invalid-Digest-Status";
     public static final String HDRS_INVALID_JAL_ID = "JAL-Invalid-JAL-Id";
     public static final String HDRS_INVALID_SYS_META_LEN= "JAL-Invalid-System-Metadata-Length";
     public static final String HDRS_INVALID_APP_META_LEN= "JAL-Invalid-Application-Metadata-Length";
@@ -491,6 +494,25 @@ public class HttpUtils {
         }
 
         return recordType;
+    }
+
+    public static DigestStatus getDigestStatus(String digestStatusStr)
+    {
+        DigestStatus digestStatus = DigestStatus.Unknown;
+
+        if (digestStatusStr != null)
+        {
+            if (digestStatusStr.equalsIgnoreCase(DigestStatus.Confirmed.toString()))
+            {
+                digestStatus = DigestStatus.Confirmed;
+            }
+            else if (digestStatusStr.equalsIgnoreCase(DigestStatus.Invalid.toString()))
+            {
+                digestStatus = DigestStatus.Invalid;
+            }
+        }
+
+        return digestStatus;
     }
 
     public static Mode getMode(String modeStr)

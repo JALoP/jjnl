@@ -124,6 +124,32 @@ public class MessageProcessorTest {
         assertEquals(false, result);
     }
 
+    public void testProcessDigestResponseMessageNullErrorMessagesParam()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("errorMessages is required");
+        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), null);
+        assertEquals(false, result);
+    }
+
+    @Test
+    public void testProcessDigestResponseMessageNullRequestHeadersParam()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("requestHeaders is required");
+        boolean result = MessageProcessor.processDigestResponseMessage(null, new ArrayList<String>());
+        assertEquals(false, result);
+    }
+
+    @Test
+    public void testProcessDigestResponseMessageEmptySessionId()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("requestHeaders is required");
+        boolean result = MessageProcessor.processDigestResponseMessage(null, new ArrayList<String>());
+        assertEquals(false, result);
+    }
+
     @Test
     public void testSetJournalResumeMessageEmptyNounce()
     {
