@@ -125,11 +125,11 @@ public class MessageProcessorTest {
     }
 
     @Test
-    public void testCreateJournalResumeMessageEmptyNounce()
+    public void testSetJournalResumeMessageEmptyNounce()
     {
         HashMap<String, String> successHeaders = new HashMap<String, String>();
         List<String> errorHeaders = new ArrayList<String>();
-        boolean result = MessageProcessor.createJournalResumeMessage(null, 0, successHeaders, errorHeaders);
+        boolean result = MessageProcessor.setJournalResumeMessage(null, 0, successHeaders, errorHeaders);
         assertEquals(null, successHeaders.get(HttpUtils.HDRS_NONCE));
         assertEquals("0", successHeaders.get(HttpUtils.HDRS_JOURNAL_OFFSET));
         assertEquals(0, errorHeaders.size());
@@ -137,11 +137,11 @@ public class MessageProcessorTest {
     }
 
     @Test
-    public void testCreateJournalResumeMessageInvalidJalOffset()
+    public void testSetJournalResumeMessageInvalidJalOffset()
     {
         HashMap<String, String> headers = new HashMap<String, String>();
         List<String> errorHeaders = new ArrayList<String>();
-        boolean result = MessageProcessor.createJournalResumeMessage("test", -1, headers, errorHeaders);
+        boolean result = MessageProcessor.setJournalResumeMessage("test", -1, headers, errorHeaders);
         assertEquals(false, result);
         assertEquals(0, headers.size());
         assertEquals(true, errorHeaders.contains(HttpUtils.HDRS_INVALID_JOURNAL_OFFSET));

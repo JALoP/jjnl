@@ -107,6 +107,7 @@ public class HttpUtils {
     public static final String MSG_CONFIGURE_DIGEST_OFF = "off";
     public static final String MSG_CONFIGURE_DIGEST_ON = "on";
     public static final String MSG_DIGEST = "digest";
+    public static final String MSG_DIGEST_CHALLENGE = "digest-challenge";
     public static final String MSG_DIGEST_RESP = "digest-response";
     public static final String MSG_INIT = "initialize";
     public static final String MSG_INIT_ACK = "initialize-ack";

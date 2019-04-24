@@ -2,9 +2,16 @@
 /jnl_lib/coverage-report
 /jnl_lib/.settings
 /jnl_lib/.classpath
+/jnl_lib/.project
 /jnl_test/.settings
 /jnl_test/coverage-report
 /jnl_test/output
+/jnl_test/target
 /jnl_test/.classpath
+/jnl_test/.project
 /lib
 /jnl_parent/.settings
+/jnl_parent/.project
+/jnl_publisher/a.out
+/jnl_publisher/test.iso
+/subscriberOutput/

@@ -199,9 +199,9 @@ public class MessageProcessor {
             }
 
             //Adds journal resume header
-            if (!createJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorMessages))
+            if (!setJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorMessages))
             {
-                logger.error("Create Journal resume message failed.");
+                logger.error("Set Journal resume message failed.");
                 return false;
             }
         } else {
@@ -213,32 +213,6 @@ public class MessageProcessor {
         }
 
         return true;
-    }
-
-    public static Boolean createJournalResumeMessage(final String nonce,
-            final long offset, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders) {
-        HttpUtils.checkForEmptyString(nonce, HttpUtils.HDRS_NONCE);
-
-        if (offset < 0) {
-            logger.error("offset for '"
-                    + HttpUtils.MSG_JOURNAL_RESUME + "' must be positive");
-
-            errorResponseHeaders.add(HttpUtils.HDRS_INVALID_JOURNAL_OFFSET);
-            return false;
-        }
-
-        //Sets JAL-Id to indicate journal resume
-        //TODO - need to determine if this is correct, this is how the java code worked before, however this only handles resuming one record.
-        //if multiple record resumes are required then this will not work.
-        successResponseHeaders.put(HttpUtils.HDRS_NONCE, nonce);
-        successResponseHeaders.put(HttpUtils.HDRS_JOURNAL_OFFSET, Long.toString(offset));
-
-        return true;
-    }
-
-    public static void setErrorResponse(List<String> errorMessages, HttpServletResponse response)
-    {
-        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
     public static boolean processJALRecordMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
@@ -425,6 +399,46 @@ public class MessageProcessor {
         }
     }
 
+    private static void setJournalMissingReponse(final HttpServletResponse response)
+    {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
+        logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message processed");
+    }
+
+    public static void setDigestChallengeResponse(final DigestResult digestResult, final HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
+        response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
+        logger.info(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
+    }
+
+    public static Boolean setJournalResumeMessage(final String nonce,
+            final long offset, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders) {
+        HttpUtils.checkForEmptyString(nonce, HttpUtils.HDRS_NONCE);
+
+        if (offset < 0) {
+            logger.error("offset for '"
+                    + HttpUtils.MSG_JOURNAL_RESUME + "' must be positive");
+
+            errorResponseHeaders.add(HttpUtils.HDRS_INVALID_JOURNAL_OFFSET);
+            return false;
+        }
+
+        //Sets JAL-Id to indicate journal resume
+        //TODO - need to determine if this is correct, this is how the java code worked before, however this only handles resuming one record.
+        //if multiple record resumes are required then this will not work.
+        successResponseHeaders.put(HttpUtils.HDRS_NONCE, nonce);
+        successResponseHeaders.put(HttpUtils.HDRS_JOURNAL_OFFSET, Long.toString(offset));
+
+        return true;
+    }
+
+    public static void setErrorResponse(List<String> errorMessages, HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+    }
+
     public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
     {
         //Used to capture all error messages that occur during the processing of this message
@@ -479,8 +493,8 @@ public class MessageProcessor {
                     }
                     else
                     {
-                        // Sets digest in the header if successful
-                        response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
+                        // Set digest-challenge response
+                        MessageProcessor.setDigestChallengeResponse(digestResult, response);
                     }
                 }
                 else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
