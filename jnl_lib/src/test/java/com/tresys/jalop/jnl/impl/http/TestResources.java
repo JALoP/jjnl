@@ -23,6 +23,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletHandler;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 
 public class TestResources {
@@ -73,6 +74,7 @@ public class TestResources {
 
         //Sets up the subscriber
         HttpSubscriberConfig config = new HttpSubscriberConfig();
+        config.setMode(Mode.Live);
 
         List<String> allowedConfigureDigests = new ArrayList<String>();
         allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGEST_ON);

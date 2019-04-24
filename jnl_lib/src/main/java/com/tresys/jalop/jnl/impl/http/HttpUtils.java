@@ -294,7 +294,7 @@ public class HttpUtils {
     }
 
     //Validates mode, must be publish live or publish archive
-    public static boolean validateMode(String mode, List<String> errorResponseHeaders)
+    public static boolean validateMode(String mode, Mode supportedMode,  List<String> errorResponseHeaders)
     {
         String currMode = checkForEmptyString(mode, HDRS_MODE);
 
@@ -304,8 +304,21 @@ public class HttpUtils {
             return false;
         }
 
-        //Checks if supported mode
+        if (supportedMode == null)
+        {
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_MODE);
+            return false;
+        }
+
+        //Checks if valid mode
         if (!currMode.equals(MSG_LIVE) && !currMode.equals(MSG_ARCHIVE))
+        {
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_MODE);
+            return false;
+        }
+
+        //Checks if supported mode
+        if (!HttpUtils.getMode(currMode).equals(supportedMode))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_MODE);
             return false;

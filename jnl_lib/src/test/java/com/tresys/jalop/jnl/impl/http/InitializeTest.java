@@ -24,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 
 /**
@@ -96,7 +97,7 @@ public class InitializeTest {
         System.out.println("DR1.014.001.002 - initialize-ack:  Communication Accepted - JAL-Digest");
         System.out.println("DR1.014.001.003 - initialize-ack:  Communication Accepted - JAL-Configure-Digest-Challenge");
 
-
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
         String [] configureDigests = new String[] {"on", "off"};
@@ -115,6 +116,7 @@ public class InitializeTest {
                 {
                     for (String currMode : modes)
                     {
+                        subscriber.getConfig().setMode(HttpUtils.getMode(currMode));
                         final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
                         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
                         httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
@@ -163,6 +165,7 @@ public class InitializeTest {
                 }
             }
         }
+        subscriber.getConfig().setMode(Mode.Live);
         System.out.println("----testValidInitializeRequirmentTest success----\n");
     }
 
@@ -642,6 +645,89 @@ public class InitializeTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_MODE, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
+
+        System.out.println("----testInvalidModeReturnsInitializeNack success----\n");
+    }
+
+    @Test
+    public void testUnsupportedArchiveModeReturnsInitializeNack() throws ClientProtocolException, IOException {
+
+        System.out.println("----testInvalidModeReturnsInitializeNack----");
+        System.out.println("DR1.013.001.001.006 - initialize-nack:  Communication Declined - Error Reasons:  JAL-Unsupported-Mode");
+
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        subscriber.getConfig().setMode(Mode.Live);
+
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+        final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, "archival");
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals("initialize-nack", responseMessage);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_MODE, errorHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNull(sessionHeader);
+
+        System.out.println("----testInvalidModeReturnsInitializeNack success----\n");
+    }
+
+    @Test
+    public void testUnsupportedLiveModeReturnsInitializeNack() throws ClientProtocolException, IOException {
+
+        System.out.println("----testInvalidModeReturnsInitializeNack----");
+        System.out.println("DR1.013.001.001.006 - initialize-nack:  Communication Declined - Error Reasons:  JAL-Unsupported-Mode");
+
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        subscriber.getConfig().setMode(Mode.Archive);
+
+        UUID publisherUUID = UUID.randomUUID();
+        final String publisherId = publisherUUID.toString();
+        final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, "live");
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, HttpUtils.JOURNAL);
+        httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        subscriber.getConfig().setMode(Mode.Live);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);

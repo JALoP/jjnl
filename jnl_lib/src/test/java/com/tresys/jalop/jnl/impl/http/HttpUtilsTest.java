@@ -78,7 +78,7 @@ public class HttpUtilsTest {
 
         final String mode = "live";
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Live, errorResponseHeaders);
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
     }
@@ -88,7 +88,7 @@ public class HttpUtilsTest {
 
         final String mode = "archival";
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Archive, errorResponseHeaders);
         assertTrue(returned);
         assertTrue(errorResponseHeaders.isEmpty());
     }
@@ -98,7 +98,7 @@ public class HttpUtilsTest {
 
         final String mode = "subscribe-live";
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Live, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
             assertEquals("JAL-Unsupported-Mode", entry);
@@ -110,7 +110,55 @@ public class HttpUtilsTest {
 
         final String mode = "subscribe-archival";
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Archive, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Mode", entry);
+        }
+    }
+
+    @Test
+    public void testValidateModeFailsWithNotSupportedLiveMode() {
+
+        final String mode = "live";
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Archive, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Mode", entry);
+        }
+    }
+
+    @Test
+    public void testValidateModeFailsWithNotSupportedArchiveMode() {
+
+        final String mode = "archival";
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Live, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Mode", entry);
+        }
+    }
+
+    @Test
+    public void testValidateModeFailsWithNullSupportedMode() {
+
+        final String mode = "archival";
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateMode(mode, null, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Mode", entry);
+        }
+    }
+
+    @Test
+    public void testValidateModeFailsWithUnsetSupportedMode() {
+
+        final String mode = "unset";
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Unset, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
             assertEquals("JAL-Unsupported-Mode", entry);
@@ -122,7 +170,7 @@ public class HttpUtilsTest {
 
         final String mode = "";
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateMode(mode, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateMode(mode, Mode.Live, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
             assertEquals("JAL-Unsupported-Mode", entry);

@@ -86,6 +86,9 @@ public class MessageProcessor {
             throw new IllegalArgumentException("supportedRecType is required");
         }
 
+        final Subscriber subscriber = HttpUtils.getSubscriber();
+        JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
+
         logger.info(HttpUtils.MSG_INIT + " message received.");
 
         String publisherIdStr = requestHeaders.get(HttpUtils.HDRS_PUBLISHER_ID);
@@ -97,7 +100,7 @@ public class MessageProcessor {
 
         //Validates mode, must be live or archive, sets any error in response.
         String modeStr = requestHeaders.get(HttpUtils.HDRS_MODE);
-        if (!HttpUtils.validateMode(modeStr, errorMessages))
+        if (!HttpUtils.validateMode(modeStr, jnlSubscriber.getMode(), errorMessages))
         {
             logger.error("Initialize message failed due to invalid mode value of: " + modeStr);
             return false;
@@ -167,11 +170,7 @@ public class MessageProcessor {
             performDigest = false;
         }
 
-        //Sets up subscriber session and determines if journal resume applies.
-        final Subscriber subscriber = HttpUtils.getSubscriber();
-
         //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
-        JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
         SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
 
         if (currSession != null)
