@@ -15,6 +15,7 @@ import org.apache.log4j.Level;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
@@ -601,5 +602,45 @@ public class HttpUtilsTest {
         Mode mode = HttpUtils.getMode(HttpUtils.MSG_ARCHIVE);
 
         assertEquals(Mode.Archive, mode);
+    }
+
+    @Test
+    public void testGetDigestStatusConfirmed()
+    {
+        DigestStatus digestStatus = HttpUtils.getDigestStatus("confirmed");
+
+        assertEquals(DigestStatus.Confirmed, digestStatus);
+    }
+
+    @Test
+    public void testGetDigestStatusInvalid()
+    {
+        DigestStatus digestStatus = HttpUtils.getDigestStatus("invalid");
+
+        assertEquals(DigestStatus.Invalid, digestStatus);
+    }
+
+    @Test
+    public void testGetDigestStatusNull()
+    {
+        DigestStatus digestStatus = HttpUtils.getDigestStatus(null);
+
+        assertEquals(DigestStatus.Unknown, digestStatus);
+    }
+
+    @Test
+    public void testGetDigestStatusEmpty()
+    {
+        DigestStatus digestStatus = HttpUtils.getDigestStatus("");
+
+        assertEquals(DigestStatus.Unknown, digestStatus);
+    }
+
+    @Test
+    public void testGetDigestStatusNotValid()
+    {
+        DigestStatus digestStatus = HttpUtils.getDigestStatus("notvalid");
+
+        assertEquals(DigestStatus.Unknown, digestStatus);
     }
 }

@@ -253,7 +253,7 @@ public class JalRecordTest {
 
     private void sendJalRecords(RecordType recType, String publisherId, String expectedDigest, boolean performDigest) throws ClientProtocolException, IOException
     {
-        String sessionId = TestResources.sendValidInitialize(recType, performDigest, publisherId, resourcesDirectory.getAbsolutePath());
+        String sessionId = TestResources.sendValidInitialize(recType, performDigest, publisherId);
         File inputDir = new File(inputDirStr + "/" + recType.toString().toLowerCase());
         File[] directoryListing = inputDir.listFiles();
         if (directoryListing != null) {
@@ -648,7 +648,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -684,7 +684,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -732,7 +732,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            String sessionId = TestResources.sendValidInitialize(recType, false, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, false, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -778,7 +778,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -822,7 +822,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -866,7 +866,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1021,7 +1021,7 @@ public class JalRecordTest {
             {
                 continue;
             }
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1060,7 +1060,7 @@ public class JalRecordTest {
             {
                 continue;
             }
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1104,7 +1104,7 @@ public class JalRecordTest {
             {
                 continue;
             }
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1152,7 +1152,7 @@ public class JalRecordTest {
             {
                 continue;
             }
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1218,7 +1218,7 @@ public class JalRecordTest {
             {
                 continue;
             }
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1262,7 +1262,7 @@ public class JalRecordTest {
             {
                 continue;
             }
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -1306,7 +1306,7 @@ public class JalRecordTest {
             {
                 continue;
             }
-            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 

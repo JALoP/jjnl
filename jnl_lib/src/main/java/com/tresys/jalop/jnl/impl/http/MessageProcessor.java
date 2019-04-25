@@ -22,6 +22,7 @@ import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLMessageProcessingException;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
@@ -284,6 +285,38 @@ public class MessageProcessor {
             errorMessages.add(HttpUtils.HDRS_INVALID_DIGEST_STATUS);
             return false;
         }
+
+        //Lookup the correct session based upon session id
+        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        SubscriberSession sess = (SubscriberSession)subscriber.getSessionBySessionId(sessionIdStr);
+
+        //If null then active session does not exist for this publisher, return error
+        if (sess == null)
+        {
+            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
+            return false;
+        }
+
+        //Return sync if successful digest response
+        logger.trace("Processing: " + jalId);
+
+        // Execute the notify digest callback which will take care of moving the record from temp to perm
+        if (subscriber.notifyDigestResponse(sess, jalId, digestStatus)) {
+            // For a confirmed digest, send a sync message and remove the nonce from the sent queue
+            if(digestStatus != DigestStatus.Confirmed)
+            {
+                //TODO does anything else need done if it wasn't confirmed?  Before this is all it did was log a warning and still synced
+                logger.warn("Non-confirmed digest received: " + jalId + ", " + digestStatus);
+            }
+        }
+        else {
+            logger.error("notifyDigestResponse failure: " + jalId + ", " + digestStatus);
+
+            //Need error header
+            return false;
+        }
+
+        //Successful sync needs sent
 
         return true;
     }

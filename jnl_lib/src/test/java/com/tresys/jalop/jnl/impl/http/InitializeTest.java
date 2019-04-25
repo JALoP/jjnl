@@ -942,7 +942,7 @@ public class InitializeTest {
     {
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
-        String sessionID = TestResources.sendValidInitialize(RecordType.Journal, false, publisherId, resourcesDirectory.getAbsolutePath());
+        String sessionID = TestResources.sendValidInitialize(RecordType.Journal, false, publisherId);
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
@@ -968,7 +968,7 @@ public class InitializeTest {
     {
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
-        String sessionID = TestResources.sendValidInitialize(RecordType.Audit, false, publisherId, resourcesDirectory.getAbsolutePath());
+        String sessionID = TestResources.sendValidInitialize(RecordType.Audit, false, publisherId);
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);
@@ -994,7 +994,7 @@ public class InitializeTest {
     {
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
-        String sessionID = TestResources.sendValidInitialize(RecordType.Log, false, publisherId, resourcesDirectory.getAbsolutePath());
+        String sessionID = TestResources.sendValidInitialize(RecordType.Log, false, publisherId);
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.LOG_ENDPOINT);
         httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionID);

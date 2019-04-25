@@ -142,11 +142,9 @@ public class TestResources {
         }
     }
 
-    public static String sendValidJalRecord(RecordType recType) throws ClientProtocolException, IOException
+    public static String sendValidJalRecord(RecordType recType, String sessionId) throws ClientProtocolException, IOException
     {
-        String publisherId = UUID.randomUUID().toString();
         File resourcesDirectory = new File("src/test/resources");
-        String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, resourcesDirectory.getAbsolutePath());
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
@@ -230,7 +228,7 @@ public class TestResources {
      * @throws ClientProtocolException
      * @throws IOException
      */
-    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId, String testDir) throws ClientProtocolException, IOException
+    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId) throws ClientProtocolException, IOException
     {
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);

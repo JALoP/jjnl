@@ -2,6 +2,7 @@ package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,7 +68,7 @@ public class DigestResponseTest {
         server.stop();
 
         //Clears out input and output directories
-        TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
+    //    TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
     }
 
     @Test
@@ -263,6 +264,101 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_INVALID_DIGEST_STATUS, errorHeader.getValue());
+        }
+    }
+
+    @Test
+    public void testSessionDoesNotExistInDigestResponseMessage() throws ClientProtocolException, IOException {
+
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            String sessionId = UUID.randomUUID().toString();
+            String jalId = UUID.randomUUID().toString();
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+            httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "confirmed");
+
+            HttpClient client = HttpClientBuilder.create().build();
+
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
+        }
+    }
+
+    @Test
+    public void testValidConfirmedDigestResponseMessage() throws ClientProtocolException, IOException
+    {
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(recType, sessionId);
+
+            //Sends digest response
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+            httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "confirmed");
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
+        }
+    }
+
+    @Test
+    public void testValidInvalidDigestResponseMessage() throws ClientProtocolException, IOException
+    {
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(recType, sessionId);
+
+            //Sends digest response
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+            httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "invalid");
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
         }
     }
 }
