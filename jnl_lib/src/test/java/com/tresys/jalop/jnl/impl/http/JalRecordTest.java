@@ -51,14 +51,12 @@ public class JalRecordTest {
     private static final String PAYLOAD_100MB = "100MB_audit_input.xml";
     private static final String PAYLOAD_BAD_INPUT = "bad_input.xml";
     private static final String PAYLOAD_BIG = "big_payload.txt";
-    private static final String PAYLOAD_NO_INPUT = "no_input";
     private static final String PAYLOAD_GOOD_SMALL = "good_audit_input.xml";
 
 
     //sys metadata test files
     private static final String SYS_METADATA_GOOD = "system-metadata.xml";
     private static final String SYS_METADATA_MALFORMED = "system-metadata-malformed.xml";
-    private static final String SYS_METADATA_CDATA = "system-metadata-cdata.xml";
 
     //app metadata test files
     private static final String APP_METADATA_GOOD = "good_app_meta_input.xml";
@@ -324,14 +322,16 @@ public class JalRecordTest {
                 HttpClient client = HttpClientBuilder.create().build();
 
                 final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+                final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
                 final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
                 assertEquals(null, errorMessage);
 
                 //Validate digest is correct for test file sent.
-                assertEquals(expectedDigest, responseMessage);
+                assertEquals(expectedDigest, responseDigest);
+                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
             }
         }
     }
@@ -745,14 +745,16 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+            final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
             final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
             assertEquals(null, errorMessage);
 
             //Validate digest is correct for test file sent.
-            assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", responseMessage);
+            assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", responseDigest);
+            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
         }
     }
 
@@ -1073,14 +1075,14 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
             final String errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
             assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorMessage);
 
             //Validate digest is correct for test file sent.
-            assertEquals(null, responseMessage);
+            assertEquals(null, responseDigest);
         }
     }
 
@@ -1117,14 +1119,14 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
             final String errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
             assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorMessage);
 
             //Validate digest is correct for test file sent.
-            assertEquals(null, responseMessage);
+            assertEquals(null, responseDigest);
         }
     }
 
@@ -1161,14 +1163,16 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();;
+            final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
             final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
             assertEquals(null, errorMessage);
 
             //Validate digest is correct for test file sent.
-            assertEquals("111fc8cbbf9a1ea8010b44a348e73ee4e962a90d200b9439f28fa62edf84175e", responseMessage);
+            assertEquals("111fc8cbbf9a1ea8010b44a348e73ee4e962a90d200b9439f28fa62edf84175e", responseDigest);
+            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
         }
 
         cleanOutputDirectory(publisherId);
@@ -1207,7 +1211,8 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
             final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1218,7 +1223,8 @@ public class JalRecordTest {
                 assertEquals(null, errorMessage);
 
                 //Validate digest is correct for test file sent.
-                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", responseMessage.getValue());
+                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", responseDigest.getValue());
+                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage.getValue());
             }
             else if (recType.equals(RecordType.Audit))
             {
@@ -1230,7 +1236,8 @@ public class JalRecordTest {
                 assertEquals(null, errorMessage);
 
                 //Validate digest is correct for test file sent.
-                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", responseMessage.getValue());
+                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", responseDigest.getValue());
+                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage.getValue());
             }
         }
 

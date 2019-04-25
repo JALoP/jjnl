@@ -142,8 +142,8 @@ public class InitializeTest {
                             System.out.println("Failure parameters:");
                             System.out.println("Record Type: " + recType.toString());
                             System.out.println("Mode: " + currMode);
-                            System.out.println("Configure Digest " + configureDigest);
-                            System.out.println("XML Compression " + xmlCompression);
+                            System.out.println("Configure Digest: " + configureDigest);
+                            System.out.println("XML Compression: " + xmlCompression);
 
                             assertEquals(200, responseStatus);
                             assertEquals("initialize-ack", responseMessage);
