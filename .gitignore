@@ -1,8 +1,10 @@
+/input/
 /jnl_lib/target/
 /jnl_lib/coverage-report
 /jnl_lib/.settings
 /jnl_lib/.classpath
 /jnl_lib/.project
+/jnl_lib/output/
 /jnl_test/.settings
 /jnl_test/coverage-report
 /jnl_test/output

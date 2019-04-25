@@ -1163,7 +1163,7 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();;
+            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
             final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
             final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
