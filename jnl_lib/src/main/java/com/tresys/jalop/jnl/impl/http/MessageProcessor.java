@@ -2,6 +2,8 @@ package com.tresys.jalop.jnl.impl.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -198,8 +200,8 @@ public class MessageProcessor {
         //If there is a Journal Offset, the Record Type is journal, and the communication Mode is Archive,
         //Send a journal resume message
         if( subRequest.getResumeOffset() > 0 &&
-            RecordType.Journal.equals(supportedRecType) &&
-            Mode.Archive.equals(HttpUtils.getMode(modeStr))) {
+                RecordType.Journal.equals(supportedRecType) &&
+                Mode.Archive.equals(HttpUtils.getMode(modeStr))) {
             if(logger.isDebugEnabled()) {
                 logger.debug("Sending a journal resume message.");
             }
@@ -315,8 +317,6 @@ public class MessageProcessor {
             //Need error header
             return false;
         }
-
-        //Successful sync needs sent
 
         return true;
     }
@@ -475,18 +475,29 @@ public class MessageProcessor {
         }
 
         //Process the JAL record
-        SubscriberHttpANSHandler subscriberHandler = sess.getsubscriberHandler();
-        String digest = subscriberHandler.handleJALRecord(sysMetadataSize, appMetadataSize, payloadSize, payloadType, recType, jalId, requestInputStream);
+        try {
+            MessageDigest md = MessageDigest
+                    .getInstance(sess.getDigestType(sess.getDigestMethod()));
 
-        //If null, then failure occurred
-        if (digest == null)
-        {
-            errorMessages.add(HttpUtils.HDRS_RECORD_FAILED);
-            return false;
+            SubscriberHttpANSHandler subscriberHandler = new SubscriberHttpANSHandler(md, sess, sess.getPerformDigest());
+            String digest = subscriberHandler.handleJALRecord(sysMetadataSize, appMetadataSize, payloadSize, payloadType, recType, jalId, requestInputStream);
+
+            //If null, then failure occurred
+            if (digest == null)
+            {
+                errorMessages.add(HttpUtils.HDRS_RECORD_FAILED);
+                return false;
+            }
+
+            //Sets digest return value
+            digestResult.setDigest(digest);
+
+
         }
-
-        //Sets digest return value
-        digestResult.setDigest(digest);
+        catch (final NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException(
+                    "'digestMethod' must be a valid DigestMethod", e);
+        }
 
         return true;
     }
@@ -522,6 +533,14 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
         response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
         logger.info(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
+    }
+
+    @VisibleForTesting
+    static void setSyncResponse(final String jalId, final HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC);
+        response.setHeader(HttpUtils.HDRS_NONCE, jalId);
+        logger.info(HttpUtils.MSG_SYNC + " message processed");
     }
 
     @VisibleForTesting
@@ -593,9 +612,9 @@ public class MessageProcessor {
                 }
 
                 if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL)
-                    || messageType.equals(HttpUtils.MSG_AUDIT)) // process
-                                                                // binary if jal
-                                                                // record data
+                        || messageType.equals(HttpUtils.MSG_AUDIT)) // process
+                    // binary if jal
+                    // record data
                 {
                     DigestResult digestResult = new DigestResult();
                     if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
@@ -624,6 +643,8 @@ public class MessageProcessor {
                     else
                     {
                         //Send sync message
+                        String jalId = currHeaders.get(HttpUtils.HDRS_NONCE);
+                        setSyncResponse(jalId, response);
                     }
                 }
                 else

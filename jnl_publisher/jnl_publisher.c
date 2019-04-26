@@ -166,6 +166,28 @@ struct curl_slist * getJALRecordHeaders(std::string dataClass, std::string jalId
     return headers;
 }
 
+struct curl_slist * getDigestResponseHeaders(std::string jalId, std::string dataClass)
+{
+    struct curl_slist *headers=NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/http+jalop");
+    headers = curl_slist_append(headers, "Transfer-Encoding: binary");
+
+    //Set Jalop initialize message
+    headers = curl_slist_append(headers, "JAL-Message: digest-response");
+
+    //Valid initialize headers
+    std::string jalIdStr = "JAL-Id: " + jalId;
+    headers = curl_slist_append(headers, jalIdStr.c_str());
+    headers = curl_slist_append(headers, "JAL-Digest-Status: confirmed");
+
+
+    //Sets session id
+    std::string sessionIdStr = "JAL-Session-Id: " + getSessionIdByDataClass(dataClass);
+    headers = curl_slist_append(headers, sessionIdStr.c_str());
+
+    return headers;
+}
+
 bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::string dataClass, std::string filename)
 {
     CURL *curl;
@@ -253,13 +275,14 @@ bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::strin
     }
 }
 
-bool processJALRecordResponse(std::string dataClass)
+bool processJALRecordResponse(std::string dataClass, std::string jalId)
 {
     //Process response header
     if (headerMap.find("JAL-Message") != headerMap.end())
     {
         fprintf(stdout, "%s\n", headerMap["JAL-Message"].c_str());
-        return true;
+
+        return performHttpPost(getDigestResponseHeaders(jalId, dataClass), false, dataClass, "");
     }
     else
     {
@@ -278,25 +301,25 @@ bool sendJalRecords(std::string dataClass)
 
     //Sending jal record after successful initialize
     fprintf(stdout, "Received initialize-ack, sending jal record\n");
-    struct curl_slist *rec1headers = getJALRecordHeaders(dataClass, "2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496",
-                                            "3083", "1125", "19");
+    std::string jalId = "2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496";
+    struct curl_slist *rec1headers = getJALRecordHeaders(dataClass, jalId, "3083", "1125", "19");
 
     if (!performHttpPost(rec1headers, true, dataClass, "test.txt"))
     {
         fprintf(stdout, "JAL-record post failed.\n");
         return false;
     }
-    processJALRecordResponse(dataClass);
+    processJALRecordResponse(dataClass, jalId);
 
-    struct curl_slist *rec2headers = getJALRecordHeaders(dataClass, "1ef4e71c-5971-4349-9169-d1e8a2e9450b_2019-02-22T16:09:46.43660-05:00_20705_3167946496",
-                                            "3083", "1124", "41");
+    jalId = "1ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496";
+    struct curl_slist *rec2headers = getJALRecordHeaders(dataClass, jalId, "3083", "1124", "41");
     if (!performHttpPost(rec2headers, true, dataClass, "test2.txt"))
     {
         fprintf(stdout, "JAL-record post failed.\n");
         return false;
     }
 
-    return processJALRecordResponse(dataClass);
+    return processJALRecordResponse(dataClass, jalId);
 }
 
 bool processInitializeResponse(std::string dataClass)

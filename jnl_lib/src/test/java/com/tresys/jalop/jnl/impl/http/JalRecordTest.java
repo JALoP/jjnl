@@ -262,42 +262,123 @@ public class JalRecordTest {
                 {
                     continue;
                 }
+                JalRecordLength recordLen = convertToJalRecord(currDir.getAbsolutePath());
+                assertEquals(true, recordLen != null);
 
-                HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+                sendJalRecord(recType, currDir, sessionId, expectedDigest, recordLen);
+            }
+        }
+    }
 
-                String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-                String jalMessage = recType.toString().toLowerCase() +  "-record";
+    private void sendJalRecordsConcurrent(RecordType recType, String publisherId, String expectedDigest, boolean performDigest) throws ClientProtocolException, IOException
+    {
+
+        ArrayList<Thread> arrThreads = new ArrayList<Thread>();
+
+        String sessionId = TestResources.sendValidInitialize(recType, performDigest, publisherId);
+        File inputDir = new File(inputDirStr + "/" + recType.toString().toLowerCase());
+        File[] directoryListing = inputDir.listFiles();
+        if (directoryListing != null) {
+            for (File currDir : directoryListing) {
+                if (!currDir.isDirectory())
+                {
+                    continue;
+                }
 
                 JalRecordLength recordLen = convertToJalRecord(currDir.getAbsolutePath());
                 assertEquals(true, recordLen != null);
 
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), Long.toString(recordLen.sysMetadataLen), Long.toString(recordLen.appMetadataLen), Long.toString(recordLen.payloadLen), payLoadLengthHeader, jalMessage);
+                final RecordType currRecType = recType;
+                final String currPublisherId = publisherId;
+                final File currInputDir = currDir;
+                final String currExpectedDigest = expectedDigest;
+                final String currSessionId = sessionId;
+                final JalRecordLength currRecordLen = recordLen;
 
-                for (Map.Entry<String, String> entry : headers.entrySet())
+                Thread t1 = new Thread(new Runnable() {
+                    @Override
+                    public void run(){
+
+
+                        try
+                        {
+                            sendJalRecord(currRecType, currInputDir, currSessionId, currExpectedDigest, currRecordLen);
+                        }
+                        catch (IOException e)
+                        {
+                            e.printStackTrace();
+                            //flag error
+                            assertTrue(false);
+                        }
+                    }
+                });
+                t1.start();
+                arrThreads.add(t1);
+
+            }
+
+            //Wait until all threads are done executing
+            for (int i = 0; i < arrThreads.size(); i++)
+            {
+                try
                 {
-                    httpPost.setHeader(entry.getKey(), entry.getValue());
+                    arrThreads.get(i).join();
                 }
-
-                String jalRecordPath = currDir.getAbsolutePath() + "/" + JAL_RECORD_FILE;
-                HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecordPath)).build();
-
-                httpPost.setEntity(entity);
-
-                HttpClient client = HttpClientBuilder.create().build();
-
-                final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-                final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
-                final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-                final int responseStatus = response.getStatusLine().getStatusCode();
-                assertEquals(200, responseStatus);
-                assertEquals(null, errorMessage);
-
-                //Validate digest is correct for test file sent.
-                assertEquals(expectedDigest, responseDigest);
-                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+                catch (InterruptedException ie)
+                {
+                    ie.printStackTrace();
+                    //flag error
+                    assertTrue(false);
+                }
             }
         }
+
+        try
+        {
+            //Need sleep to clean up input dir correctly
+            Thread.sleep(1000);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            //flag error
+            assertTrue(false);
+        }
+      //  TestResources.cleanInputDirectory(recType, inputDirStr);
+    }
+
+    private void sendJalRecord(RecordType recType, File currDir, String sessionId, String expectedDigest, JalRecordLength recordLen) throws ClientProtocolException, IOException
+    {
+        HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+        String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
+        String jalMessage = recType.toString().toLowerCase() +  "-record";
+
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), Long.toString(recordLen.sysMetadataLen), Long.toString(recordLen.appMetadataLen), Long.toString(recordLen.payloadLen), payLoadLengthHeader, jalMessage);
+
+        for (Map.Entry<String, String> entry : headers.entrySet())
+        {
+            httpPost.setHeader(entry.getKey(), entry.getValue());
+        }
+
+        String jalRecordPath = currDir.getAbsolutePath() + "/" + JAL_RECORD_FILE;
+        HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecordPath)).build();
+
+        httpPost.setEntity(entity);
+
+        HttpClient client = HttpClientBuilder.create().build();
+
+        final HttpResponse response = client.execute(httpPost);
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+        final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final int responseStatus = response.getStatusLine().getStatusCode();
+        assertEquals(200, responseStatus);
+        assertEquals(null, errorMessage);
+
+        //Validate digest is correct for test file sent.
+        assertEquals(expectedDigest, responseDigest);
+        assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
     }
 
     @Test
@@ -1389,8 +1470,9 @@ public class JalRecordTest {
         }
     }
 
+    //This test uses 3 separate threads to send records concurrent per record type.  Each record of the same type are sent sequentially however, but concurrent across the 3 types
     @Test
-    public void test1000EachRecTypeConcurrent() throws ClientProtocolException, IOException {
+    public void test1000EachRecTypeConcurrentPerRecType() throws ClientProtocolException, IOException {
 
         String publisherId = UUID.randomUUID().toString();
         ArrayList<Thread> arrThreads = new ArrayList<Thread>();
@@ -1466,6 +1548,51 @@ public class JalRecordTest {
                 //flag error
                 assertTrue(false);
             }
+        }
+
+        //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
+        cleanOutputDirectoryByPublisherId(publisherId);
+    }
+
+
+    //This test sends each record in a separate thread to test full concurrent record posts.  1000 records sent, 1000 threads all concurrent.
+    @Test
+    public void test1000EachRecTypeConcurrentPerEachRecord() throws ClientProtocolException, IOException {
+
+        String publisherId = UUID.randomUUID().toString();
+        ArrayList<Thread> arrThreads = new ArrayList<Thread>();
+
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+            boolean result = generateRecords(recType, 1000, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL);
+            assertTrue(result);
+        }
+
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            sendJalRecordsConcurrent(recType, publisherId, "0b601ac35ea3cd61984ad46f4b9726f4380fdf07dc69540f6ef8b594b5a013c0", true);
+
+            try
+            {
+                //Need sleep to clean up input dir correctly
+                Thread.sleep(1000);
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+                //flag error
+                assertTrue(false);
+            }
+            TestResources.cleanInputDirectory(recType, inputDirStr);
         }
 
         //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution

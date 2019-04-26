@@ -95,6 +95,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -123,6 +129,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -150,6 +162,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_INVALID_JAL_ID, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -178,6 +196,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_INVALID_JAL_ID, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -206,6 +230,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_INVALID_DIGEST_STATUS, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -235,6 +265,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_INVALID_DIGEST_STATUS, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -264,6 +300,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_INVALID_DIGEST_STATUS, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -293,6 +335,12 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNull(jalIdHeader);
+            assertNull(messageHeader);
         }
     }
 
@@ -323,6 +371,15 @@ public class DigestResponseTest {
 
             HttpClient client = HttpClientBuilder.create().build();
             final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_SYNC, messageHeader.getValue());
 
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNull(errorHeader);
@@ -356,6 +413,15 @@ public class DigestResponseTest {
 
             HttpClient client = HttpClientBuilder.create().build();
             final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_SYNC, messageHeader.getValue());
 
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNull(errorHeader);

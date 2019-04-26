@@ -2,8 +2,6 @@ package com.tresys.jalop.jnl.impl.subscriber;
 
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +15,6 @@ import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
-import com.tresys.jalop.jnl.impl.http.SubscriberHttpANSHandler;
 
 public class SubscriberHttpSessionImpl implements SubscriberSession {
 
@@ -30,7 +27,6 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     protected Map<String, String> digestMap;
     private long journalResumeOffset;
     private InputStream journalResumeIS;
-    private SubscriberHttpANSHandler subscriberHandler;
 
     private final RecordType recordType;
     private final Mode mode;
@@ -104,16 +100,6 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
                     + "must be a positive number.");
         }
 
-        try {
-            this.subscriberHandler = new SubscriberHttpANSHandler(
-                    MessageDigest
-                            .getInstance(getDigestType(digestMethod.trim())),
-                    this, performDigest);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException(
-                    "'digestMethod' must be a valid DigestMethod", e);
-        }
-
         this.recordType = recordType;
         this.mode = mode;
         this.digestMethod = digestMethod.trim();
@@ -128,7 +114,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         this.journalResumeOffset = 0;
     }
 
-    protected String getDigestType(final String algorithm) {
+    public String getDigestType(final String algorithm) {
 
         if (DigestMethod.SHA256.equals(algorithm)) {
             return "SHA-256";
@@ -139,11 +125,6 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
             return "SHA-384";
         }
         return "";
-    }
-
-    public SubscriberHttpANSHandler getsubscriberHandler()
-    {
-        return this.subscriberHandler;
     }
 
     /**
@@ -215,6 +196,15 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
      */
     public long getJournalResumeOffset() {
         return this.journalResumeOffset;
+    }
+
+    /**
+     *
+     * @return performDigest
+     */
+    public boolean getPerformDigest()
+    {
+        return this.performDigest;
     }
 
     /**
