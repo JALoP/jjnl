@@ -5,6 +5,7 @@ public class DigestResult {
     private String digest;
     private boolean performDigest;
     private String jalId;
+    private boolean failedDueToSync;
 
     public String getDigest() {
         return digest;
@@ -14,7 +15,7 @@ public class DigestResult {
         this.digest = digest;
     }
 
-    public boolean isPerformDigest() {
+    public boolean getPerformDigest() {
         return performDigest;
     }
 
@@ -28,5 +29,13 @@ public class DigestResult {
 
     public void setJalId(String jalId) {
         this.jalId = jalId;
+    }
+
+    public boolean getFailedDueToSync() {
+        return failedDueToSync;
+    }
+
+    public void setFailedDueToSync(boolean failedDueToSync) {
+        this.failedDueToSync = failedDueToSync;
     }
 }

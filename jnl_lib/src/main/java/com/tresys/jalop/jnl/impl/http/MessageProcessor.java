@@ -297,6 +297,7 @@ public class MessageProcessor {
     @VisibleForTesting
     static boolean processJALRecordMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
     {
+
         if (digestResult == null)
         {
             throw new IllegalArgumentException("digestResult is required");
@@ -322,6 +323,7 @@ public class MessageProcessor {
             throw new IllegalArgumentException("supportedRecType is required");
         }
 
+        digestResult.setFailedDueToSync(false);
         String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
 
         //Lookup the correct session based upon session id and process the record
@@ -479,7 +481,7 @@ public class MessageProcessor {
                 if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed))
                 {
                     logger.error("notifyDigestResponse failure: " + jalId + ", " + DigestStatus.Confirmed);
-
+                    digestResult.setFailedDueToSync(true);
                     errorMessages.add(HttpUtils.HDRS_SYNC_FAILURE);
                     return false;
                 }
@@ -639,7 +641,7 @@ public class MessageProcessor {
                             supportedRecType, digestResult, errorMessages))
                     {
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
-                        if (digestResult.isPerformDigest())
+                        if (!digestResult.getFailedDueToSync())
                         {
                             MessageProcessor.setDigestChallengeFailedResponse(digestResult.getJalId(), errorMessages, response);
                         }
@@ -651,7 +653,7 @@ public class MessageProcessor {
                     else
                     {
                         //If digest was performed send digest challenge otherwise send sync
-                        if (digestResult.isPerformDigest())
+                        if (digestResult.getPerformDigest())
                         {
                             // Set digest-challenge response
                             MessageProcessor.setDigestChallengeResponse(digestResult, response);

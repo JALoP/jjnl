@@ -854,7 +854,7 @@ public class JalRecordTest {
             assertEquals(200, responseStatus);
 
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
             assertNull(jalIdHeader);
