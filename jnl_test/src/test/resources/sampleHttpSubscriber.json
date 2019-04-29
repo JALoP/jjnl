@@ -5,7 +5,7 @@
     "sessionTimeout": "00:20:00",
     "dataClass": [ "audit", "journal", "log" ],
     "configureDigest": [ "on", "off"],
-    "configureTls": "off",
+    "configureTls": "on",
     "pendingDigestMax": 1,
     "pendingDigestTimeout": 120,
     "output": "./output",
