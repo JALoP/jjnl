@@ -100,6 +100,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             // This handler then needs to be registered with the Server object.
             ServletContextHandler handler =  new ServletContextHandler(server, "/");
             server.setHandler(handler);
+            SslContextFactory sslContextFactory = new SslContextFactory();
 
             if (config.getTlsConfiguration().equals(MSG_ON))
             {
@@ -116,7 +117,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
                 // to know about. Much more configuration is available the ssl context,
                 // including things like choosing the particular certificate out of a
                 // keystore to be used.
-                SslContextFactory sslContextFactory = new SslContextFactory();
                 sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
                 sslContextFactory.setKeyStorePassword(config.getKeystorePassword());
                 sslContextFactory.setKeyManagerPassword(config.getKeystorePassword());
@@ -250,6 +250,16 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             // Start things up!
             server.start();
+
+            if (config.getTlsConfiguration().equals(MSG_ON)) {
+                //Display supported protocols and ciphers.
+                SSLEngine engine = sslContextFactory.newSSLEngine();
+                String enabledProtocols[] = engine.getEnabledProtocols();
+                String enabledCiphers[] = engine.getEnabledCipherSuites();
+
+                logger.info("JALoP Jetty Server only supports the following protocols: " + Arrays.toString(enabledProtocols));
+                logger.info("JALoP Jetty Server only supports the following ciphers: " + Arrays.toString(enabledCiphers));
+            }
 
             // The use of server.join() the will make the current thread join and
             // wait until the server is done executing.
