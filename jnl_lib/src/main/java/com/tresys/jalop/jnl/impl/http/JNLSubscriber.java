@@ -40,6 +40,8 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(JNLSubscriber.class);
+    private static final String MSG_ON = "on";
+    private static final String MSG_OFF = "off";
 
     /**
      * From Sessions to associated {@link SubscriberImpl}
@@ -99,82 +101,116 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             ServletContextHandler handler =  new ServletContextHandler(server, "/");
             server.setHandler(handler);
 
-            String keystorePath = config.getKeystorePath();
-            File keystoreFile = new File(keystorePath);
-            if (!keystoreFile.exists())
+            if (config.getTlsConfiguration().equals(MSG_ON))
             {
-                throw new FileNotFoundException(keystoreFile.getAbsolutePath());
+                String keystorePath = config.getKeystorePath();
+                File keystoreFile = new File(keystorePath);
+                if (!keystoreFile.exists())
+                {
+                    throw new FileNotFoundException(keystoreFile.getAbsolutePath());
+                }
+
+                // SSL Context Factory for HTTPS
+                // SSL requires a certificate so we configure a factory for ssl contents
+                // with information pointing to what keystore the ssl connection needs
+                // to know about. Much more configuration is available the ssl context,
+                // including things like choosing the particular certificate out of a
+                // keystore to be used.
+                SslContextFactory sslContextFactory = new SslContextFactory();
+                sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
+                sslContextFactory.setKeyStorePassword(config.getKeystorePassword());
+                sslContextFactory.setKeyManagerPassword(config.getKeystorePassword());
+
+                //Exclude all weak ciphers
+                sslContextFactory.setExcludeCipherSuites("^.*_(MD5|SHA|SHA1)$");
+                // Exclude ciphers that don't support forward secrecy
+                sslContextFactory.addExcludeCipherSuites("^TLS_RSA_.*$");
+                // Exclude SSL ciphers (that are accidentally present due to Include patterns)
+                sslContextFactory.addExcludeCipherSuites("^SSL_.*$");
+                // Exclude NULL ciphers (that are accidentally present due to Include patterns)
+                sslContextFactory.addExcludeCipherSuites("^.*_NULL_.*$");
+                // Exclude anon ciphers (that are accidentally present due to Include patterns)
+                sslContextFactory.addExcludeCipherSuites("^.*_anon_.*$");
+
+                //Exclude CBC ciphers
+                sslContextFactory.addExcludeCipherSuites("^.*_CBC_.*$");
+
+                sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_128_GCM_SHA256");
+
+
+                //Disable all protocols except for tls 1.2
+                String[] excludedProtocols = new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1"};
+                sslContextFactory.setExcludeProtocols(excludedProtocols);
+
+                //This forces client certificate to be required
+                sslContextFactory.setNeedClientAuth(true);
+
+                // HTTPS Configuration
+                // A new HttpConfiguration object is needed for the next connector and
+                // you can pass the old one as an argument to effectively clone the
+                // contents. On this HttpConfiguration object we add a
+                // SecureRequestCustomizer which is how a new connector is able to
+                // resolve the https connection before handing control over to the Jetty
+                // Server.
+                HttpConfiguration https_config = new HttpConfiguration();
+                https_config.setRequestHeaderSize(HttpUtils.MAX_HEADER_SIZE);
+                SecureRequestCustomizer src = new SecureRequestCustomizer();
+                src.setStsMaxAge(2000);
+                src.setStsIncludeSubDomains(true);
+
+                https_config.addCustomizer(src);
+
+                // HTTPS connector
+                // We create a second ServerConnector, passing in the http configuration
+                // we just made along with the previously created ssl context factory.
+                // Next we set the port and a longer idle timeout.
+                ServerConnector https = new ServerConnector(server,
+                        new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString()),
+                        new HttpConnectionFactory(https_config));
+                https.setPort(config.getPort());
+                https.setIdleTimeout(500000);
+                https.setHost(config.getAddress());
+
+                // Here you see the server having multiple connectors registered with
+                // it, now requests can flow into the server from both http and https
+                // urls to their respective ports and be processed accordingly by jetty.
+                // A simple handler is also registered with the server so the example
+                // has something to pass requests off to.
+
+                // Set the connectors
+                server.setConnectors(new Connector[] { https });
             }
 
-            // SSL Context Factory for HTTPS
-            // SSL requires a certificate so we configure a factory for ssl contents
-            // with information pointing to what keystore the ssl connection needs
-            // to know about. Much more configuration is available the ssl context,
-            // including things like choosing the particular certificate out of a
-            // keystore to be used.
-            SslContextFactory sslContextFactory = new SslContextFactory();
-            sslContextFactory.setKeyStorePath(keystoreFile.getAbsolutePath());
-            sslContextFactory.setKeyStorePassword(config.getKeystorePassword());
-            sslContextFactory.setKeyManagerPassword(config.getKeystorePassword());
+            else if (config.getTlsConfiguration().equals(MSG_OFF))
+            {
+                // HTTP connector
+                // The first server connector we create is the one for http, passing in
+                // the http configuration we configured above so it can get things like
+                // the output buffer size, etc. We also set the port (8080) and
+                // configure an idle timeout.
+                HttpConfiguration http_config = new HttpConfiguration();
+                http_config.setRequestHeaderSize(HttpUtils.MAX_HEADER_SIZE);
 
-            //Exclude all weak ciphers
-            sslContextFactory.setExcludeCipherSuites("^.*_(MD5|SHA|SHA1)$");
-            // Exclude ciphers that don't support forward secrecy
-            sslContextFactory.addExcludeCipherSuites("^TLS_RSA_.*$");
-            // Exclude SSL ciphers (that are accidentally present due to Include patterns)
-            sslContextFactory.addExcludeCipherSuites("^SSL_.*$");
-            // Exclude NULL ciphers (that are accidentally present due to Include patterns)
-            sslContextFactory.addExcludeCipherSuites("^.*_NULL_.*$");
-            // Exclude anon ciphers (that are accidentally present due to Include patterns)
-            sslContextFactory.addExcludeCipherSuites("^.*_anon_.*$");
+                ServerConnector http = new ServerConnector(server,
+                        new HttpConnectionFactory(http_config));
+                http.setPort(config.getPort());
+                http.setIdleTimeout(500000);
+                http.setHost(config.getAddress());
 
-            //Exclude CBC ciphers
-            sslContextFactory.addExcludeCipherSuites("^.*_CBC_.*$");
+                // Here you see the server having multiple connectors registered with
+                // it, now requests can flow into the server from both http and https
+                // urls to their respective ports and be processed accordingly by jetty.
+                // A simple handler is also registered with the server so the example
+                // has something to pass requests off to.
 
-            sslContextFactory.addExcludeCipherSuites("TLS_DHE_RSA_WITH_AES_128_GCM_SHA256");
+                // Set the connectors
+                server.setConnectors(new Connector[] { http });
+            }
 
-
-            //Disable all protocols except for tls 1.2
-            String[] excludedProtocols = new String[]{"SSLv2Hello", "SSLv3", "TLSv1", "TLSv1.1"};
-            sslContextFactory.setExcludeProtocols(excludedProtocols);
-
-            //This forces client certificate to be required
-            sslContextFactory.setNeedClientAuth(true);
-
-            // HTTPS Configuration
-            // A new HttpConfiguration object is needed for the next connector and
-            // you can pass the old one as an argument to effectively clone the
-            // contents. On this HttpConfiguration object we add a
-            // SecureRequestCustomizer which is how a new connector is able to
-            // resolve the https connection before handing control over to the Jetty
-            // Server.
-            HttpConfiguration https_config = new HttpConfiguration();
-            https_config.setRequestHeaderSize(HttpUtils.MAX_HEADER_SIZE);
-            SecureRequestCustomizer src = new SecureRequestCustomizer();
-            src.setStsMaxAge(2000);
-            src.setStsIncludeSubDomains(true);
-
-            https_config.addCustomizer(src);
-
-            // HTTPS connector
-            // We create a second ServerConnector, passing in the http configuration
-            // we just made along with the previously created ssl context factory.
-            // Next we set the port and a longer idle timeout.
-            ServerConnector https = new ServerConnector(server,
-                    new SslConnectionFactory(sslContextFactory,HttpVersion.HTTP_1_1.asString()),
-                    new HttpConnectionFactory(https_config));
-            https.setPort(config.getPort());
-            https.setIdleTimeout(500000);
-            https.setHost(config.getAddress());
-
-            // Here you see the server having multiple connectors registered with
-            // it, now requests can flow into the server from both http and https
-            // urls to their respective ports and be processed accordingly by jetty.
-            // A simple handler is also registered with the server so the example
-            // has something to pass requests off to.
-
-            // Set the connectors
-            server.setConnectors(new Connector[] { https });
+            else
+            {
+                throw new JNLException("Cannot subscribe without configuring TLS on/off");
+            }
 
             // Passing in the class for the Servlet allows jetty to instantiate an
             // instance of that Servlet and mount it on a given context path.
@@ -214,14 +250,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             // Start things up!
             server.start();
-
-            //Display supported protocols and ciphers.
-            SSLEngine engine = sslContextFactory.newSSLEngine();
-            String enabledProtocols[] = engine.getEnabledProtocols();
-            String enabledCiphers[] = engine.getEnabledCipherSuites();
-
-            logger.info("JALoP Jetty Server only supports the following protocols: " + Arrays.toString(enabledProtocols));
-            logger.info("JALoP Jetty Server only supports the following ciphers: " + Arrays.toString(enabledCiphers));
 
             // The use of server.join() the will make the current thread join and
             // wait until the server is done executing.

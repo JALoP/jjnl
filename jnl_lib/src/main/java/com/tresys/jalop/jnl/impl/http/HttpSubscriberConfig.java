@@ -16,6 +16,7 @@ public class HttpSubscriberConfig {
     private String address;
     private Set<RecordType> recordTypes;
     private List<String> allowedConfigureDigests;
+    private String tlsConfiguration;
     private Role role;
     private Mode mode;
     private File outputPath;
@@ -49,6 +50,12 @@ public class HttpSubscriberConfig {
     }
     public void setRecordTypes(Set<RecordType> recordTypes) {
         this.recordTypes = recordTypes;
+    }
+    public String getTlsConfiguration() {
+        return tlsConfiguration;
+    }
+    public void setTlsConfiguration(String tlsConfiguration) {
+        this.tlsConfiguration = tlsConfiguration;
     }
     public List<String> getAllowedConfigureDigests() {
         return allowedConfigureDigests;

@@ -36,9 +36,11 @@ import com.tresys.jalop.jnl.impl.http.HttpUtils;
  */
 public class HttpConfig extends BaseConfig {
     private static final String CONFIGURE_DIGEST = "configureDigest";
+    private static final String CONFIGURE_TLS = "configureTls";
 
     private HashMap<String, String> sslConfig;
     private List<String> configureDigests;
+    private String configureTls;
 
     private static final String KEY_ALGORITHM = "Key Algorithm";
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
@@ -113,6 +115,7 @@ public class HttpConfig extends BaseConfig {
         super.handleSubscriber(subscriber);
 
         handleConfigureDigest(subscriber);
+        handleTls(subscriber);
     }
 
 
@@ -155,16 +158,16 @@ public class HttpConfig extends BaseConfig {
     }
 
     /**
-     * Handle parsing the dataClass field for a publisher or listener.
+     * Handle parsing the configure digest challenge field.
      * @param obj
      *            The context to look up keys in.
      * @throws ConfigurationException
      *            If an error is detected in the configuration.
      */
     public void handleConfigureDigest(final JSONObject obj) throws ConfigurationException {
-        final JSONArray dataClasses = itemAsArray(CONFIGURE_DIGEST, obj);
+        final JSONArray configureDigestsList = itemAsArray(CONFIGURE_DIGEST, obj);
         this.configureDigests = new ArrayList<String>();
-        for (final Object o : dataClasses) {
+        for (final Object o : configureDigestsList) {
             this.configureDigests.add((String)o);
         }
 
@@ -178,13 +181,26 @@ public class HttpConfig extends BaseConfig {
         if (this.configureDigests.size() > 1 && !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGEST_OFF) ||
             this.configureDigests.size() > 2)
         {
-            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGEST_ON + " and " + HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGEST_ON + " and/or " + HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+        }
+    }
+
+    public void handleTls(final JSONObject obj) throws ConfigurationException {
+        final String tlsString = itemAsString(CONFIGURE_TLS, obj);
+        this.configureTls = tlsString;
+        if (!this.configureTls.equals("on") && !this.configureTls.equals("off")) {
+            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_TLS + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGEST_ON + " or " + HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
         }
     }
 
     public List<String> getConfigureDigests()
     {
         return this.configureDigests;
+    }
+
+    public String getTlsConfiguration()
+    {
+        return this.configureTls;
     }
 
     /**
@@ -235,6 +251,7 @@ public class HttpConfig extends BaseConfig {
         httpSubscriberConfig.setPort(this.getPort());
         httpSubscriberConfig.setRecordTypes(this.getRecordTypes());
         httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
+        httpSubscriberConfig.setTlsConfiguration(this.getTlsConfiguration());
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());
         httpSubscriberConfig.setOutputPath(this.getOutputPath());
