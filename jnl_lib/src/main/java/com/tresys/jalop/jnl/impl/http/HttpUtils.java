@@ -93,6 +93,7 @@ public class HttpUtils {
     public static final String HDRS_XML_COMPRESSION = "JAL-XML-Compression";
     public static final String HDRS_UNSUPPORTED_DATACLASS = "JAL-Unsupported-Data-Class";
     public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
+    public static final String HDRS_SYNC_FAILURE = "JAL-Sync-Failure";
 
     //Additional constants
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
@@ -112,6 +113,7 @@ public class HttpUtils {
     public static final String MSG_CONFIGURE_DIGEST_ON = "on";
     public static final String MSG_DIGEST = "digest";
     public static final String MSG_DIGEST_CHALLENGE = "digest-challenge";
+    public static final String MSG_DIGEST_CHALLENGE_FAILED = "digest-challenge-failed";
     public static final String MSG_DIGEST_RESP = "digest-response";
     public static final String MSG_INIT = "initialize";
     public static final String MSG_INIT_ACK = "initialize-ack";
@@ -122,6 +124,8 @@ public class HttpUtils {
     public static final String MSG_JOURNAL_RESUME = "journal-resume";
     public static final String MSG_LOG = "log-record";
     public static final String MSG_SYNC = "sync";
+    public static final String MSG_SYNC_FAILED = "sync-failed";
+    public static final String MSG_SESSION_FAILED = "session-failed";
     public static final String MSG_PUBLISH = "publish";
     public static final String MSG_SUBSCRIBE = "subscribe";
     public static final String MSG_LIVE = "live";

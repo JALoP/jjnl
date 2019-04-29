@@ -1,6 +1,8 @@
 package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -289,7 +291,6 @@ public class JalRecordTest {
                 assertEquals(true, recordLen != null);
 
                 final RecordType currRecType = recType;
-                final String currPublisherId = publisherId;
                 final File currInputDir = currDir;
                 final String currExpectedDigest = expectedDigest;
                 final String currSessionId = sessionId;
@@ -419,13 +420,15 @@ public class JalRecordTest {
     @Test
     public void testProcessJALRecordMessageInvalidSystemMetadataLen() throws ClientProtocolException, IOException {
         String [] testValues = new String[] {null, "", "junk", "-1", "0"};
-
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
             {
                 continue;
             }
+
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
@@ -434,7 +437,7 @@ public class JalRecordTest {
                 String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", testValue, "0", "0", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", testValue, "0", "0", payLoadLengthHeader, jalMessage);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -455,13 +458,15 @@ public class JalRecordTest {
     @Test
     public void testProcessJALRecordMessageInvalidAppMetadataLen() throws ClientProtocolException, IOException {
         String [] testValues = new String[] {null, "", "junk", "-1"};
-
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
             {
                 continue;
             }
+
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
@@ -470,7 +475,7 @@ public class JalRecordTest {
                 String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", testValue, "0", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", testValue, "0", payLoadLengthHeader, jalMessage);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -491,13 +496,15 @@ public class JalRecordTest {
     @Test
     public void testProcessJALRecordMessageInvalidPayLoadLen() throws ClientProtocolException, IOException {
         String [] testValues = new String[] {null, "", "junk", "-1"};
-
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
             {
                 continue;
             }
+
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
@@ -506,7 +513,7 @@ public class JalRecordTest {
                 String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", testValue, payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", testValue, payLoadLengthHeader, jalMessage);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -529,7 +536,10 @@ public class JalRecordTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
+        String publisherId = UUID.randomUUID().toString();
+        String sessionId = TestResources.sendValidInitialize(RecordType.Audit, true, publisherId);
+
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -550,7 +560,10 @@ public class JalRecordTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
+        String publisherId = UUID.randomUUID().toString();
+        String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId);
+
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -571,7 +584,10 @@ public class JalRecordTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.LOG_ENDPOINT);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_LOG);
+        String publisherId = UUID.randomUUID().toString();
+        String sessionId = TestResources.sendValidInitialize(RecordType.Log, true, publisherId);
+
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_LOG);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -592,7 +608,10 @@ public class JalRecordTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
+        String publisherId = UUID.randomUUID().toString();
+        String sessionId = TestResources.sendValidInitialize(RecordType.Audit, true, publisherId);
+
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -613,7 +632,9 @@ public class JalRecordTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
+        String publisherId = UUID.randomUUID().toString();
+        String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -634,7 +655,10 @@ public class JalRecordTest {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.LOG_ENDPOINT);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", HttpUtils.HDRS_LOG_LEN, HttpUtils.MSG_AUDIT);
+        String publisherId = UUID.randomUUID().toString();
+        String sessionId = TestResources.sendValidInitialize(RecordType.Log, true, publisherId);
+
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_LOG_LEN, HttpUtils.MSG_AUDIT);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -654,12 +678,15 @@ public class JalRecordTest {
     public void testProcessJALRecordMessageInvalidJalId() throws ClientProtocolException, IOException {
         String [] testValues = new String[] {null, ""};
 
+        String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
             {
                 continue;
             }
+
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
@@ -668,7 +695,7 @@ public class JalRecordTest {
                 String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, testValue, "1", "0", "1", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, testValue, "1", "0", "1", payLoadLengthHeader, jalMessage);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -838,14 +865,20 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
-            final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
-            assertEquals(null, errorMessage);
+
+            assertNull(errorHeader);
+            assertNotNull(messageHeader);
+
+            //Verify that sync message was sent
+            assertEquals(HttpUtils.MSG_SYNC, messageHeader.getValue());
 
             //Validate that no digest was sent since digest was configured to be off.
-            assertEquals("", responseMessage);
+            assertNull(digestHeader);
         }
     }
 
@@ -1273,8 +1306,10 @@ public class JalRecordTest {
             }
             else if (recType.equals(RecordType.Audit))
             {
+                assertNotNull(errorMessage);
                 assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, errorMessage.getValue());
-                assertEquals(null, responseMessage);
+                assertNotNull(responseMessage);
+                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE_FAILED, responseMessage.getValue());
             }
             else if (recType.equals(RecordType.Log))
             {

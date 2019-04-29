@@ -26,6 +26,7 @@ import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLMessageProcessingException;
+import com.tresys.jalop.jnl.exceptions.JNLSessionInvalidException;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
@@ -223,32 +224,7 @@ public class MessageProcessor {
         return true;
     }
 
-    public static Map<String, String> processDigestMessage(long jalCount,
-            final InputStream is) throws IOException
-    {
-        // get the digest map from the input stream
-        final Map<String, String> digestMap = new HashMap<String, String>();
-        final int numLeft = is.available();
-        final byte[] messageArray = new byte[numLeft];
-        try {
-            is.read(messageArray);
-        } catch (final IOException e) {
-            e.printStackTrace();
-        }
-        final String msgStr = new String(messageArray);
-
-        final String[] pairs = HttpUtils.checkForEmptyString(msgStr, "payload").split("\\s+|=");
-
-        for (int x = 0; x < jalCount * 2; x += 2) {
-            pairs[x] = HttpUtils.checkForEmptyString(pairs[x], HttpUtils.MSG_DIGEST);
-            pairs[x + 1] = HttpUtils.checkForEmptyString(pairs[x + 1], HttpUtils.NONCE);
-            digestMap.put(pairs[x + 1], pairs[x]);
-        }
-
-        return digestMap;
-    }
-
-    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, List<String> errorMessages)
+    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, String sessionIdStr, List<String> errorMessages)
     {
         if (errorMessages == null)
         {
@@ -260,12 +236,9 @@ public class MessageProcessor {
             throw new IllegalArgumentException("requestHeaders is required");
         }
 
-        //Gets the session Id from header
-        String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
-        if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
+        if (sessionIdStr == null)
         {
-            logger.error("Digest response message failed due to invalid Session ID value of: " + sessionIdStr);
-            return false;
+            throw new IllegalArgumentException("sessionIdStr is required");
         }
 
         //Checks the jal Id
@@ -314,7 +287,7 @@ public class MessageProcessor {
         else {
             logger.error("notifyDigestResponse failure: " + jalId + ", " + digestStatus);
 
-            //Need error header
+            errorMessages.add(HttpUtils.HDRS_SYNC_FAILURE);
             return false;
         }
 
@@ -350,6 +323,19 @@ public class MessageProcessor {
         }
 
         String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
+
+        //Lookup the correct session based upon session id and process the record
+        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionBySessionId(sessionIdStr);
+
+        //If null then active session does not exist for this publisher, return error
+        if (sess == null)
+        {
+            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
+            return false;
+        }
+
+        digestResult.setPerformDigest(sess.getPerformDigest());
 
         // Get the segment lengths from the header
         Long sysMetadataSize = new Long(0);
@@ -463,17 +449,6 @@ public class MessageProcessor {
             return false;
         }
 
-        //Lookup the correct session based upon session id and process the record
-        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionBySessionId(sessionIdStr);
-
-        //If null then active session does not exist for this publisher, return error
-        if (sess == null)
-        {
-            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
-            return false;
-        }
-
         //Process the JAL record
         try {
             MessageDigest md = MessageDigest
@@ -489,10 +464,26 @@ public class MessageProcessor {
                 return false;
             }
 
-            //Sets digest return value
-            digestResult.setDigest(digest);
+            digestResult.setJalId(jalId);
 
+            //Sets digest return value if digest is enabled, otherwise process/send sync
+            if (sess.getPerformDigest())
+            {
+                //Sets digest return value
+                digestResult.setDigest(digest);
+            }
+            else
+            {
+                //Execute the notify digest callback which will take care of moving the record from temp to perm
+                //Status is always confirmed if digesting is disabled
+                if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed))
+                {
+                    logger.error("notifyDigestResponse failure: " + jalId + ", " + DigestStatus.Confirmed);
 
+                    errorMessages.add(HttpUtils.HDRS_SYNC_FAILURE);
+                    return false;
+                }
+            }
         }
         catch (final NoSuchAlgorithmException e) {
             throw new IllegalArgumentException(
@@ -528,11 +519,25 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
+    static void setDigestChallengeFailedResponse(List<String> errorMessages, HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE_FAILED);
+        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+    }
+
+    @VisibleForTesting
     static void setDigestChallengeResponse(final DigestResult digestResult, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
         response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
         logger.info(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
+    }
+
+    @VisibleForTesting
+    static void setSyncFailedResponse(List<String> errorMessages, HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC_FAILED);
+        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
     @VisibleForTesting
@@ -542,6 +547,14 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         logger.info(HttpUtils.MSG_SYNC + " message processed");
     }
+
+    @VisibleForTesting
+    static void setSessionFailedResponse(List<String> errorMessages, HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILED);
+        response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+    }
+
 
     @VisibleForTesting
     static Boolean setJournalResumeMessage(final String nonce,
@@ -573,6 +586,9 @@ public class MessageProcessor {
 
     public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
     {
+        //This is to set the error return message in the cases where an exception is thrown, so the correct error message is set in the JAL-Message header
+        String errorReturnMessage = "";
+
         //Used to capture all error messages that occur during the processing of this message
         List<String> errorMessages = new ArrayList<>();
         try
@@ -608,7 +624,7 @@ public class MessageProcessor {
                 {
                     String errMsg = "JAL Record message failed due to invalid Session ID value of: " + sessionIdStr;
                     logger.error(errMsg);
-                    throw new JNLMessageProcessingException("Session ID is either invalid or not found.");
+                    throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
                 }
 
                 if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL)
@@ -620,13 +636,29 @@ public class MessageProcessor {
                     if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
                             supportedRecType, digestResult, errorMessages))
                     {
-                        // Set error message in the header
-                        MessageProcessor.setErrorResponse(errorMessages, response);
+                        //If digest was performed send digest-challenge-failed, otherwise send sync-failed
+                        if (digestResult.isPerformDigest())
+                        {
+                            MessageProcessor.setDigestChallengeFailedResponse(errorMessages, response);
+                        }
+                        else
+                        {
+                            MessageProcessor.setSyncFailedResponse(errorMessages, response);
+                        }
                     }
                     else
                     {
-                        // Set digest-challenge response
-                        MessageProcessor.setDigestChallengeResponse(digestResult, response);
+                        //If digest was performed send digest challenge otherwise send sync
+                        if (digestResult.isPerformDigest())
+                        {
+                            // Set digest-challenge response
+                            MessageProcessor.setDigestChallengeResponse(digestResult, response);
+                        }
+                        else
+                        {
+                            //Send sync message
+                            MessageProcessor.setSyncResponse(digestResult.getJalId(), response);
+                        }
                     }
                 }
                 else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
@@ -635,16 +667,16 @@ public class MessageProcessor {
                 }
                 else if (messageType.equals(HttpUtils.MSG_DIGEST_RESP))
                 {
-                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, errorMessages))
+                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, errorMessages))
                     {
                         // Set error message in the header
-                        MessageProcessor.setErrorResponse(errorMessages, response);
+                        MessageProcessor.setSyncFailedResponse(errorMessages, response);
                     }
                     else
                     {
                         //Send sync message
                         String jalId = currHeaders.get(HttpUtils.HDRS_NONCE);
-                        setSyncResponse(jalId, response);
+                        MessageProcessor.setSyncResponse(jalId, response);
                     }
                 }
                 else
@@ -654,6 +686,11 @@ public class MessageProcessor {
                     return;
                 }
             }
+        }
+        catch (JNLSessionInvalidException e)
+        {
+            logger.error("Failed to process message. Cause: " + e);
+            MessageProcessor.setSessionFailedResponse(errorMessages, response);
         }
         catch (JNLMessageProcessingException e)
         {
