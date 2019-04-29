@@ -101,7 +101,7 @@ public class DigestResponseTest {
 
             assertNull(jalIdHeader);
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SESSION_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
         }
     }
 
@@ -137,7 +137,7 @@ public class DigestResponseTest {
             assertNull(jalIdHeader);
 
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SESSION_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
         }
     }
 
@@ -171,7 +171,7 @@ public class DigestResponseTest {
 
             assertNull(jalIdHeader);
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SYNC_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
         }
     }
 
@@ -204,9 +204,10 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals("", jalIdHeader.getValue());
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SYNC_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
         }
     }
 
@@ -239,9 +240,10 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SYNC_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
         }
     }
 
@@ -275,14 +277,15 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SYNC_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
         }
     }
 
     @Test
-    public void testInvalidDigestStatusInDigestResponseMessage() throws ClientProtocolException, IOException {
+    public void testNotValidDigestStatusInDigestResponseMessage() throws ClientProtocolException, IOException {
 
         for (RecordType recType : RecordType.values())
         {
@@ -311,9 +314,10 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SYNC_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
         }
     }
 
@@ -347,12 +351,13 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
 
             //TODO - once session management is implemented, this may need changed to session-failed depending on how this check is implemented.
             //This is due to the check for if session exists is happening in the processDigestResponse message method currently.
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_SYNC_FAILED, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
         }
     }
 

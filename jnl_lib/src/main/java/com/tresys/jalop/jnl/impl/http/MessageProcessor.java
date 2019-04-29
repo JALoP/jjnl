@@ -337,6 +337,19 @@ public class MessageProcessor {
 
         digestResult.setPerformDigest(sess.getPerformDigest());
 
+        //Gets JAL-Id
+        String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
+
+        //Verifies not empty
+        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        if (jalId == null)
+        {
+            digestResult.setJalId(jalId);
+            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
+            return false;
+        }
+        digestResult.setJalId(jalId);
+
         // Get the segment lengths from the header
         Long sysMetadataSize = new Long(0);
         try
@@ -438,17 +451,6 @@ public class MessageProcessor {
             return false;
         }
 
-        //Gets JAL-Id
-        String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
-
-        //Verifies not empty
-        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
-        if (jalId == null)
-        {
-            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
-            return false;
-        }
-
         //Process the JAL record
         try {
             MessageDigest md = MessageDigest
@@ -460,11 +462,9 @@ public class MessageProcessor {
             //If null, then failure occurred
             if (digest == null)
             {
-                errorMessages.add(HttpUtils.HDRS_RECORD_FAILED);
+                errorMessages.add(HttpUtils.HDRS_RECORD_FAILURE);
                 return false;
             }
-
-            digestResult.setJalId(jalId);
 
             //Sets digest return value if digest is enabled, otherwise process/send sync
             if (sess.getPerformDigest())
@@ -494,14 +494,14 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setInitializeNackResponse(List<String> errorMessages, HttpServletResponse response)
+    static void setInitializeNackResponse(final List<String> errorMessages, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_NACK);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
     @VisibleForTesting
-    static void setInitializeAckResponse(HashMap<String, String> responseHeaders, HttpServletResponse response)
+    static void setInitializeAckResponse(final HashMap<String, String> responseHeaders, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT_ACK);
 
@@ -519,9 +519,10 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setDigestChallengeFailedResponse(List<String> errorMessages, HttpServletResponse response)
+    static void setDigestChallengeFailedResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
     {
-        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE_FAILED);
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_RECORD_FAILURE);
+        response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
@@ -534,9 +535,10 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setSyncFailedResponse(List<String> errorMessages, HttpServletResponse response)
+    static void setSyncFailedResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
     {
-        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC_FAILED);
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC_FAILURE);
+        response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
@@ -549,9 +551,9 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setSessionFailedResponse(List<String> errorMessages, HttpServletResponse response)
+    static void setSessionFailedResponse(final List<String> errorMessages, final HttpServletResponse response)
     {
-        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILED);
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILURE);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
@@ -639,11 +641,11 @@ public class MessageProcessor {
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
                         if (digestResult.isPerformDigest())
                         {
-                            MessageProcessor.setDigestChallengeFailedResponse(errorMessages, response);
+                            MessageProcessor.setDigestChallengeFailedResponse(digestResult.getJalId(), errorMessages, response);
                         }
                         else
                         {
-                            MessageProcessor.setSyncFailedResponse(errorMessages, response);
+                            MessageProcessor.setSyncFailedResponse(digestResult.getJalId(), errorMessages, response);
                         }
                     }
                     else
@@ -670,7 +672,8 @@ public class MessageProcessor {
                     if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, errorMessages))
                     {
                         // Set error message in the header
-                        MessageProcessor.setSyncFailedResponse(errorMessages, response);
+                        String jalId = currHeaders.get(HttpUtils.HDRS_NONCE);
+                        MessageProcessor.setSyncFailedResponse(jalId, errorMessages, response);
                     }
                     else
                     {

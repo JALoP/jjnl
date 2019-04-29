@@ -74,7 +74,7 @@ public class HttpUtils {
     public static final String HDRS_MODE = "JAL-Mode";
     public static final String HDRS_NONCE = "JAL-Id";
     public static final String HDRS_PUBLISHER_ID = "JAL-Publisher-Id";
-    public static final String HDRS_RECORD_FAILED = "JAL-Record-Failed";
+    public static final String HDRS_RECORD_FAILURE = "JAL-Record-Failure";
     public static final String HDRS_SESSION_ID = "JAL-Session-Id";
     public static final String HDRS_SESSION_ALREADY_EXISTS = "JAL-Session-Already-Exists";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
@@ -108,12 +108,12 @@ public class HttpUtils {
      */
     public static final String DEFAULT_CONTENT_TRANSFER_ENCODING = "binary";
 
+    public static final String MSG_ARCHIVE = "archival";
     public static final String MSG_AUDIT = "audit-record";
     public static final String MSG_CONFIGURE_DIGEST_OFF = "off";
     public static final String MSG_CONFIGURE_DIGEST_ON = "on";
     public static final String MSG_DIGEST = "digest";
     public static final String MSG_DIGEST_CHALLENGE = "digest-challenge";
-    public static final String MSG_DIGEST_CHALLENGE_FAILED = "digest-challenge-failed";
     public static final String MSG_DIGEST_RESP = "digest-response";
     public static final String MSG_INIT = "initialize";
     public static final String MSG_INIT_ACK = "initialize-ack";
@@ -122,14 +122,14 @@ public class HttpUtils {
     public static final String MSG_JOURNAL_MISSING_RESPONSE = "journal-missing-response";
     public static final String MSG_JOURNAL = "journal-record";
     public static final String MSG_JOURNAL_RESUME = "journal-resume";
-    public static final String MSG_LOG = "log-record";
-    public static final String MSG_SYNC = "sync";
-    public static final String MSG_SYNC_FAILED = "sync-failed";
-    public static final String MSG_SESSION_FAILED = "session-failed";
-    public static final String MSG_PUBLISH = "publish";
-    public static final String MSG_SUBSCRIBE = "subscribe";
     public static final String MSG_LIVE = "live";
-    public static final String MSG_ARCHIVE = "archival";
+    public static final String MSG_LOG = "log-record";
+    public static final String MSG_PUBLISH = "publish";
+    public static final String MSG_RECORD_FAILURE = "record-failure";
+    public static final String MSG_SESSION_FAILURE = "session-failure";
+    public static final String MSG_SUBSCRIBE = "subscribe";
+    public static final String MSG_SYNC = "sync";
+    public static final String MSG_SYNC_FAILURE = "sync-failure";
 
     public static final String NONCE = "nonce";
     public static final String STATUS = "status";

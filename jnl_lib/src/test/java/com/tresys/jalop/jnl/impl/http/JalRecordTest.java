@@ -409,10 +409,19 @@ public class JalRecordTest {
                 HttpClient client = HttpClientBuilder.create().build();
 
                 final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+                final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+                final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
-                assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, responseMessage);
+
+                assertNotNull(messageHeader);
+                assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
+                assertNotNull(errorHeader);
+                assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
+                assertNull(jalIdHeader);
+                assertNull(digestHeader);
             }
         }
     }
@@ -447,10 +456,20 @@ public class JalRecordTest {
                 HttpClient client = HttpClientBuilder.create().build();
 
                 final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+                final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+                final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
-                assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, responseMessage);
+
+                assertNotNull(messageHeader);
+                assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+                assertNotNull(errorHeader);
+                assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorHeader.getValue());
+                assertNotNull(jalIdHeader);
+                assertEquals("jalId", jalIdHeader.getValue());
+                assertNull(digestHeader);
             }
         }
     }
@@ -485,10 +504,20 @@ public class JalRecordTest {
                 HttpClient client = HttpClientBuilder.create().build();
 
                 final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+                final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+                final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
-                assertEquals(HttpUtils.HDRS_INVALID_APP_META_LEN, responseMessage);
+
+                assertNotNull(messageHeader);
+                assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+                assertNotNull(errorHeader);
+                assertEquals(HttpUtils.HDRS_INVALID_APP_META_LEN, errorHeader.getValue());
+                assertNotNull(jalIdHeader);
+                assertEquals("jalId", jalIdHeader.getValue());
+                assertNull(digestHeader);
             }
         }
     }
@@ -523,10 +552,20 @@ public class JalRecordTest {
                 HttpClient client = HttpClientBuilder.create().build();
 
                 final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+                final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+                final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
-                assertEquals("JAL-Invalid-" + recType.toString() + "-Length", responseMessage);
+
+                assertNotNull(messageHeader);
+                assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+                assertNotNull(errorHeader);
+                assertEquals("JAL-Invalid-" + recType.toString() + "-Length", errorHeader.getValue());
+                assertNotNull(jalIdHeader);
+                assertEquals("jalId", jalIdHeader.getValue());
+                assertNull(digestHeader);
             }
         }
     }
@@ -549,10 +588,20 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
-        assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, responseMessage);
+
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, errorHeader.getValue());
+        assertNotNull(jalIdHeader);
+        assertEquals("jalId", jalIdHeader.getValue());
+        assertNull(digestHeader);
     }
 
     @Test
@@ -573,10 +622,20 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
-        assertEquals(HttpUtils.HDRS_INVALID_JOURNAL_LEN, responseMessage);
+
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_INVALID_JOURNAL_LEN, errorHeader.getValue());
+        assertNotNull(jalIdHeader);
+        assertEquals("jalId", jalIdHeader.getValue());
+        assertNull(digestHeader);
     }
 
     @Test
@@ -597,10 +656,20 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
-        assertEquals(HttpUtils.HDRS_INVALID_LOG_LEN, responseMessage);
+
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_INVALID_LOG_LEN, errorHeader.getValue());
+        assertNotNull(jalIdHeader);
+        assertEquals("jalId", jalIdHeader.getValue());
+        assertNull(digestHeader);
     }
 
     @Test
@@ -621,10 +690,20 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
-        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, responseMessage);
+
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, errorHeader.getValue());
+        assertNotNull(jalIdHeader);
+        assertEquals("jalId", jalIdHeader.getValue());
+        assertNull(digestHeader);
     }
 
     @Test
@@ -644,10 +723,20 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
-        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, responseMessage);
+
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, errorHeader.getValue());
+        assertNotNull(jalIdHeader);
+        assertEquals("jalId", jalIdHeader.getValue());
+        assertNull(digestHeader);
     }
 
     @Test
@@ -668,10 +757,20 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
-        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, responseMessage);
+
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, errorHeader.getValue());
+        assertNotNull(jalIdHeader);
+        assertEquals("jalId", jalIdHeader.getValue());
+        assertNull(digestHeader);
     }
 
     @Test
@@ -705,10 +804,20 @@ public class JalRecordTest {
                 HttpClient client = HttpClientBuilder.create().build();
 
                 final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+                final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+                final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
-                assertEquals(HttpUtils.HDRS_INVALID_JAL_ID, responseMessage);
+
+                assertNotNull(messageHeader);
+                assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+                assertNotNull(errorHeader);
+                assertEquals(HttpUtils.HDRS_INVALID_JAL_ID, errorHeader.getValue());
+
+                assertNull(jalIdHeader);
+                assertNull(digestHeader);
             }
         }
     }
@@ -737,12 +846,19 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
 
-            //Session does not exist
-            assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, responseMessage);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
+            assertNull(jalIdHeader);
+            assertNull(digestHeader);
         }
     }
 
@@ -773,12 +889,21 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
 
-            //Session does not exist
-            assertEquals(HttpUtils.HDRS_RECORD_FAILED, responseMessage);
+            //Check for failure
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
+            assertNotNull(jalIdHeader);
+            assertEquals("jalId", jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -818,15 +943,18 @@ public class JalRecordTest {
 
             final HttpResponse response = client.execute(httpPost);
             final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-            final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
             assertEquals(null, errorMessage);
+            assertNotNull(digestHeader);
 
             //Validate digest is correct for test file sent.
-            assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", responseDigest);
+            assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", digestHeader.getValue());
             assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+            assertNull(jalIdHeader);
         }
     }
 
@@ -847,7 +975,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -867,6 +996,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -879,6 +1009,8 @@ public class JalRecordTest {
 
             //Validate that no digest was sent since digest was configured to be off.
             assertNull(digestHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
         }
     }
 
@@ -899,7 +1031,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3082", "1125", "19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3082", "1125", "19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -917,12 +1050,21 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
 
-            //Session does not exist
-            assertEquals(HttpUtils.HDRS_RECORD_FAILED, responseMessage);
+            //Check for failure
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -943,7 +1085,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083", "1126", "19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1126", "19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -961,12 +1104,20 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
 
-            //Session does not exist
-            assertEquals(HttpUtils.HDRS_RECORD_FAILED, responseMessage);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -987,7 +1138,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083", "1125", "18", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "18", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1005,12 +1157,20 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
 
-            //Session does not exist
-            assertEquals(HttpUtils.HDRS_RECORD_FAILED, responseMessage);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -1142,8 +1302,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "0","0","0", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","0","0", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1153,14 +1313,21 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
-            final String errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
-            assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorMessage);
 
-            //Validate digest is correct for test file sent.
-            assertEquals(null, responseDigest);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorHeader.getValue());;
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -1181,8 +1348,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "0","1125","19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","1125","19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1197,14 +1364,21 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
-            final String errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
-            assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorMessage);
 
-            //Validate digest is correct for test file sent.
-            assertEquals(null, responseDigest);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorHeader.getValue());
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -1225,8 +1399,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083","0","19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","0","19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1241,16 +1415,21 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-            final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
-            final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
-            assertEquals(null, errorMessage);
+
+            assertNull(errorHeader);
+            assertNotNull(digestHeader);
 
             //Validate digest is correct for test file sent.
-            assertEquals("111fc8cbbf9a1ea8010b44a348e73ee4e962a90d200b9439f28fa62edf84175e", responseDigest);
-            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+            assertEquals("111fc8cbbf9a1ea8010b44a348e73ee4e962a90d200b9439f28fa62edf84175e", digestHeader.getValue());
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, messageHeader.getValue());
+            assertNull(jalIdHeader);
         }
 
         cleanOutputDirectoryByPublisherId(publisherId);
@@ -1273,8 +1452,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083","1125","0", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","1125","0", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1289,35 +1468,45 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
-            final Header responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
-            final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
 
             //Only Journal and Log records can have empty payloads.
             if(recType.equals(RecordType.Journal))
             {
-                assertEquals(null, errorMessage);
+                assertNull(errorHeader);
+                assertNotNull(messageHeader);
+                assertNotNull(digestHeader);
+                assertNull(jalIdHeader);
 
                 //Validate digest is correct for test file sent.
-                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", responseDigest.getValue());
-                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage.getValue());
+                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", digestHeader.getValue());
+                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, messageHeader.getValue());
             }
             else if (recType.equals(RecordType.Audit))
             {
-                assertNotNull(errorMessage);
-                assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, errorMessage.getValue());
-                assertNotNull(responseMessage);
-                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE_FAILED, responseMessage.getValue());
+                assertNotNull(errorHeader);
+                assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, errorHeader.getValue());
+                assertNotNull(messageHeader);
+                assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+                assertNotNull(jalIdHeader);
+                assertEquals(jalId, jalIdHeader.getValue());
+                assertNull(digestHeader);
             }
             else if (recType.equals(RecordType.Log))
             {
-                assertEquals(null, errorMessage);
+                assertNull(errorHeader);
+                assertNotNull(messageHeader);
+                assertNotNull(digestHeader);
+                assertNull(jalIdHeader);
 
                 //Validate digest is correct for test file sent.
-                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", responseDigest.getValue());
-                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage.getValue());
+                assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", digestHeader.getValue());
+                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, messageHeader.getValue());
             }
         }
 
@@ -1341,8 +1530,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "0","1125","19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","1125","19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1357,14 +1546,21 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
-            final String errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
-            assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorMessage);
 
-            //Validate digest is correct for test file sent.
-            assertEquals(null, responseMessage);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_INVALID_SYS_META_LEN, errorHeader.getValue());
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -1385,8 +1581,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083","0","19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","0","19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1401,14 +1597,21 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
-            final String errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE).getValue();
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
-            assertEquals(HttpUtils.HDRS_RECORD_FAILED, errorMessage);
 
-            //Validate digest is correct for test file sent.
-            assertEquals(null, responseMessage);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            assertNull(digestHeader);
         }
     }
 
@@ -1429,8 +1632,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083","1125","0", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","1125","0", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1445,26 +1648,32 @@ public class JalRecordTest {
             HttpClient client = HttpClientBuilder.create().build();
 
             final HttpResponse response = client.execute(httpPost);
-            final Header responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
-            final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);                    ;
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertNotNull(errorHeader);
+            assertNull(digestHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
 
             //Only Journal and Log records can have empty payloads.
             if(recType.equals(RecordType.Journal))
             {
-                assertEquals(HttpUtils.HDRS_RECORD_FAILED, errorMessage.getValue());
-                assertEquals(null, responseMessage);
+                assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
             }
             else if (recType.equals(RecordType.Audit))
             {
-                assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, errorMessage.getValue());
-                assertEquals(null, responseMessage);
+                assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, errorHeader.getValue());
             }
             else if (recType.equals(RecordType.Log))
             {
-                assertEquals(HttpUtils.HDRS_RECORD_FAILED, errorMessage.getValue());
-                assertEquals(null, responseMessage);
+                assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
             }
         }
     }
