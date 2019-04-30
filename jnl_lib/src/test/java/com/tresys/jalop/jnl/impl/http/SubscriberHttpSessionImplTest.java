@@ -32,7 +32,7 @@ public class SubscriberHttpSessionImplTest {
 
         config.setOutputPath(new File("./output"));
         config.setAddress("127.0.0.1");
-        config.setAllowedConfigureDigests(Arrays.asList(new String[] {HttpUtils.MSG_CONFIGURE_DIGEST_ON}));
+        config.setAllowedConfigureDigests(Arrays.asList(new String[] {HttpUtils.MSG_ON}));
         config.setKeystorePassword("changeit");
         config.setKeystorePath("keystore.jks");
         config.setPort(8443);

@@ -84,8 +84,8 @@ public class TestResources {
         config.setMode(Mode.Live);
 
         List<String> allowedConfigureDigests = new ArrayList<String>();
-        allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGEST_ON);
-        allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+        allowedConfigureDigests.add(HttpUtils.MSG_ON);
+        allowedConfigureDigests.add(HttpUtils.MSG_OFF);
         config.setAllowedConfigureDigests(allowedConfigureDigests);
 
         HttpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
@@ -242,11 +242,11 @@ public class TestResources {
 
         if (performDigest == true)
         {
-            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_ON);
         }
         else
         {
-            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_OFF);
         }
 
         HttpClient client = HttpClientBuilder.create().build();

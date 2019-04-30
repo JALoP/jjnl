@@ -81,6 +81,9 @@ public class JalRecordTest {
     @BeforeClass
     public static void startWebServiceServer() throws Exception {
 
+        //Clears out input and output directories
+        TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
+
         //gets jjnl dir path
         resourcesDirectory = new File("src/test/resources");
         jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../..";
@@ -97,9 +100,6 @@ public class JalRecordTest {
         {
             inputDir.mkdir();
         }
-
-        //Clears out input and output directories
-        TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
 
         server = TestResources.getWebServer();
         server.start();
@@ -924,7 +924,8 @@ public class JalRecordTest {
             String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
             String jalMessage = recType.toString().toLowerCase() +  "-record";
 
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", payLoadLengthHeader, jalMessage);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -954,7 +955,7 @@ public class JalRecordTest {
             //Validate digest is correct for test file sent.
             assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", digestHeader.getValue());
             assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
-            assertNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
         }
     }
 
@@ -1429,7 +1430,7 @@ public class JalRecordTest {
             assertEquals("111fc8cbbf9a1ea8010b44a348e73ee4e962a90d200b9439f28fa62edf84175e", digestHeader.getValue());
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, messageHeader.getValue());
-            assertNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
         }
 
         cleanOutputDirectoryByPublisherId(publisherId);
@@ -1481,11 +1482,11 @@ public class JalRecordTest {
                 assertNull(errorHeader);
                 assertNotNull(messageHeader);
                 assertNotNull(digestHeader);
-                assertNull(jalIdHeader);
 
                 //Validate digest is correct for test file sent.
                 assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", digestHeader.getValue());
                 assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, messageHeader.getValue());
+                assertEquals(jalId, jalIdHeader.getValue());
             }
             else if (recType.equals(RecordType.Audit))
             {
@@ -1502,11 +1503,11 @@ public class JalRecordTest {
                 assertNull(errorHeader);
                 assertNotNull(messageHeader);
                 assertNotNull(digestHeader);
-                assertNull(jalIdHeader);
 
                 //Validate digest is correct for test file sent.
                 assertEquals("f09a91f9d22625e91bf936493f460c7a1f8ae395c0c1fb252420caede3034bfc", digestHeader.getValue());
                 assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, messageHeader.getValue());
+                assertEquals(jalId, jalIdHeader.getValue());
             }
         }
 

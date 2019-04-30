@@ -40,8 +40,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(JNLSubscriber.class);
-    private static final String MSG_ON = "on";
-    private static final String MSG_OFF = "off";
 
     /**
      * From Sessions to associated {@link SubscriberImpl}
@@ -102,7 +100,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             server.setHandler(handler);
             SslContextFactory sslContextFactory = new SslContextFactory();
 
-            if (config.getTlsConfiguration().equals(MSG_ON))
+            if (config.getTlsConfiguration().equals(HttpUtils.MSG_ON))
             {
                 String keystorePath = config.getKeystorePath();
                 File keystoreFile = new File(keystorePath);
@@ -181,7 +179,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
                 server.setConnectors(new Connector[] { https });
             }
 
-            else if (config.getTlsConfiguration().equals(MSG_OFF))
+            else if (config.getTlsConfiguration().equals(HttpUtils.MSG_OFF))
             {
                 // HTTP connector
                 // The first server connector we create is the one for http, passing in
@@ -251,7 +249,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             // Start things up!
             server.start();
 
-            if (config.getTlsConfiguration().equals(MSG_ON)) {
+            if (config.getTlsConfiguration().equals(HttpUtils.MSG_ON)) {
                 //Display supported protocols and ciphers.
                 SSLEngine engine = sslContextFactory.newSSLEngine();
                 String enabledProtocols[] = engine.getEnabledProtocols();

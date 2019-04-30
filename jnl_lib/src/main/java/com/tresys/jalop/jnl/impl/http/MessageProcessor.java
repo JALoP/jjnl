@@ -163,7 +163,7 @@ public class MessageProcessor {
         String confDigestChallengeStr = requestHeaders.get(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
         if (confDigestChallengeStr == null || confDigestChallengeStr.isEmpty())
         {
-            confDigestChallengeStr = HttpUtils.MSG_CONFIGURE_DIGEST_ON;
+            confDigestChallengeStr = HttpUtils.MSG_ON;
         }
 
         String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorMessages);
@@ -174,7 +174,7 @@ public class MessageProcessor {
         }
 
         boolean performDigest = true;
-        if (selectedConfDigestChallenge.equals(HttpUtils.MSG_CONFIGURE_DIGEST_OFF))
+        if (selectedConfDigestChallenge.equals(HttpUtils.MSG_OFF))
         {
             performDigest = false;
         }
@@ -518,6 +518,7 @@ public class MessageProcessor {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
         logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message processed");
+        logger.info(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE + " message processed");
     }
 
     @VisibleForTesting
@@ -526,12 +527,14 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_RECORD_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+        logger.info(HttpUtils.MSG_RECORD_FAILURE + " message processed");
     }
 
     @VisibleForTesting
-    static void setDigestChallengeResponse(final DigestResult digestResult, final HttpServletResponse response)
+    static void setDigestChallengeResponse(final String jalId, final DigestResult digestResult, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
+        response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
         logger.info(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
     }
@@ -542,6 +545,7 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+        logger.info(HttpUtils.MSG_SYNC_FAILURE + " message processed");
     }
 
     @VisibleForTesting
@@ -557,6 +561,7 @@ public class MessageProcessor {
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILURE);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+        logger.info(HttpUtils.MSG_SESSION_FAILURE + " message processed");
     }
 
 
@@ -656,7 +661,7 @@ public class MessageProcessor {
                         if (digestResult.getPerformDigest())
                         {
                             // Set digest-challenge response
-                            MessageProcessor.setDigestChallengeResponse(digestResult, response);
+                            MessageProcessor.setDigestChallengeResponse(digestResult.getJalId(), digestResult, response);
                         }
                         else
                         {

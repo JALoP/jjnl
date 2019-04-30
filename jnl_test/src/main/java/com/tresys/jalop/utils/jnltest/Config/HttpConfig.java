@@ -172,16 +172,16 @@ public class HttpConfig extends BaseConfig {
         }
 
         //Ensures that at least "on" is present
-        if (this.configureDigests == null || !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGEST_ON))
+        if (this.configureDigests == null || !this.configureDigests.contains(HttpUtils.MSG_ON))
         {
-           throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must contain at least " + HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+           throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must contain at least " + HttpUtils.MSG_ON);
         }
 
         //Ensures that only contains "on" and "off"
-        if (this.configureDigests.size() > 1 && !this.configureDigests.contains(HttpUtils.MSG_CONFIGURE_DIGEST_OFF) ||
+        if (this.configureDigests.size() > 1 && !this.configureDigests.contains(HttpUtils.MSG_OFF) ||
             this.configureDigests.size() > 2)
         {
-            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGEST_ON + " and/or " + HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_ON + " and/or " + HttpUtils.MSG_OFF);
         }
     }
 
@@ -189,7 +189,7 @@ public class HttpConfig extends BaseConfig {
         final String tlsString = itemAsString(CONFIGURE_TLS, obj);
         this.configureTls = tlsString;
         if (!this.configureTls.equals("on") && !this.configureTls.equals("off")) {
-            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_TLS + " must only contain " + HttpUtils.MSG_CONFIGURE_DIGEST_ON + " or " + HttpUtils.MSG_CONFIGURE_DIGEST_OFF);
+            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_TLS + " must only contain " + HttpUtils.MSG_ON + " or " + HttpUtils.MSG_OFF);
         }
     }
 

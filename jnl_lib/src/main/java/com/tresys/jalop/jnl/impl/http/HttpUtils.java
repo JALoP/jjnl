@@ -110,8 +110,6 @@ public class HttpUtils {
 
     public static final String MSG_ARCHIVE = "archival";
     public static final String MSG_AUDIT = "audit-record";
-    public static final String MSG_CONFIGURE_DIGEST_OFF = "off";
-    public static final String MSG_CONFIGURE_DIGEST_ON = "on";
     public static final String MSG_DIGEST = "digest";
     public static final String MSG_DIGEST_CHALLENGE = "digest-challenge";
     public static final String MSG_DIGEST_RESP = "digest-response";
@@ -124,6 +122,8 @@ public class HttpUtils {
     public static final String MSG_JOURNAL_RESUME = "journal-resume";
     public static final String MSG_LIVE = "live";
     public static final String MSG_LOG = "log-record";
+    public static final String MSG_OFF = "off";
+    public static final String MSG_ON = "on";
     public static final String MSG_PUBLISH = "publish";
     public static final String MSG_RECORD_FAILURE = "record-failure";
     public static final String MSG_SESSION_FAILURE = "session-failure";
@@ -152,7 +152,7 @@ public class HttpUtils {
         //Minimally "on" is always supported
         if (allowedConfigureDigests.size() == 0)
         {
-            allowedConfigureDigests.add(HttpUtils.MSG_CONFIGURE_DIGEST_ON);
+            allowedConfigureDigests.add(HttpUtils.MSG_ON);
         }
 
         return allowedConfigureDigests;
