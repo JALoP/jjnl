@@ -1727,6 +1727,7 @@ public class JalRecordTest {
             {
                 continue;
             }
+
             boolean result = generateRecords(recType, 1000, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL);
             assertTrue(result);
         }
@@ -1801,10 +1802,9 @@ public class JalRecordTest {
 
     //This test sends each record in a separate thread to test full concurrent record posts.  1000 records sent, 1000 threads all concurrent.
     @Test
-    public void test1000EachRecTypeConcurrentPerEachRecord() throws ClientProtocolException, IOException {
+    public void testConcurrentRecordPost() throws ClientProtocolException, IOException {
 
         String publisherId = UUID.randomUUID().toString();
-        ArrayList<Thread> arrThreads = new ArrayList<Thread>();
 
         for (RecordType recType : RecordType.values())
         {
@@ -1812,7 +1812,9 @@ public class JalRecordTest {
             {
                 continue;
             }
-            boolean result = generateRecords(recType, 1000, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL);
+
+            int recordCount = 100;  //Increase this number to increase the total number of record and threads created to stress test concurrent posting.  This creates 1 thread per record being submitted
+            boolean result = generateRecords(recType, recordCount, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL);
             assertTrue(result);
         }
 

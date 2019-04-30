@@ -521,7 +521,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setDigestChallengeFailedResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
+    static void setDigestChallengeFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_RECORD_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
@@ -537,7 +537,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setSyncFailedResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
+    static void setSyncFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
@@ -553,7 +553,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setSessionFailedResponse(final List<String> errorMessages, final HttpServletResponse response)
+    static void setSessionFailureResponse(final List<String> errorMessages, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILURE);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
@@ -643,11 +643,11 @@ public class MessageProcessor {
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
                         if (!digestResult.getFailedDueToSync())
                         {
-                            MessageProcessor.setDigestChallengeFailedResponse(digestResult.getJalId(), errorMessages, response);
+                            MessageProcessor.setDigestChallengeFailureResponse(digestResult.getJalId(), errorMessages, response);
                         }
                         else
                         {
-                            MessageProcessor.setSyncFailedResponse(digestResult.getJalId(), errorMessages, response);
+                            MessageProcessor.setSyncFailureResponse(digestResult.getJalId(), errorMessages, response);
                         }
                     }
                     else
@@ -675,7 +675,7 @@ public class MessageProcessor {
                     {
                         // Set error message in the header
                         String jalId = currHeaders.get(HttpUtils.HDRS_NONCE);
-                        MessageProcessor.setSyncFailedResponse(jalId, errorMessages, response);
+                        MessageProcessor.setSyncFailureResponse(jalId, errorMessages, response);
                     }
                     else
                     {
@@ -695,7 +695,7 @@ public class MessageProcessor {
         catch (JNLSessionInvalidException e)
         {
             logger.error("Failed to process message. Cause: " + e);
-            MessageProcessor.setSessionFailedResponse(errorMessages, response);
+            MessageProcessor.setSessionFailureResponse(errorMessages, response);
         }
         catch (JNLMessageProcessingException e)
         {
