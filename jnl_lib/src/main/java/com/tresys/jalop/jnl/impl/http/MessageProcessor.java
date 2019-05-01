@@ -517,8 +517,7 @@ public class MessageProcessor {
     {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
-        logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message processed");
-        logger.info(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE + " message processed");
+        logger.debug(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE + " message processed");
     }
 
     @VisibleForTesting
@@ -527,7 +526,7 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_RECORD_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
-        logger.info(HttpUtils.MSG_RECORD_FAILURE + " message processed");
+        logger.debug(HttpUtils.MSG_RECORD_FAILURE + " message processed");
     }
 
     @VisibleForTesting
@@ -536,7 +535,7 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
-        logger.info(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
+        logger.debug(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
     }
 
     @VisibleForTesting
@@ -545,7 +544,7 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
-        logger.info(HttpUtils.MSG_SYNC_FAILURE + " message processed");
+        logger.debug(HttpUtils.MSG_SYNC_FAILURE + " message processed");
     }
 
     @VisibleForTesting
@@ -553,7 +552,7 @@ public class MessageProcessor {
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
-        logger.info(HttpUtils.MSG_SYNC + " message processed");
+        logger.debug(HttpUtils.MSG_SYNC + " message processed");
     }
 
     @VisibleForTesting
@@ -561,7 +560,7 @@ public class MessageProcessor {
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILURE);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
-        logger.info(HttpUtils.MSG_SESSION_FAILURE + " message processed");
+        logger.debug(HttpUtils.MSG_SESSION_FAILURE + " message processed");
     }
 
 
