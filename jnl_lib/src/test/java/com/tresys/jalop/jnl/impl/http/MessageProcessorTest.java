@@ -128,7 +128,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("errorMessages is required");
-        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), TestResources.SESSION_ID, null);
+        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), TestResources.SESSION_ID, new DigestResult(), null);
         assertEquals(false, result);
     }
 
@@ -137,7 +137,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("requestHeaders is required");
-        boolean result = MessageProcessor.processDigestResponseMessage(null, TestResources.SESSION_ID, new ArrayList<String>());
+        boolean result = MessageProcessor.processDigestResponseMessage(null, TestResources.SESSION_ID, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -146,7 +146,16 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("sessionIdStr is required");
-        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), null, new ArrayList<String>());
+        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), null, new DigestResult(), new ArrayList<String>());
+        assertEquals(false, result);
+    }
+
+    @Test
+    public void testProcessDigestResponseMessageNullDigestResult()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("digestResult is required");
+        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), TestResources.SESSION_ID, null, new ArrayList<String>());
         assertEquals(false, result);
     }
 

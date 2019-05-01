@@ -224,8 +224,13 @@ public class MessageProcessor {
         return true;
     }
 
-    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, String sessionIdStr, List<String> errorMessages)
+    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
     {
+        if (digestResult == null)
+        {
+            throw new IllegalArgumentException("digestResult is required");
+        }
+
         if (errorMessages == null)
         {
             throw new IllegalArgumentException("errorMessages is required");
@@ -241,25 +246,7 @@ public class MessageProcessor {
             throw new IllegalArgumentException("sessionIdStr is required");
         }
 
-        //Checks the jal Id
-        String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
-        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
-        if (jalId == null)
-        {
-            logger.error("Digest response message failed due to invalid JAL Id value of: " + jalId);
-            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
-            return false;
-        }
-
-        //Checks digest status
-        String digestStatusStr = requestHeaders.get(HttpUtils.HDRS_DIGEST_STATUS);
-        DigestStatus digestStatus = HttpUtils.getDigestStatus(digestStatusStr);
-        if (digestStatus.equals(DigestStatus.Unknown))
-        {
-            logger.error("Digest response message failed due to invalid digest status value of: " + digestStatusStr);
-            errorMessages.add(HttpUtils.HDRS_INVALID_DIGEST_STATUS);
-            return false;
-        }
+        digestResult.setFailedDueToSync(false);
 
         //Lookup the correct session based upon session id
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
@@ -272,6 +259,30 @@ public class MessageProcessor {
             return false;
         }
 
+        //Checks the jal Id
+        String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
+        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        if (jalId == null)
+        {
+            //Set to empty string so header is correctly set.
+            digestResult.setJalId("");
+            logger.error("Digest response message failed due to invalid JAL Id value of: " + jalId);
+            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
+            return false;
+        }
+
+        digestResult.setJalId(jalId);
+
+        //Checks digest status
+        String digestStatusStr = requestHeaders.get(HttpUtils.HDRS_DIGEST_STATUS);
+        DigestStatus digestStatus = HttpUtils.getDigestStatus(digestStatusStr);
+        if (digestStatus.equals(DigestStatus.Unknown))
+        {
+            logger.error("Digest response message failed due to invalid digest status value of: " + digestStatusStr);
+            errorMessages.add(HttpUtils.HDRS_INVALID_DIGEST_STATUS);
+            return false;
+        }
+
         //Return sync if successful digest response
         logger.trace("Processing: " + jalId);
 
@@ -280,13 +291,16 @@ public class MessageProcessor {
             // For a confirmed digest, send a sync message and remove the nonce from the sent queue
             if(digestStatus != DigestStatus.Confirmed)
             {
-                //TODO does anything else need done if it wasn't confirmed?  Before this is all it did was log a warning and still synced
+                //If not confirmed, then send back record-failure with JAL-Invalid-Digest error
                 logger.warn("Non-confirmed digest received: " + jalId + ", " + digestStatus);
+                digestResult.setFailedDueToSync(false);
+                errorMessages.add(HttpUtils.HDRS_INVALID_DIGEST);
+                return false;
             }
         }
         else {
             logger.error("notifyDigestResponse failure: " + jalId + ", " + digestStatus);
-
+            digestResult.setFailedDueToSync(true);
             errorMessages.add(HttpUtils.HDRS_SYNC_FAILURE);
             return false;
         }
@@ -346,7 +360,8 @@ public class MessageProcessor {
         jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
         if (jalId == null)
         {
-            digestResult.setJalId(jalId);
+            //Set to empty string so header is correctly set.
+            digestResult.setJalId("");
             errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
             return false;
         }
@@ -521,7 +536,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setDigestChallengeFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
+    static void setRecordFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_RECORD_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
@@ -647,7 +662,7 @@ public class MessageProcessor {
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
                         if (!digestResult.getFailedDueToSync())
                         {
-                            MessageProcessor.setDigestChallengeFailureResponse(digestResult.getJalId(), errorMessages, response);
+                            MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
                         }
                         else
                         {
@@ -675,17 +690,23 @@ public class MessageProcessor {
                 }
                 else if (messageType.equals(HttpUtils.MSG_DIGEST_RESP))
                 {
-                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, errorMessages))
+                    DigestResult digestResult = new DigestResult();
+                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, digestResult, errorMessages))
                     {
-                        // Set error message in the header
-                        String jalId = currHeaders.get(HttpUtils.HDRS_NONCE);
-                        MessageProcessor.setSyncFailureResponse(jalId, errorMessages, response);
+                        //Determine if it failed due to a sync failure or record failure
+                        if (digestResult.getFailedDueToSync())
+                        {
+                            MessageProcessor.setSyncFailureResponse(digestResult.getJalId(), errorMessages, response);
+                        }
+                        else
+                        {
+                            MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
+                        }
                     }
                     else
                     {
                         //Send sync message
-                        String jalId = currHeaders.get(HttpUtils.HDRS_NONCE);
-                        MessageProcessor.setSyncResponse(jalId, response);
+                        MessageProcessor.setSyncResponse(digestResult.getJalId(), response);
                     }
                 }
                 else

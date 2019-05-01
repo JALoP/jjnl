@@ -816,7 +816,8 @@ public class JalRecordTest {
                 assertNotNull(errorHeader);
                 assertEquals(HttpUtils.HDRS_INVALID_JAL_ID, errorHeader.getValue());
 
-                assertNull(jalIdHeader);
+                assertNotNull(jalIdHeader);
+                assertEquals("", jalIdHeader.getValue());
                 assertNull(digestHeader);
             }
         }
