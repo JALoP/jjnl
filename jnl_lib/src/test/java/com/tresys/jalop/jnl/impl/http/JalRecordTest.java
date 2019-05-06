@@ -371,7 +371,7 @@ public class JalRecordTest {
 
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-        final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+        final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE).getValue();
         final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
@@ -410,7 +410,7 @@ public class JalRecordTest {
 
                 final HttpResponse response = client.execute(httpPost);
                 final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
-                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
                 final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
@@ -458,7 +458,7 @@ public class JalRecordTest {
                 final HttpResponse response = client.execute(httpPost);
                 final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
                 final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
                 final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
@@ -506,7 +506,7 @@ public class JalRecordTest {
                 final HttpResponse response = client.execute(httpPost);
                 final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
                 final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
                 final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
@@ -554,7 +554,7 @@ public class JalRecordTest {
                 final HttpResponse response = client.execute(httpPost);
                 final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
                 final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
                 final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
@@ -590,7 +590,7 @@ public class JalRecordTest {
         final HttpResponse response = client.execute(httpPost);
         final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
@@ -624,7 +624,7 @@ public class JalRecordTest {
         final HttpResponse response = client.execute(httpPost);
         final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
@@ -658,7 +658,7 @@ public class JalRecordTest {
         final HttpResponse response = client.execute(httpPost);
         final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
@@ -692,7 +692,7 @@ public class JalRecordTest {
         final HttpResponse response = client.execute(httpPost);
         final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
@@ -725,7 +725,7 @@ public class JalRecordTest {
         final HttpResponse response = client.execute(httpPost);
         final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
@@ -759,7 +759,7 @@ public class JalRecordTest {
         final HttpResponse response = client.execute(httpPost);
         final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
@@ -806,7 +806,7 @@ public class JalRecordTest {
                 final HttpResponse response = client.execute(httpPost);
                 final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
                 final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
                 final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
@@ -849,7 +849,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -892,7 +892,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -945,7 +945,7 @@ public class JalRecordTest {
 
             final HttpResponse response = client.execute(httpPost);
             final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
@@ -997,7 +997,7 @@ public class JalRecordTest {
 
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             final int responseStatus = response.getStatusLine().getStatusCode();
@@ -1054,7 +1054,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1108,7 +1108,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1161,7 +1161,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1317,7 +1317,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1368,7 +1368,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1419,7 +1419,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1472,7 +1472,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1550,7 +1550,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1601,7 +1601,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);
@@ -1652,7 +1652,7 @@ public class JalRecordTest {
             final HttpResponse response = client.execute(httpPost);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST);
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);                    ;
             final int responseStatus = response.getStatusLine().getStatusCode();
             assertEquals(200, responseStatus);

@@ -549,7 +549,7 @@ public class MessageProcessor {
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
-        response.setHeader(HttpUtils.HDRS_DIGEST, digestResult.getDigest());
+        response.setHeader(HttpUtils.HDRS_DIGEST_VALUE, digestResult.getDigest());
         logger.debug(HttpUtils.MSG_DIGEST_CHALLENGE + " message processed");
     }
 

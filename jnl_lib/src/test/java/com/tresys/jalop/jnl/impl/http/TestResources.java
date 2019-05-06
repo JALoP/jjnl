@@ -168,7 +168,7 @@ public class TestResources {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST).getValue();
+        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE).getValue();
         final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);

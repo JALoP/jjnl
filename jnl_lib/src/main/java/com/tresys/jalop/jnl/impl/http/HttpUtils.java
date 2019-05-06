@@ -58,6 +58,7 @@ public class HttpUtils {
     public static final String HDRS_DATA_CLASS = "JAL-Data-Class";
     public static final String HDRS_DIGEST = "JAL-Digest";
     public static final String HDRS_DIGEST_STATUS = "JAL-Digest-Status";
+    public static final String HDRS_DIGEST_VALUE = "JAL-Digest-Value";
     public static final String HDRS_INVALID_DIGEST = "JAL-Invalid-Digest";
     public static final String HDRS_INVALID_DIGEST_STATUS = "JAL-Invalid-Digest-Status";
     public static final String HDRS_INVALID_JAL_ID = "JAL-Invalid-JAL-Id";
