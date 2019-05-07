@@ -427,11 +427,6 @@ public class JalRecordTest {
         System.out.println("DR1.017.008.007.001 - Transfer Records:  journal-record - Journal Record:  JAL-Journal-Length");
         System.out.println("DR1.017.008.007.002 - Transfer Records:  journal-record - Journal Record:  JAL-System-Metadata-Length");
         System.out.println("DR1.017.008.007.003 - Transfer Records:  journal-record - Journal Record:  JAL-Application-Metadata-Length");
-        System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
-        System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
-        System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
-        System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
-        System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
 
         JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         String [] modes = new String[] {"live"};  //, "archival"};  //TODO archival is not working currently
