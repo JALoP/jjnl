@@ -179,6 +179,64 @@ public class HttpUtilsTest {
     }
 
     @Test
+    public void testValidateAuditFormatWorksWithXML() {
+
+        String auditFormat = "xml";
+        List <String> errorResponseHeaders = new ArrayList<String>();
+        boolean returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
+        assertTrue(returned);
+        assertTrue(errorResponseHeaders.isEmpty());
+
+        auditFormat = "XML";
+        errorResponseHeaders = new ArrayList<String>();
+        returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
+        assertTrue(returned);
+        assertTrue(errorResponseHeaders.isEmpty());
+
+        auditFormat = "xMl";
+        errorResponseHeaders = new ArrayList<String>();
+        returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
+        assertTrue(returned);
+        assertTrue(errorResponseHeaders.isEmpty());
+    }
+
+    @Test
+    public void testValidateAuditFormatFailsWithNull() {
+
+        String auditFormat = null;
+        List <String> errorResponseHeaders = new ArrayList<String>();
+        boolean returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Audit-Format", entry);
+        }
+    }
+
+    @Test
+    public void testValidateAuditFormatFailsWithEmpty() {
+
+        String auditFormat = "";
+        List <String> errorResponseHeaders = new ArrayList<String>();
+        boolean returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Audit-Format", entry);
+        }
+    }
+
+    @Test
+    public void testValidateAuditFormatFailsWithInvalidValue() {
+
+        String auditFormat = "invalid";
+        List <String> errorResponseHeaders = new ArrayList<String>();
+        boolean returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
+        assertFalse(returned);
+        for (String entry : errorResponseHeaders) {
+            assertEquals("JAL-Unsupported-Audit-Format", entry);
+        }
+    }
+
+    @Test
     public void testValidateDigestWorksWithSHA256() {
 
         final String digests = "http://www.w3.org/2001/04/xmlenc#sha256";

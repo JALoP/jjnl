@@ -448,6 +448,21 @@ public class HttpUtils {
         return true;
     }
 
+    //Validates audit format, must be xml
+    public static boolean validateAuditFormat(String auditFormat, List<String> errorResponseHeaders)
+    {
+        String currAuditFormat = checkForEmptyString(auditFormat, HttpUtils.HDRS_AUDIT_FORMAT);
+
+        //Checks if supported audit format, currently only xml is supported
+        if (currAuditFormat == null || !currAuditFormat.equalsIgnoreCase(ENC_XML))
+        {
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_AUDIT_FORMAT);
+            return false;
+        }
+
+        return true;
+    }
+
     //Validates configure digest challenge, must be on/off
     public static String validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {

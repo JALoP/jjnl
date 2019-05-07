@@ -446,11 +446,8 @@ public class MessageProcessor {
             recType = RecordType.Audit;
 
             //If audit-record perform additional check on JAL-Audit-Format, currently only format of xml is supported.
-            String jalAuditFormat = requestHeaders.get(HttpUtils.HDRS_AUDIT_FORMAT);
-            jalAuditFormat = HttpUtils.checkForEmptyString(jalAuditFormat, HttpUtils.HDRS_AUDIT_FORMAT);
-            if (jalAuditFormat == null || !jalAuditFormat.toLowerCase().equals(HttpUtils.ENC_XML))
+            if (!HttpUtils.validateAuditFormat(requestHeaders.get(HttpUtils.HDRS_AUDIT_FORMAT), errorMessages))
             {
-                errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_AUDIT_FORMAT);
                 return false;
             }
 
