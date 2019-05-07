@@ -42,14 +42,10 @@ public class HttpConfig extends BaseConfig {
     private List<String> configureDigests;
     private String configureTls;
 
-    private static final String KEY_ALGORITHM = "Key Algorithm";
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
-    private static final String KEY_STORE_DATA_TYPE = "Key Store Data Type";
     private static final String KEY_STORE = "Key Store";
 
-    private static final String TRUST_ALGORITHM = "Trust Algorithm";
     private static final String TRUST_STORE_PASSPHRASE = "Trust Store Passphrase";
-    private static final String TRUST_STORE_DATA_TYPE = "Trust Store Data Type";
     private static final String TRUST_STORE = "Trust Store";
 
     /**

@@ -12,14 +12,10 @@
     "mode": "archive",
   }
   "ssl": {
-    "Key Algorithm": "SunX509",
     "Key Store Passphrase": "changeit",
-    "Key Store Data Type": "file",
     "Key Store": "../keystore/keystore.jks",
 
-    "Trust Algorithm": "SunX509",
     "Trust Store Passphrase": "changeit",
-    "Trust Store Data Type": "file",
     "Trust Store": "../keystore/remotes.jks",
   }
 }
