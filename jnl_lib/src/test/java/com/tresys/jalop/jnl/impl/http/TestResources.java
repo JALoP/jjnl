@@ -148,11 +148,8 @@ public class TestResources {
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-        String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-        String jalMessage = recType.toString().toLowerCase() +  "-record";
-
         String jalId = UUID.randomUUID().toString();
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -180,7 +177,21 @@ public class TestResources {
         return jalId;
     }
 
-    public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage)
+    public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, RecordType recType)
+    {
+        String jalLengthHeader = "JAL-" + recType.toString() + "-Length";
+        String jalMessage = recType.toString().toLowerCase() +  "-record";
+
+        String auditFormat = null;
+        if (recType.equals(RecordType.Audit))
+        {
+            auditFormat = HttpUtils.ENC_XML;
+        }
+
+        return getJalRecordHeaders(sessionId, jalId, systemMetadataLen, appMetadataLen, payloadLength, jalLengthHeader, jalMessage, auditFormat);
+    }
+
+    public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, String jalLengthHeader, String jalMessage, String auditFormat)
     {
         HashMap<String, String> headers = new HashMap<String, String>();
 
@@ -209,6 +220,11 @@ public class TestResources {
         if (payloadLength != null && jalLengthHeader != null)
         {
             headers.put(jalLengthHeader, payloadLength);
+        }
+
+        if (auditFormat != null)
+        {
+            headers.put(HttpUtils.HDRS_AUDIT_FORMAT, auditFormat);
         }
 
         if (jalMessage != null)

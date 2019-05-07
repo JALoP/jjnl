@@ -146,6 +146,12 @@ struct curl_slist * getJALRecordHeaders(std::string dataClass, std::string jalId
     headers = curl_slist_append(headers, "Content-Type: application/http+jalop");
     headers = curl_slist_append(headers, "Transfer-Encoding: binary");
 
+    //Adds JAL-Audit-Format if audit record
+    if (dataClass == AUDIT)
+    {
+        headers = curl_slist_append(headers, "JAL-Audit-Format: xml");
+    }
+
     //JAL record headers
     std::string jalIdStr = "JAL-Id: " + jalId;
     headers = curl_slist_append(headers, jalIdStr.c_str());

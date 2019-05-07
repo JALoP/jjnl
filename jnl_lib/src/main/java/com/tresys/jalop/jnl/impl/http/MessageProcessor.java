@@ -444,6 +444,16 @@ public class MessageProcessor {
                 return false;
             }
             recType = RecordType.Audit;
+
+            //If audit-record perform additional check on JAL-Audit-Format, currently only format of xml is supported.
+            String jalAuditFormat = requestHeaders.get(HttpUtils.HDRS_AUDIT_FORMAT);
+            jalAuditFormat = HttpUtils.checkForEmptyString(jalAuditFormat, HttpUtils.HDRS_AUDIT_FORMAT);
+            if (jalAuditFormat == null || !jalAuditFormat.toLowerCase().equals(HttpUtils.ENC_XML))
+            {
+                errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_AUDIT_FORMAT);
+                return false;
+            }
+
         }
         else if (payloadType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL) && RecordType.Journal.equals(supportedRecType))
         {

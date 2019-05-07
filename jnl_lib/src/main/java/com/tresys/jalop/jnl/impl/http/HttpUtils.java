@@ -49,6 +49,7 @@ public class HttpUtils {
     public static final String HDRS_ACCEPT_DIGEST = "JAL-Accept-Digest";
     public static final String HDRS_AGENT = "JAL-Agent";
     public static final String HDRS_APP_META_LEN = "JAL-Application-Metadata-Length";
+    public static final String HDRS_AUDIT_FORMAT = "JAL-Audit-Format";
     public static final String HDRS_AUDIT_LEN = "JAL-Audit-Length";
     public static final String HDRS_CONFIGURE_DIGEST_CHALLENGE = "JAL-Configure-Digest-Challenge";
     public static final String HDRS_CONTENT_TXFR_ENCODING = "Content-Transfer-Encoding";
@@ -81,6 +82,7 @@ public class HttpUtils {
     public static final String HDRS_SESSION_ALREADY_EXISTS = "JAL-Session-Already-Exists";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
     public static final String HDRS_UNAUTHORIZED_MODE = "JAL-Unauthorized-Mode";
+    public static final String HDRS_UNSUPPORTED_AUDIT_FORMAT= "JAL-Unsupported-Audit-Format";
     public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";
     public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
     public static final String HDRS_UNSUPPORTED_MODE = "JAL-Unsupported-Mode";

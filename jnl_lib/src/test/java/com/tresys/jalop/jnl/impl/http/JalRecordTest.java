@@ -353,10 +353,7 @@ public class JalRecordTest {
     {
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-        String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-        String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), Long.toString(recordLen.sysMetadataLen), Long.toString(recordLen.appMetadataLen), Long.toString(recordLen.payloadLen), payLoadLengthHeader, jalMessage);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), Long.toString(recordLen.sysMetadataLen), Long.toString(recordLen.appMetadataLen), Long.toString(recordLen.payloadLen), recType);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -454,11 +451,8 @@ public class JalRecordTest {
 
                 HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-                String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-                String jalMessage = recType.toString().toLowerCase() +  "-record";
-
                 String jalId = UUID.randomUUID().toString();
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -517,10 +511,7 @@ public class JalRecordTest {
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
             {
-                String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-                String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(testValue, "jalId", "0", "0", "0", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(testValue, "jalId", "0", "0", "0", recType);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -577,11 +568,7 @@ public class JalRecordTest {
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
             {
-
-                String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-                String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", testValue, "0", "0", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", testValue, "0", "0", recType);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -638,11 +625,7 @@ public class JalRecordTest {
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
             {
-
-                String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-                String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", testValue, "0", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", testValue, "0", recType);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -701,11 +684,7 @@ public class JalRecordTest {
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
             {
-
-                String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-                String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", testValue, payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", testValue, recType);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -750,7 +729,7 @@ public class JalRecordTest {
         String publisherId = UUID.randomUUID().toString();
         String sessionId = TestResources.sendValidInitialize(RecordType.Audit, true, publisherId);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT, HttpUtils.ENC_XML);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -793,7 +772,7 @@ public class JalRecordTest {
         String publisherId = UUID.randomUUID().toString();
         String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL, HttpUtils.ENC_XML);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -836,7 +815,7 @@ public class JalRecordTest {
         String publisherId = UUID.randomUUID().toString();
         String sessionId = TestResources.sendValidInitialize(RecordType.Log, true, publisherId);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_LOG);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_LOG, HttpUtils.ENC_XML);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -879,7 +858,7 @@ public class JalRecordTest {
         String publisherId = UUID.randomUUID().toString();
         String sessionId = TestResources.sendValidInitialize(RecordType.Audit, true, publisherId);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_AUDIT_LEN, HttpUtils.MSG_JOURNAL, HttpUtils.ENC_XML);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -921,7 +900,7 @@ public class JalRecordTest {
 
         String publisherId = UUID.randomUUID().toString();
         String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId);
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_JOURNAL_LEN, HttpUtils.MSG_AUDIT, HttpUtils.ENC_XML);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -963,7 +942,7 @@ public class JalRecordTest {
         String publisherId = UUID.randomUUID().toString();
         String sessionId = TestResources.sendValidInitialize(RecordType.Log, true, publisherId);
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_LOG_LEN, HttpUtils.MSG_AUDIT);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", HttpUtils.HDRS_LOG_LEN, HttpUtils.MSG_AUDIT, HttpUtils.ENC_XML);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -1020,11 +999,7 @@ public class JalRecordTest {
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             for (String testValue : testValues)
             {
-
-                String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-                String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, testValue, "1", "0", "1", payLoadLengthHeader, jalMessage);
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, testValue, "1", "0", "1", recType);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
                 {
@@ -1066,10 +1041,7 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(TestResources.SESSION_ID, "jalId", "1", "0", "1", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1121,10 +1093,7 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, "jalId", "1", "0", "1", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1180,11 +1149,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1221,6 +1187,92 @@ public class JalRecordTest {
     }
 
     @Test
+    public void testProcessJALRecordMessageUnsupportedAuditFormat() throws ClientProtocolException, IOException {
+        System.out.println("----testProcessJALRecordMessageUnsupportedAuditFormat---");
+        System.out.println("DR1.018.001 - record-failure:  log-record");
+        System.out.println("DR1.018.002 - record-failure:  audit-record");
+        System.out.println("DR1.018.003 - record-failure:  journal-record");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.010 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Audit-Format");
+
+        String publisherId = UUID.randomUUID().toString();
+        String [] auditFormats = new String[] {"", null, "invalidformat"};
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            System.out.println("Testing record type of " + recType.toString());
+
+
+                String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+                for (String auditFormat : auditFormats)
+                {
+                HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+                String jalId = UUID.randomUUID().toString();
+                String jalLengthHeader = "JAL-" + recType.toString() + "-Length";
+                String jalMessage = recType.toString().toLowerCase() +  "-record";
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", jalLengthHeader, jalMessage, auditFormat);
+
+                for (Map.Entry<String, String> entry : headers.entrySet())
+                {
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
+                }
+
+                //Adds jal record to post
+                File resourcesDirectory = new File("src/test/resources");
+
+                String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+                HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+                httpPost.setEntity(entity);
+
+                HttpClient client = HttpClientBuilder.create().build();
+
+                final HttpResponse response = client.execute(httpPost);
+                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+                final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final int responseStatus = response.getStatusLine().getStatusCode();
+                assertEquals(200, responseStatus);
+
+                //Only audit-record message should fail if JAL-Audit-Format is unsupported
+                if (!recType.equals(RecordType.Audit))
+                {
+                    //Check for success
+                    assertEquals(null, errorMessage);
+                    assertNotNull(digestHeader);
+
+                    //Validate digest is correct for test file sent.
+                    assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", digestHeader.getValue());
+                    assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+                    assertEquals(jalId, jalIdHeader.getValue());
+                }
+                else //audit-record message, should fail with JAL-Unsupported-Audit-Format
+                {
+                    //Check for failure
+                    assertNotNull(responseMessage);
+                    assertEquals(HttpUtils.MSG_RECORD_FAILURE, responseMessage);
+                    assertNotNull(errorMessage);
+                    assertEquals(HttpUtils.HDRS_UNSUPPORTED_AUDIT_FORMAT, errorMessage.getValue());
+                    assertNotNull(jalIdHeader);
+                    assertEquals(jalId, jalIdHeader.getValue());
+                    assertNull(digestHeader);
+                }
+            }
+        }
+
+        System.out.println("----testProcessJALRecordMessageUnsupportedAuditFormat success----\n");
+    }
+
+    @Test
     public void testProcessJALRecordMessageValidRecordDigestOff() throws ClientProtocolException, IOException {
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
@@ -1234,11 +1286,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1301,11 +1350,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3082", "1125", "19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3082", "1125", "19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1368,11 +1414,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1126", "19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1126", "19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1434,11 +1477,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "18", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "18", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1609,11 +1649,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","0","0", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","0","0", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1667,11 +1704,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","1125","19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","1125","19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1720,11 +1754,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","0","19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","0","19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1775,11 +1806,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","1125","0", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","1125","0", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1863,11 +1891,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","1125","19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "0","1125","19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1926,11 +1951,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","0","19", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","0","19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
@@ -1978,11 +2000,8 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String payLoadLengthHeader = "JAL-" + recType.toString() + "-Length";
-            String jalMessage = recType.toString().toLowerCase() +  "-record";
-
             String jalId = UUID.randomUUID().toString();
-            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","1125","0", payLoadLengthHeader, jalMessage);
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083","1125","0", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())
             {
