@@ -1195,7 +1195,7 @@ public class JalRecordTest {
         System.out.println("DR1.018.005 - record-failure:  JAL-Id");
         System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
         System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
-        System.out.println("DR1.018.006.001.010 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Audit-Format");
+        System.out.println("DR1.018.006.001.013 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Audit-Format");
 
         String publisherId = UUID.randomUUID().toString();
         String [] auditFormats = new String[] {"", null, "invalidformat"};
