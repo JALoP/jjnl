@@ -141,6 +141,12 @@ public class DigestResponseTest {
 
     @Test
     public void testMissingJalIdInDigestResponseMessage() throws ClientProtocolException, IOException {
+        System.out.println("----testMissingJalIdInDigestResponseMessage---");
+        System.out.println("DR1.018.004 - record-failure:  digest-response");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.009 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-JAL-Id");
 
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
@@ -149,6 +155,8 @@ public class DigestResponseTest {
             {
                 continue;
             }
+
+            System.out.println("Testing record type of " + recType.toString());
 
             //Valid initialize
             String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
@@ -178,10 +186,19 @@ public class DigestResponseTest {
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         }
+
+        System.out.println("----testMissingJalIdInDigestResponseMessage success----\n");
     }
 
     @Test
     public void testEmptyJalIdInDigestResponseMessage() throws ClientProtocolException, IOException {
+
+        System.out.println("----testEmptyJalIdInDigestResponseMessage---");
+        System.out.println("DR1.018.004 - record-failure:  digest-response");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.009 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-JAL-Id");
 
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
@@ -190,6 +207,8 @@ public class DigestResponseTest {
             {
                 continue;
             }
+
+            System.out.println("Testing record type of " + recType.toString());
 
             //Valid initialize
             String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
@@ -220,10 +239,17 @@ public class DigestResponseTest {
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         }
+        System.out.println("----testEmptyJalIdInDigestResponseMessage success----\n");
     }
 
     @Test
     public void testMissingDigestStatusInDigestResponseMessage() throws ClientProtocolException, IOException {
+        System.out.println("----testMissingDigestStatusInDigestResponseMessage---");
+        System.out.println("DR1.018.004 - record-failure:  digest-response");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.012 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-Digest-Status");
 
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
@@ -232,6 +258,8 @@ public class DigestResponseTest {
             {
                 continue;
             }
+
+            System.out.println("Testing record type of " + recType.toString());
 
             //Valid initialize
             String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
@@ -261,10 +289,17 @@ public class DigestResponseTest {
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         }
+        System.out.println("----testMissingDigestStatusInDigestResponseMessage success----\n");
     }
 
     @Test
     public void testEmptyDigestStatusInDigestResponseMessage() throws ClientProtocolException, IOException {
+        System.out.println("----testEmptyDigestStatusInDigestResponseMessage---");
+        System.out.println("DR1.018.004 - record-failure:  digest-response");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.012 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-Digest-Status");
 
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
@@ -273,6 +308,7 @@ public class DigestResponseTest {
             {
                 continue;
             }
+            System.out.println("Testing record type of " + recType.toString());
 
             //Valid initialize
             String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
@@ -303,10 +339,17 @@ public class DigestResponseTest {
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         }
+        System.out.println("----testEmptyDigestStatusInDigestResponseMessage success----\n");
     }
 
     @Test
     public void testNotValidDigestStatusInDigestResponseMessage() throws ClientProtocolException, IOException {
+        System.out.println("----testNotValidDigestStatusInDigestResponseMessage---");
+        System.out.println("DR1.018.004 - record-failure:  digest-response");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.012 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-Digest-Status");
 
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
@@ -315,6 +358,7 @@ public class DigestResponseTest {
             {
                 continue;
             }
+            System.out.println("Testing record type of " + recType.toString());
 
             //Valid initialize
             String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
@@ -345,6 +389,7 @@ public class DigestResponseTest {
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         }
+        System.out.println("----testNotValidDigestStatusInDigestResponseMessage success----\n");
     }
 
     @Test
@@ -477,6 +522,12 @@ public class DigestResponseTest {
     @Test
     public void testValidInvalidDigestResponseMessage() throws ClientProtocolException, IOException
     {
+        System.out.println("----testValidInvalidDigestResponseMessage---");
+        System.out.println("DR1.018.004 - record-failure:  digest-response");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.011 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-Digest");
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
@@ -484,6 +535,8 @@ public class DigestResponseTest {
             {
                 continue;
             }
+
+            System.out.println("Testing record type of " + recType.toString());
 
             //Valid initialize
             String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
@@ -515,5 +568,7 @@ public class DigestResponseTest {
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_INVALID_DIGEST, errorHeader.getValue());
         }
+
+        System.out.println("----testValidInvalidDigestResponseMessage success----\n");
     }
 }

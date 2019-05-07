@@ -213,6 +213,8 @@ public class MessageProcessor {
                 logger.error("Set Journal resume message failed.");
                 return false;
             }
+            //Add the session ID before we send the initialize-ack message
+            successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, sessionId);
         } else {
             //If no errors, return initialize-ack with supported digest/encoding
             logger.info("Initialize message is valid, sending intialize-ack");

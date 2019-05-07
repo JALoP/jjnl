@@ -219,6 +219,11 @@ public class TestResources {
         return headers;
     }
 
+    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId) throws ClientProtocolException, IOException
+    {
+        return sendValidInitialize(recType, performDigest, publisherId, HttpUtils.MSG_LIVE);
+    }
+
     /**
      * This will send a valid initialize message and get back a session id.
      * @param recType
@@ -228,13 +233,13 @@ public class TestResources {
      * @throws ClientProtocolException
      * @throws IOException
      */
-    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId) throws ClientProtocolException, IOException
+    public static String sendValidInitialize(RecordType recType, boolean performDigest, String publisherId, String mode) throws ClientProtocolException, IOException
     {
         final HttpPost httpPost = new HttpPost("http://localhost:" + HTTP_PORT + "/" + recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
         httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
-        httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_LIVE);
+        httpPost.setHeader(HttpUtils.HDRS_MODE, mode);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, recType.toString().toLowerCase());
