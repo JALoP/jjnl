@@ -28,6 +28,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -50,8 +51,11 @@ import com.tresys.jalop.jnl.Role;
  */
 public class Config extends BaseConfig {
 	private static final String BEEP_ACTION = "beepAction";
+	private static final String DATA_CLASS = "dataClass";
+	
     private ProfileConfiguration sslConfig;
     private Map<InetAddress, PeerConfig> peerConfigs;
+    private final Set<RecordType> recordTypes;
 
     /**
      * Parses a configuration file for use by the JNLTest program.
@@ -127,6 +131,7 @@ public class Config extends BaseConfig {
 	    super(source);
 
 	    this.peerConfigs = new HashMap<InetAddress, PeerConfig>();
+	    this.recordTypes = new HashSet<RecordType>();
 	}
 
     /**
@@ -191,6 +196,7 @@ public class Config extends BaseConfig {
 	 */
 	void handleCommon(final JSONObject obj) throws ConfigurationException {
 		handleAddress(obj);
+		handleDataClass(obj);
 		setPort(itemAsNumber(PORT, obj).intValue());
 		obj.get("ssl");
 		JSONObject ssl = asJsonObject(this.source, "ssl", obj.get("ssl"), false);
@@ -232,6 +238,20 @@ public class Config extends BaseConfig {
 			updateKnownHosts(elm);
 		}
 	}
+    
+    /**
+     * Handle parsing the dataClass field for a publisher or listener.
+     * @param obj
+     *            The context to look up keys in.
+     * @throws ConfigurationException
+     *            If an error is detected in the configuration.
+     */
+    void handleDataClass(final JSONObject obj) throws ConfigurationException {
+        final JSONArray dataClasses = itemAsArray(DATA_CLASS, obj);
+        for (final Object o : dataClasses) {
+            this.recordTypes.add(objectToRecordType(o));
+        }
+    }
 
 	/**
 	 * Helper utility to process a segment of the configuration as a
@@ -263,6 +283,11 @@ public class Config extends BaseConfig {
     public boolean isListener() {
 		return this.listener;
 	}
+    
+    public Set<RecordType> getRecordTypes()
+    {
+    	return this.recordTypes;
+    }
 
 	/**
 	 * Build a structure suitable to pass into the beepcore framework for SSL.

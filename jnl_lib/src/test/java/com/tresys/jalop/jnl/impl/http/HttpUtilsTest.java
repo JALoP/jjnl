@@ -386,45 +386,45 @@ public class HttpUtilsTest {
     }
 
     @Test
-    public void testValidateDataClassWorksForJournal() throws MissingMimeHeaderException, UnexpectedMimeValueException {
-        final String dataClass = "journal";
+    public void testValidateRecordTypeWorksForJournal() throws MissingMimeHeaderException, UnexpectedMimeValueException {
+        final String recordType = "journal";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Journal, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
         assertTrue(returned);
     }
 
     @Test
-    public void testValidateDataClassWorksForAudit() throws MissingMimeHeaderException, UnexpectedMimeValueException {
-        final String dataClass = "audit";
+    public void testValidateRecordTypeWorksForAudit() throws MissingMimeHeaderException, UnexpectedMimeValueException {
+        final String recordType = "audit";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Audit, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Audit, errorResponseHeaders);
         assertTrue(returned);
     }
 
     @Test
-    public void testValidateDataClassWorksForLog() throws MissingMimeHeaderException, UnexpectedMimeValueException {
-        final String dataClass = "log";
+    public void testValidateRecordTypeWorksForLog() throws MissingMimeHeaderException, UnexpectedMimeValueException {
+        final String recordType = "log";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Log, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Log, errorResponseHeaders);
         assertTrue(returned);
     }
 
-    public void testValidateDataClassFailsForEmptyDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
-        final String dataClass = "";
+    public void testValidateRecordTypeFailsForEmptyRecordType() throws MissingMimeHeaderException, UnexpectedMimeValueException {
+        final String recordType = "";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass,RecordType.Journal, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
         assertFalse(returned);
 
-        final String dataClass2 = null;
+        final String recordType2 = null;
         List <String> errorResponseHeaders2 = new ArrayList<String>();
-        final boolean returned2= HttpUtils.validateDataClass(dataClass2,RecordType.Journal, errorResponseHeaders2);
+        final boolean returned2 = HttpUtils.validateRecordType(recordType2, RecordType.Journal, errorResponseHeaders2);
         assertFalse(returned2);
     }
 
-    public void testValidateDataClassFailsForInvalidDataClass() throws MissingMimeHeaderException, UnexpectedMimeValueException {
-        final String dataClass = "invalid";
+    public void testValidateRecordTypeFailsForInvalidRecordType() throws MissingMimeHeaderException, UnexpectedMimeValueException {
+        final String recordType = "invalid";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateDataClass(dataClass, RecordType.Journal, errorResponseHeaders);
+        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
         assertFalse(returned);
     }
 
@@ -629,7 +629,7 @@ public class HttpUtilsTest {
     @Test
     public void testGetRecordTypeInvalid()
     {
-        RecordType recordType = HttpUtils.getRecordType("invalid_data_class");
+        RecordType recordType = HttpUtils.getRecordType("invalid_record_type");
         assertEquals(RecordType.Unset, recordType);
 
         RecordType recordTypeNull = HttpUtils.getRecordType(null);

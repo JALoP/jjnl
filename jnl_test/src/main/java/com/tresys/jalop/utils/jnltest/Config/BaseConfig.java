@@ -43,9 +43,7 @@ import com.tresys.jalop.jnl.Role;
 public class BaseConfig {
     private static final String ADDRESS = "address";
     private static final String AUDIT = "audit";
-
     private static final String CONNECT = "connect";
-    private static final String DATA_CLASS = "dataClass";
     protected static final String HOSTS = "hosts";
     protected static final String INPUT = "input";
     private static final String JOURNAL = "journal";
@@ -73,7 +71,6 @@ public class BaseConfig {
     private int pendingDigestMax;
     private int pendingDigestTimeout;
     private int port;
-    private final Set<RecordType> recordTypes;
     private Mode mode;
     private Role role;
     private long sessionTimeout;
@@ -88,7 +85,6 @@ public class BaseConfig {
      */
     BaseConfig(final String source) {
         this.source = source;
-        this.recordTypes = new HashSet<RecordType>();
         this.pendingDigestMax = -1;
         this.pendingDigestTimeout = -1;
         this.port = -1;
@@ -153,18 +149,6 @@ public class BaseConfig {
      */
     public int getPort() {
         return this.port;
-    }
-
-    /**
-     * Obtain the set of record types to subscribe/publish. This is not
-     * applicable for a listener.
-     *
-     * @return The JALoP records that should be transfered using this
-     *         connection.
-     * @see Config#isListener()
-     */
-    public Set<RecordType> getRecordTypes() {
-        return this.recordTypes;
     }
 
     /**
@@ -259,20 +243,6 @@ public class BaseConfig {
     }
 
     /**
-     * Handle parsing the dataClass field for a publisher or listener.
-     * @param obj
-     *            The context to look up keys in.
-     * @throws ConfigurationException
-     *            If an error is detected in the configuration.
-     */
-    void handleDataClass(final JSONObject obj) throws ConfigurationException {
-        final JSONArray dataClasses = itemAsArray(DATA_CLASS, obj);
-        for (final Object o : dataClasses) {
-            this.recordTypes.add(objectToRecordType(o));
-        }
-    }
-
-    /**
      * Helper utility to process a segment of the configuration as a
      * 'subscriber'.
      *
@@ -286,7 +256,6 @@ public class BaseConfig {
         this.listener = false;
         setRole(Role.Subscriber);
         handleSessionTimeout(subscriber);
-        handleDataClass(subscriber);
         setOutputPath(new File(itemAsString(OUTPUT, subscriber, true)));
         setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, subscriber)
                 .intValue());
@@ -429,7 +398,7 @@ public class BaseConfig {
      * @throws ConfigurationException
      *             If there is a problem converting to a {@link RecordType}
      */
-    RecordType objectToRecordType(final Object o) throws ConfigurationException {
+    public RecordType objectToRecordType(final Object o) throws ConfigurationException {
         final String dataClass = asStringValue(this.source, null, o);
         if (JOURNAL.equals(dataClass)) {
             return RecordType.Journal;
@@ -438,7 +407,7 @@ public class BaseConfig {
         } else if (LOG.equals(dataClass)) {
             return RecordType.Log;
         }
-        throw new ConfigurationException(this.source, "Expected '" + DATA_CLASS
+        throw new ConfigurationException(this.source, "Expected Record Type'"
                 + "' to be one of '" + JOURNAL + "', '" + AUDIT + "', or '"
                 + LOG + "' (found '" + dataClass + "').");
     }

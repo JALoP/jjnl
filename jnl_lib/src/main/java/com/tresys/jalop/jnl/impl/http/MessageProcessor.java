@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -73,7 +74,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processInitializeMessage(HashMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
+    static boolean processInitializeMessage(TreeMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
         if (errorMessages == null)
         {
@@ -143,11 +144,11 @@ public class MessageProcessor {
             return false;
         }
 
-        //Validates data class
-        String dataClassStr = requestHeaders.get(HttpUtils.HDRS_DATA_CLASS);
-        if (!HttpUtils.validateDataClass(dataClassStr, supportedRecType, errorMessages))
+        //Validates record type
+        String recordTypeStr = requestHeaders.get(HttpUtils.HDRS_RECORD_TYPE);
+        if (!HttpUtils.validateRecordType(recordTypeStr, supportedRecType, errorMessages))
         {
-            logger.error("Initialize message failed due to unsupported data class: " + dataClassStr);
+            logger.error("Initialize message failed due to unsupported record type: " + recordTypeStr);
             return false;
         }
 
@@ -174,13 +175,13 @@ public class MessageProcessor {
         }
 
         boolean performDigest = true;
-        if (selectedConfDigestChallenge.equals(HttpUtils.MSG_OFF))
+        if (selectedConfDigestChallenge.equalsIgnoreCase(HttpUtils.MSG_OFF))
         {
             performDigest = false;
         }
 
         //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
-        SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(dataClassStr), HttpUtils.getMode(modeStr));
+        SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(recordTypeStr), HttpUtils.getMode(modeStr));
 
         if (currSession != null)
         {
@@ -226,7 +227,7 @@ public class MessageProcessor {
         return true;
     }
 
-    public static boolean processDigestResponseMessage(HashMap<String, String> requestHeaders, String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
+    public static boolean processDigestResponseMessage(TreeMap<String, String> requestHeaders, String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -311,7 +312,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJALRecordMessage(HashMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJALRecordMessage(TreeMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
     {
 
         if (digestResult == null)
@@ -473,7 +474,7 @@ public class MessageProcessor {
         }
         else
         {
-            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_DATACLASS);
+            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE);
             return false;
         }
 
@@ -626,7 +627,7 @@ public class MessageProcessor {
         try
         {
             // Gets all the headers from the request
-            HashMap<String, String> currHeaders = HttpUtils.parseHttpHeaders(request);
+            TreeMap<String, String> currHeaders = HttpUtils.parseHttpHeaders(request);
 
             Integer currRequestCount = HttpUtils.requestCount.incrementAndGet();
 
@@ -634,7 +635,7 @@ public class MessageProcessor {
 
             // Init message
             String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
-            if (messageType.equals(HttpUtils.MSG_INIT))
+            if (messageType.equalsIgnoreCase(HttpUtils.MSG_INIT))
             {
                 HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
                 if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, errorMessages))
@@ -659,8 +660,8 @@ public class MessageProcessor {
                     throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
                 }
 
-                if (messageType.equals(HttpUtils.MSG_LOG) || messageType.equals(HttpUtils.MSG_JOURNAL)
-                        || messageType.equals(HttpUtils.MSG_AUDIT)) // process
+                if (messageType.equalsIgnoreCase(HttpUtils.MSG_LOG) || messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL)
+                        || messageType.equalsIgnoreCase(HttpUtils.MSG_AUDIT)) // process
                     // binary if jal
                     // record data
                 {
@@ -693,11 +694,11 @@ public class MessageProcessor {
                         }
                     }
                 }
-                else if (messageType.equals(HttpUtils.MSG_JOURNAL_MISSING))
+                else if (messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL_MISSING))
                 {
                     MessageProcessor.processJournalMissingMessage(supportedRecType, response, errorMessages);
                 }
-                else if (messageType.equals(HttpUtils.MSG_DIGEST_RESP))
+                else if (messageType.equalsIgnoreCase(HttpUtils.MSG_DIGEST_RESP))
                 {
                     DigestResult digestResult = new DigestResult();
                     if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, digestResult, errorMessages))

@@ -225,7 +225,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             Set<RecordType>recordTypeSet = config.getRecordTypes();
             if (recordTypeSet.contains(RecordType.Unset))
             {
-                throw new JNLException("Cannot subscribe with a DataClass of 'Unset'");
+                throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
             }
 
             if (recordTypeSet.contains(RecordType.Log))

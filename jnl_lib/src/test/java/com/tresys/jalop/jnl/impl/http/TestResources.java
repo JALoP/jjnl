@@ -258,7 +258,7 @@ public class TestResources {
         httpPost.setHeader(HttpUtils.HDRS_MODE, mode);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
-        httpPost.setHeader(HttpUtils.HDRS_DATA_CLASS, recType.toString().toLowerCase());
+        httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
 
         if (performDigest == true)

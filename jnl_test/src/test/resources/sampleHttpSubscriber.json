@@ -3,7 +3,7 @@
   "port": 8444,
   "subscriber": {
     "sessionTimeout": "00:20:00",
-    "dataClass": [ "audit", "journal", "log" ],
+    "recordType": [ "audit", "journal", "log" ],
     "configureDigest": [ "on", "off"],
     "configureTls": "on",
     "pendingDigestMax": 1,

@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,7 +57,6 @@ public class HttpUtils {
     public static final String HDRS_CONTENT_TYPE = "Content-Type";
     public static final String HDRS_CONTENT_LENGTH = "Content-Length";
     public static final String HDRS_COUNT = "JAL-Count";
-    public static final String HDRS_DATA_CLASS = "JAL-Data-Class";
     public static final String HDRS_DIGEST = "JAL-Digest";
     public static final String HDRS_DIGEST_STATUS = "JAL-Digest-Status";
     public static final String HDRS_DIGEST_VALUE = "JAL-Digest-Value";
@@ -78,6 +78,7 @@ public class HttpUtils {
     public static final String HDRS_NONCE = "JAL-Id";
     public static final String HDRS_PUBLISHER_ID = "JAL-Publisher-Id";
     public static final String HDRS_RECORD_FAILURE = "JAL-Record-Failure";
+    public static final String HDRS_RECORD_TYPE = "JAL-Record-Type";
     public static final String HDRS_SESSION_ID = "JAL-Session-Id";
     public static final String HDRS_SESSION_ALREADY_EXISTS = "JAL-Session-Already-Exists";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
@@ -95,7 +96,7 @@ public class HttpUtils {
     public static final String HDRS_ACCEPT_XML_COMPRESSION="JAL-Accept-XML-Compression";
     public static final String HDRS_UNSUPPORTED_XML_COMPRESSION = "JAL-Unsupported-XML-Compression";
     public static final String HDRS_XML_COMPRESSION = "JAL-XML-Compression";
-    public static final String HDRS_UNSUPPORTED_DATACLASS = "JAL-Unsupported-Data-Class";
+    public static final String HDRS_UNSUPPORTED_RECORD_TYPE = "JAL-Unsupported-Record-Type";
     public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
     public static final String HDRS_SYNC_FAILURE = "JAL-Sync-Failure";
 
@@ -188,9 +189,9 @@ public class HttpUtils {
         return headerStr;
     }
 
-    public static HashMap<String, String> parseHttpHeaders(HttpServletRequest request)
+    public static TreeMap<String, String> parseHttpHeaders(HttpServletRequest request)
     {
-        HashMap<String, String> currHeaders = new HashMap<String, String>();
+        TreeMap<String, String> currHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         Enumeration<String> headerNames = request.getHeaderNames();
 
         while (headerNames.hasMoreElements()) {
@@ -324,7 +325,7 @@ public class HttpUtils {
         }
 
         //Checks if valid mode
-        if (!currMode.equals(MSG_LIVE) && !currMode.equals(MSG_ARCHIVE))
+        if (!currMode.equalsIgnoreCase(MSG_LIVE) && !currMode.equalsIgnoreCase(MSG_ARCHIVE))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_MODE);
             return false;
@@ -357,7 +358,7 @@ public class HttpUtils {
         //Check to ensure the digest is valid, the first one found is the preferred value (currently only SHA256)
         for (String currDigest : acceptDigests)
         {
-            if (currDigest.equals(DigestMethod.SHA256))
+            if (currDigest.equalsIgnoreCase(DigestMethod.SHA256))
             {
                 selectedDigest = DigestMethod.SHA256;
                 successResponseHeaders.put(HDRS_DIGEST, selectedDigest);
@@ -388,7 +389,7 @@ public class HttpUtils {
         for (String currXmlCompression : acceptedXmlCompressions)
         {
 
-            if (supportedXmlCompressionList.contains(HttpUtils.checkForEmptyString(currXmlCompression, "")))
+            if (supportedXmlCompressionList.contains(HttpUtils.checkForEmptyString(currXmlCompression.toLowerCase(), "")))
             {
                 selectedXmlCompression = currXmlCompression;
                 successResponseHeaders.put(HDRS_XML_COMPRESSION, selectedXmlCompression);
@@ -401,29 +402,29 @@ public class HttpUtils {
     }
 
 
-    //Validates dataClass, must be journal, audit, or log
-    public static boolean validateDataClass(String dataClass, RecordType supportedRecType, List<String> errorResponseHeaders)
+    //Validates recordType, must be journal, audit, or log
+    public static boolean validateRecordType(String recordType, RecordType supportedRecType, List<String> errorResponseHeaders)
     {
-        String currDataClass = checkForEmptyString(dataClass, HDRS_DATA_CLASS);
+        String currRecordType = checkForEmptyString(recordType, HDRS_RECORD_TYPE);
 
         if (supportedRecType == null)
         {
-            errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_RECORD_TYPE);
             logger.error("supportedRecType is required.");
             return false;
         }
 
-        if (currDataClass == null)
+        if (currRecordType == null)
         {
-            errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
-            logger.error("dataClass is required.");
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_RECORD_TYPE);
+            logger.error("recordType is required.");
             return false;
         }
 
-        //Checks if supported data class.
-        if (!currDataClass.equals(supportedRecType.toString().toLowerCase()))
+        //Checks if supported record type.
+        if (!currRecordType.equalsIgnoreCase(supportedRecType.toString().toLowerCase()))
         {
-            errorResponseHeaders.add(HDRS_UNSUPPORTED_DATACLASS);
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_RECORD_TYPE);
             return false;
         }
 
@@ -501,17 +502,17 @@ public class HttpUtils {
         HttpUtils.subscriber = subscriber;
     }
 
-    public static RecordType getRecordType(String dataClass)
+    public static RecordType getRecordType(String recordTypeStr)
     {
         RecordType recordType = RecordType.Unset;
 
-        if (dataClass != null)
+        if (recordTypeStr != null)
         {
-            if (dataClass.equalsIgnoreCase(JOURNAL)) {
+            if (recordTypeStr.equalsIgnoreCase(JOURNAL)) {
                 recordType = RecordType.Journal;
-            } else if (dataClass.equalsIgnoreCase(AUDIT)) {
+            } else if (recordTypeStr.equalsIgnoreCase(AUDIT)) {
                 recordType = RecordType.Audit;
-            } else if (dataClass.equalsIgnoreCase(LOG)) {
+            } else if (recordTypeStr.equalsIgnoreCase(LOG)) {
                 recordType = RecordType.Log;
             }
         }

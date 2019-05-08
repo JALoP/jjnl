@@ -18,15 +18,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
 
@@ -35,18 +38,17 @@ import com.tresys.jalop.jnl.impl.http.HttpUtils;
  * configure the JNLTest program.
  */
 public class HttpConfig extends BaseConfig {
-    private static final String CONFIGURE_DIGEST = "configureDigest";
+	private static final String CONFIGURE_DIGEST = "configureDigest";
     private static final String CONFIGURE_TLS = "configureTls";
+    private static final String RECORD_TYPE = "recordType";
 
     private HashMap<String, String> sslConfig;
     private List<String> configureDigests;
     private String configureTls;
+    private final Set<RecordType> recordTypes;
 
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
     private static final String KEY_STORE = "Key Store";
-
-    private static final String TRUST_STORE_PASSPHRASE = "Trust Store Passphrase";
-    private static final String TRUST_STORE = "Trust Store";
 
     /**
      * Parses a configuration file for use by the JNLTest program.
@@ -112,6 +114,7 @@ public class HttpConfig extends BaseConfig {
 
         handleConfigureDigest(subscriber);
         handleTls(subscriber);
+        handleRecordType(subscriber);
     }
 
 
@@ -124,6 +127,7 @@ public class HttpConfig extends BaseConfig {
      */
     HttpConfig(final String source) {
         super(source);
+        this.recordTypes = new HashSet<RecordType>();
     }
 
     /**
@@ -150,6 +154,20 @@ public class HttpConfig extends BaseConfig {
         JSONObject ssl = asJsonObject(this.source, "ssl", obj.get("ssl"), false);
         if (ssl != null) {
             handleSslConfig(ssl);
+        }
+    }
+    
+    /**
+     * Handle parsing the dataClass field for a publisher or listener.
+     * @param obj
+     *            The context to look up keys in.
+     * @throws ConfigurationException
+     *            If an error is detected in the configuration.
+     */
+    void handleRecordType(final JSONObject obj) throws ConfigurationException {
+        final JSONArray dataClasses = itemAsArray(RECORD_TYPE, obj);
+        for (final Object o : dataClasses) {
+            this.recordTypes.add(objectToRecordType(o));
         }
     }
 
@@ -181,6 +199,20 @@ public class HttpConfig extends BaseConfig {
         }
     }
 
+    /**
+     * Handle parsing the recordType field for a publisher or listener.
+     * @param obj
+     *            The context to look up keys in.
+     * @throws ConfigurationException
+     *            If an error is detected in the configuration.
+     */
+    /*void handleRecordType(final JSONObject obj) throws ConfigurationException {
+        final JSONArray recordType = itemAsArray(RECORD_TYPE, obj);
+        for (final Object o : recordType) {
+            this.recordTypes.add(objectToRecordType(o));
+        }
+    }*/
+
     public void handleTls(final JSONObject obj) throws ConfigurationException {
         final String tlsString = itemAsString(CONFIGURE_TLS, obj);
         this.configureTls = tlsString;
@@ -197,6 +229,11 @@ public class HttpConfig extends BaseConfig {
     public String getTlsConfiguration()
     {
         return this.configureTls;
+    }
+    
+    public Set<RecordType> getRecordTypes()
+    {
+    	return this.recordTypes;
     }
 
     /**

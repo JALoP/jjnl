@@ -839,14 +839,14 @@ public class JalRecordTest {
     }
 
     @Test
-    public void testProcessJALRecordMessageUnsupportedDataClassAudit() throws ClientProtocolException, IOException {
+    public void testProcessJALRecordMessageUnsupportedRecordTypeAudit() throws ClientProtocolException, IOException {
 
-        System.out.println("----testProcessJALRecordMessageUnsupportedDataClassAudit---");
+        System.out.println("----testProcessJALRecordMessageUnsupportedRecordTypeAudit---");
         System.out.println("DR1.018.002 - record-failure:  audit-record");
         System.out.println("DR1.018.005 - record-failure:  JAL-Id");
         System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
         System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
-        System.out.println("DR1.018.006.001.008 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Data-Class");
+        System.out.println("DR1.018.006.001.008 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Record-Type");
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.AUDIT_ENDPOINT);
 
@@ -873,23 +873,23 @@ public class JalRecordTest {
         assertNotNull(messageHeader);
         assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         assertNotNull(errorHeader);
-        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, errorHeader.getValue());
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE, errorHeader.getValue());
         assertNotNull(jalIdHeader);
         assertEquals("jalId", jalIdHeader.getValue());
         assertNull(digestHeader);
 
-        System.out.println("----testProcessJALRecordMessageUnsupportedDataClassAudit success----\n");
+        System.out.println("----testProcessJALRecordMessageUnsupportedRecordTypeAudit success----\n");
     }
 
     @Test
-    public void testProcessJALRecordMessageUnsupportedDataClassJournal() throws ClientProtocolException, IOException {
+    public void testProcessJALRecordMessageUnsupportedRecordTypeJournal() throws ClientProtocolException, IOException {
 
-        System.out.println("----testProcessJALRecordMessageUnsupportedDataClassJournal---");
+        System.out.println("----testProcessJALRecordMessageUnsupportedRecordTypeJournal---");
         System.out.println("DR1.018.003 - record-failure:  journal-record");
         System.out.println("DR1.018.005 - record-failure:  JAL-Id");
         System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
         System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
-        System.out.println("DR1.018.006.001.008 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Data-Class");
+        System.out.println("DR1.018.006.001.008 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Record-Type");
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.JOURNAL_ENDPOINT);
 
@@ -915,22 +915,22 @@ public class JalRecordTest {
         assertNotNull(messageHeader);
         assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         assertNotNull(errorHeader);
-        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, errorHeader.getValue());
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE, errorHeader.getValue());
         assertNotNull(jalIdHeader);
         assertEquals("jalId", jalIdHeader.getValue());
         assertNull(digestHeader);
 
-        System.out.println("----testProcessJALRecordMessageUnsupportedDataClassJournal success----\n");
+        System.out.println("----testProcessJALRecordMessageUnsupportedRecordTypeJournal success----\n");
     }
 
     @Test
-    public void testProcessJALRecordMessageUnsupportedDataClassLog() throws ClientProtocolException, IOException {
-        System.out.println("----testProcessJALRecordMessageUnsupportedDataClassLog---");
+    public void testProcessJALRecordMessageUnsupportedRecordTypeLog() throws ClientProtocolException, IOException {
+        System.out.println("----testProcessJALRecordMessageUnsupportedRecordTypeLog---");
         System.out.println("DR1.018.001 - record-failure:  log-record");
         System.out.println("DR1.018.005 - record-failure:  JAL-Id");
         System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
         System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
-        System.out.println("DR1.018.006.001.008 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Data-Class");
+        System.out.println("DR1.018.006.001.008 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Unsupported-Record-Type");
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + HttpUtils.LOG_ENDPOINT);
 
@@ -957,12 +957,12 @@ public class JalRecordTest {
         assertNotNull(messageHeader);
         assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
         assertNotNull(errorHeader);
-        assertEquals(HttpUtils.HDRS_UNSUPPORTED_DATACLASS, errorHeader.getValue());
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE, errorHeader.getValue());
         assertNotNull(jalIdHeader);
         assertEquals("jalId", jalIdHeader.getValue());
         assertNull(digestHeader);
 
-        System.out.println("----testProcessJALRecordMessageUnsupportedDataClassLog success----\n");
+        System.out.println("----testProcessJALRecordMessageUnsupportedRecordTypeLog success----\n");
     }
 
     @Test

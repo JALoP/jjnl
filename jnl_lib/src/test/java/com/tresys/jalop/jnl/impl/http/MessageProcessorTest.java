@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.log4j.Level;
 import org.junit.BeforeClass;
@@ -46,7 +47,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("successResponseHeaders is required");
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
+        TreeMap<String, String> requestHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         List<String> errorMessages = new ArrayList<String>();
         boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, null, errorMessages);
         assertEquals(false, result);
@@ -58,7 +59,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("errorMessages is required");
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
+        TreeMap<String, String> requestHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         boolean result = MessageProcessor.processInitializeMessage(requestHeaders, RecordType.Audit, successResponseHeaders, null);
         assertEquals(false, result);
     }
@@ -69,7 +70,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("supportedRecType is required");
         HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-        HashMap<String, String> requestHeaders = new HashMap<String, String>();
+        TreeMap<String, String> requestHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         List<String> errorMessages = new ArrayList<String>();
         boolean result = MessageProcessor.processInitializeMessage(requestHeaders, null, successResponseHeaders, errorMessages);
         assertEquals(false, result);
@@ -81,7 +82,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("digestResult is required");
         byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, new ArrayList<String>());
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -91,7 +92,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("errorMessages is required");
         byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, new DigestResult(), null);
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, new DigestResult(), null);
         assertEquals(false, result);
     }
 
@@ -110,7 +111,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("requestInputStream is required");
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), null, RecordType.Audit, new DigestResult(), new ArrayList<String>());
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), null, RecordType.Audit, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -120,7 +121,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("supportedRecType is required");
         byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new HashMap<String, String>(), new ByteArrayInputStream(test), null, new DigestResult(), new ArrayList<String>());
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), null, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -128,7 +129,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("errorMessages is required");
-        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), TestResources.SESSION_ID, new DigestResult(), null);
+        boolean result = MessageProcessor.processDigestResponseMessage(new TreeMap<String, String>(), TestResources.SESSION_ID, new DigestResult(), null);
         assertEquals(false, result);
     }
 
@@ -146,7 +147,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("sessionIdStr is required");
-        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), null, new DigestResult(), new ArrayList<String>());
+        boolean result = MessageProcessor.processDigestResponseMessage(new TreeMap<String, String>(), null, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -155,7 +156,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("digestResult is required");
-        boolean result = MessageProcessor.processDigestResponseMessage(new HashMap<String, String>(), TestResources.SESSION_ID, null, new ArrayList<String>());
+        boolean result = MessageProcessor.processDigestResponseMessage(new TreeMap<String, String>(), TestResources.SESSION_ID, null, new ArrayList<String>());
         assertEquals(false, result);
     }
 

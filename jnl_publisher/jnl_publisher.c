@@ -46,33 +46,33 @@ const std::string AUDIT = "audit";
 const std::string JOURNAL = "journal";
 const std::string LOG = "log";
 
-std::string getSessionIdByDataClass(std::string dataClass)
+std::string getSessionIdByRecordType(std::string recordType)
 {
-    if (AUDIT == dataClass)
+    if (AUDIT == recordType)
     {
         return auditSessionId;
     }
-    else if (JOURNAL == dataClass)
+    else if (JOURNAL == recordType)
     {
         return journalSessionId;
     }
-    else if (LOG == dataClass)
+    else if (LOG == recordType)
     {
         return logSessionId;
     }
 }
 
-void setSessionIdByDataClass(std::string sessionId, std::string dataClass)
+void setSessionIdByRecordType(std::string sessionId, std::string recordType)
 {
-    if (AUDIT == dataClass)
+    if (AUDIT == recordType)
     {
         auditSessionId = sessionId;
     }
-    else if (JOURNAL == dataClass)
+    else if (JOURNAL == recordType)
     {
         journalSessionId = sessionId;
     }
-    else if (LOG == dataClass)
+    else if (LOG == recordType)
     {
         logSessionId = sessionId;
     }
@@ -112,7 +112,7 @@ static size_t header_callback(char *buffer, size_t size,
     return numbytes;
 }
 
-struct curl_slist * getInitializeHeaders(std::string dataClass)
+struct curl_slist * getInitializeHeaders(std::string recordType)
 {
     struct curl_slist *headers=NULL;
     headers = curl_slist_append(headers, "Content-Type: application/http+jalop");
@@ -127,27 +127,27 @@ struct curl_slist * getInitializeHeaders(std::string dataClass)
     headers = curl_slist_append(headers, "JAL-Accept-Digest: junk digest,http://www.w3.org/2001/04/xmlenc#sha256");
     headers = curl_slist_append(headers, "JAL-Accept-XML-Compression: junk compression, none");
 
-    std::string dataClassMsg = "JAL-Data-Class: " + dataClass;
-    headers = curl_slist_append(headers, dataClassMsg.c_str());
+    std::string recordTypeMsg = "JAL-Record-Type: " + recordType;
+    headers = curl_slist_append(headers, recordTypeMsg.c_str());
     headers = curl_slist_append(headers, "JAL-Version: 2.0.0.0");
     headers = curl_slist_append(headers, "JAL-Accept-Configure-Digest-Challenge: on");
 
     return headers;
 }
 
-struct curl_slist * getJALRecordHeaders(std::string dataClass, std::string jalId, std::string sysMetadataLength, std::string appMetadataLength, std::string payloadLength)
+struct curl_slist * getJALRecordHeaders(std::string recordType, std::string jalId, std::string sysMetadataLength, std::string appMetadataLength, std::string payloadLength)
 {
     struct curl_slist *headers=NULL;
 
     //Sets session id
-    std::string sessionIdStr = "JAL-Session-Id: " + getSessionIdByDataClass(dataClass);
+    std::string sessionIdStr = "JAL-Session-Id: " + getSessionIdByRecordType(recordType);
     headers = curl_slist_append(headers, sessionIdStr.c_str());
 
     headers = curl_slist_append(headers, "Content-Type: application/http+jalop");
     headers = curl_slist_append(headers, "Transfer-Encoding: binary");
 
     //Adds JAL-Audit-Format if audit record
-    if (dataClass == AUDIT)
+    if (recordType == AUDIT)
     {
         headers = curl_slist_append(headers, "JAL-Audit-Format: xml");
     }
@@ -166,13 +166,13 @@ struct curl_slist * getJALRecordHeaders(std::string dataClass, std::string jalId
     std::string payloadStr = "JAL-Audit-Length: " + payloadLength;
     headers = curl_slist_append(headers, payloadStr.c_str());
 
-    std::string dataClassMsg = "JAL-Message: " + dataClass + "-record";
-    headers = curl_slist_append(headers, dataClassMsg.c_str());
+    std::string recordTypeMsg = "JAL-Message: " + recordType + "-record";
+    headers = curl_slist_append(headers, recordTypeMsg.c_str());
 
     return headers;
 }
 
-struct curl_slist * getDigestResponseHeaders(std::string jalId, std::string dataClass)
+struct curl_slist * getDigestResponseHeaders(std::string jalId, std::string recordType)
 {
     struct curl_slist *headers=NULL;
     headers = curl_slist_append(headers, "Content-Type: application/http+jalop");
@@ -188,13 +188,13 @@ struct curl_slist * getDigestResponseHeaders(std::string jalId, std::string data
 
 
     //Sets session id
-    std::string sessionIdStr = "JAL-Session-Id: " + getSessionIdByDataClass(dataClass);
+    std::string sessionIdStr = "JAL-Session-Id: " + getSessionIdByRecordType(recordType);
     headers = curl_slist_append(headers, sessionIdStr.c_str());
 
     return headers;
 }
 
-bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::string dataClass, std::string filename)
+bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::string recordType, std::string filename)
 {
     CURL *curl;
     CURLcode res;
@@ -203,7 +203,7 @@ bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::strin
     if(curl)
     {
         //URL to the servlet processing the post
-        std::string postUrl = "https://localhost:8444/" + dataClass;
+        std::string postUrl = "https://localhost:8444/" + recordType;
         curl_easy_setopt(curl, CURLOPT_URL, postUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
@@ -281,14 +281,14 @@ bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::strin
     }
 }
 
-bool processJALRecordResponse(std::string dataClass, std::string jalId)
+bool processJALRecordResponse(std::string recordType, std::string jalId)
 {
     //Process response header
     if (headerMap.find("JAL-Message") != headerMap.end())
     {
         fprintf(stdout, "%s\n", headerMap["JAL-Message"].c_str());
 
-        return performHttpPost(getDigestResponseHeaders(jalId, dataClass), false, dataClass, "");
+        return performHttpPost(getDigestResponseHeaders(jalId, recordType), false, recordType, "");
     }
     else
     {
@@ -299,36 +299,36 @@ bool processJALRecordResponse(std::string dataClass, std::string jalId)
     return true;
 }
 
-bool sendJalRecords(std::string dataClass)
+bool sendJalRecords(std::string recordType)
 {
     //Gets session id from header
     std::string sessionId = headerMap["JAL-Session-Id"];
-    setSessionIdByDataClass(sessionId, dataClass);
+    setSessionIdByRecordType(sessionId, recordType);
 
     //Sending jal record after successful initialize
     fprintf(stdout, "Received initialize-ack, sending jal record\n");
     std::string jalId = "2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496";
-    struct curl_slist *rec1headers = getJALRecordHeaders(dataClass, jalId, "3083", "1125", "19");
+    struct curl_slist *rec1headers = getJALRecordHeaders(recordType, jalId, "3083", "1125", "19");
 
-    if (!performHttpPost(rec1headers, true, dataClass, "test.txt"))
+    if (!performHttpPost(rec1headers, true, recordType, "test.txt"))
     {
         fprintf(stdout, "JAL-record post failed.\n");
         return false;
     }
-    processJALRecordResponse(dataClass, jalId);
+    processJALRecordResponse(recordType, jalId);
 
     jalId = "1ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496";
-    struct curl_slist *rec2headers = getJALRecordHeaders(dataClass, jalId, "3083", "1124", "41");
-    if (!performHttpPost(rec2headers, true, dataClass, "test2.txt"))
+    struct curl_slist *rec2headers = getJALRecordHeaders(recordType, jalId, "3083", "1124", "41");
+    if (!performHttpPost(rec2headers, true, recordType, "test2.txt"))
     {
         fprintf(stdout, "JAL-record post failed.\n");
         return false;
     }
 
-    return processJALRecordResponse(dataClass, jalId);
+    return processJALRecordResponse(recordType, jalId);
 }
 
-bool processInitializeResponse(std::string dataClass)
+bool processInitializeResponse(std::string recordType)
 {
     //Process response header
     if (headerMap.find("JAL-Message") != headerMap.end())
@@ -338,7 +338,7 @@ bool processInitializeResponse(std::string dataClass)
         {
             //Sending jal record after successful initialize
             fprintf(stdout, "Received initialize-ack, sending jal record\n");
-            return sendJalRecords(dataClass);
+            return sendJalRecords(recordType);
         }
         else
         {
@@ -368,26 +368,26 @@ int main(void)
     processInitializeResponse(AUDIT);
 /*
     //Send initialize message to journal channel
-    currDataClass = "journal";
-    if (!performHttpPost(getInitializeHeaders(currDataClass), false, currDataClass))
+    currRecordType = "journal";
+    if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType))
     {
         fprintf(stdout, "Initialize HTTP post failed.\n");
         exit(1);
     }
 
     //If successful post, then proccess response
-    processInitializeResponse(currDataClass);
+    processInitializeResponse(currRecordType);
 
     //Send initialize message to log channel
-    currDataClass = "log";
-    if (!performHttpPost(getInitializeHeaders(currDataClass), false, currDataClass))
+    currRecordType = "log";
+    if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType))
     {
         fprintf(stdout, "Initialize HTTP post failed.\n");
         exit(1);
     }
 
     //If successful post, then proccess response
-    processInitializeResponse(currDataClass); */
+    processInitializeResponse(currRecordType); */
 
     return 0;
 }
