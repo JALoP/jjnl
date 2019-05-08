@@ -156,7 +156,7 @@ public class HttpConfig extends BaseConfig {
             handleSslConfig(ssl);
         }
     }
-    
+
     /**
      * Handle parsing the dataClass field for a publisher or listener.
      * @param obj
@@ -230,10 +230,10 @@ public class HttpConfig extends BaseConfig {
     {
         return this.configureTls;
     }
-    
+
     public Set<RecordType> getRecordTypes()
     {
-    	return this.recordTypes;
+        return this.recordTypes;
     }
 
     /**

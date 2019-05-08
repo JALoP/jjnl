@@ -52,7 +52,7 @@ import com.tresys.jalop.jnl.Role;
 public class Config extends BaseConfig {
 	private static final String BEEP_ACTION = "beepAction";
 	private static final String DATA_CLASS = "dataClass";
-	
+
     private ProfileConfiguration sslConfig;
     private Map<InetAddress, PeerConfig> peerConfigs;
     private final Set<RecordType> recordTypes;
@@ -238,7 +238,7 @@ public class Config extends BaseConfig {
 			updateKnownHosts(elm);
 		}
 	}
-    
+
     /**
      * Handle parsing the dataClass field for a publisher or listener.
      * @param obj
@@ -283,10 +283,10 @@ public class Config extends BaseConfig {
     public boolean isListener() {
 		return this.listener;
 	}
-    
+
     public Set<RecordType> getRecordTypes()
     {
-    	return this.recordTypes;
+        return this.recordTypes;
     }
 
 	/**
