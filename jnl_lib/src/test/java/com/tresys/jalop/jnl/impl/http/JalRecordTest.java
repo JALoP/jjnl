@@ -381,9 +381,9 @@ public class JalRecordTest {
     }
 
     @Test
-    public void testProcessJALRecordsRequirementTest() throws ClientProtocolException, IOException {
+    public void testProcessLiveJALRecordsRequirementTest() throws ClientProtocolException, IOException {
 
-        System.out.println("----testProcessJALRecordsRequirementTest---");
+        System.out.println("----testProcessLiveJALRecordsRequirementTest---");
         System.out.println("DR1.017 - Transfer Records");
         System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
         System.out.println("DR1.017.002 - Transfer Records:  live");
@@ -428,8 +428,6 @@ public class JalRecordTest {
         System.out.println("DR1.017.008.007.002 - Transfer Records:  journal-record - Journal Record:  JAL-System-Metadata-Length");
         System.out.println("DR1.017.008.007.003 - Transfer Records:  journal-record - Journal Record:  JAL-Application-Metadata-Length");
 
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-        String [] modes = new String[] {"live"};  //, "archival"};  //TODO archival is not working currently
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
@@ -438,52 +436,162 @@ public class JalRecordTest {
                 continue;
             }
 
-            for (String currMode : modes)
+            System.out.println("Testing record type of " + recType.toString() + " with mode of live");
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, HttpUtils.MSG_LIVE);
+
+            HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+            String jalId = UUID.randomUUID().toString();
+            HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
+
+            for (Map.Entry<String, String> entry : headers.entrySet())
             {
-                subscriber.getConfig().setMode(HttpUtils.getMode(currMode));
-                System.out.println("Testing record type of " + recType.toString() + " with mode of " + currMode);
-                String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, currMode);
-
-                HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
-
-                String jalId = UUID.randomUUID().toString();
-                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
-
-                for (Map.Entry<String, String> entry : headers.entrySet())
-                {
-                    httpPost.setHeader(entry.getKey(), entry.getValue());
-                }
-
-                //Adds jal record to post
-                File resourcesDirectory = new File("src/test/resources");
-
-                String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
-                HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
-
-                httpPost.setEntity(entity);
-
-                HttpClient client = HttpClientBuilder.create().build();
-
-                final HttpResponse response = client.execute(httpPost);
-                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
-                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
-                final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-                final int responseStatus = response.getStatusLine().getStatusCode();
-                assertEquals(200, responseStatus);
-                assertEquals(null, errorMessage);
-                assertNotNull(digestHeader);
-
-                //Validate digest is correct for test file sent.
-                assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", digestHeader.getValue());
-                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
-                assertEquals(jalId, jalIdHeader.getValue());
-
+                httpPost.setHeader(entry.getKey(), entry.getValue());
             }
+
+            //Adds jal record to post
+            File resourcesDirectory = new File("src/test/resources");
+
+            String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+            HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+            httpPost.setEntity(entity);
+
+            HttpClient client = HttpClientBuilder.create().build();
+
+            final HttpResponse response = client.execute(httpPost);
+            final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+            final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final int responseStatus = response.getStatusLine().getStatusCode();
+            assertEquals(200, responseStatus);
+            assertEquals(null, errorMessage);
+            assertNotNull(digestHeader);
+
+            //Validate digest is correct for test file sent.
+            assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", digestHeader.getValue());
+            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+            assertEquals(jalId, jalIdHeader.getValue());
         }
 
-        subscriber.getConfig().setMode(Mode.Live);
-        System.out.println("----testProcessJALRecordsRequirementTest success----\n");
+        System.out.println("----testProcessLiveJALRecordsRequirementTest success----\n");
+    }
+
+    @Test
+    public void testProcessArchiveJALRecordsRequirementTest() throws ClientProtocolException, IOException {
+
+        System.out.println("----testProcessArchiveJALRecordsRequirementTest---");
+        System.out.println("DR1.017 - Transfer Records");
+        System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
+        System.out.println("DR1.017.003 - Transfer Records:  archive");
+        System.out.println("DR1.017.006 - Transfer Records:  log-record");
+        System.out.println("DR1.017.006.001 - Transfer Records:  log-record - JAL-Session-Id");
+        System.out.println("DR1.017.006.002 - Transfer Records:  log-record - JAL-Id");
+        System.out.println("DR1.017.006.004 - Transfer Records:  log-record - JAL-System-Metadata-Length");
+        System.out.println("DR1.017.006.004.001 - Transfer Records:  log-record - JAL-System-Metadata-Length:  In Bytes");
+        System.out.println("DR1.017.006.005 - Transfer Records:  log-record - JAL-Application-Metadata-Length");
+        System.out.println("DR1.017.006.005.001 - Transfer Records:  log-record - JAL-Application-Metadata-Length:  In Bytes");
+        System.out.println("DR1.017.006.006 - Transfer Records:  log-record - JAL-Log-Length");
+        System.out.println("DR1.017.006.006.001 - Transfer Records:  log-record - JAL-Log-Length:  In Bytes");
+        System.out.println("DR1.017.006.007 - Transfer Records:  log-record - Log Record");
+        System.out.println("DR1.017.006.007.001 - Transfer Records:  log-record - Log Record:  JAL-Log-Length");
+        System.out.println("DR1.017.006.007.002 - Transfer Records:  log-record - Log Record:  JAL-System-Metadata-Length");
+        System.out.println("DR1.017.006.007.003 - Transfer Records:  log-record - Log Record:  JAL-Application-Metadata-Length");
+        System.out.println("DR1.017.007 - Transfer Records:  audit-record");
+        System.out.println("DR1.017.007.001 - Transfer Records:  audit-record - JAL-Session-Id");
+        System.out.println("DR1.017.007.002 - Transfer Records:  audit-record - JAL-Id");
+        System.out.println("DR1.017.007.005 - Transfer Records:  audit-record - JAL-System-Metadata-Length");
+        System.out.println("DR1.017.007.005.001 - Transfer Records:  audit-record - JAL-System-Metadata-Length:  In Bytes");
+        System.out.println("DR1.017.007.006 - Transfer Records:  audit-record - JAL-Application-Metadata-Length");
+        System.out.println("DR1.017.007.006.001 - Transfer Records:  audit-record - JAL-Application-Metadata-Length:  In Bytes");
+        System.out.println("DR1.017.007.007 - Transfer Records:  audit-record - JAL-Audit-Length");
+        System.out.println("DR1.017.007.007.001 - Transfer Records:  audit-record - JAL-Audit-Length:  In Bytes");
+        System.out.println("DR1.017.007.008 - Transfer Records:  audit-record - Audit Record");
+        System.out.println("DR1.017.007.008.002 - Transfer Records:  audit-record - Audit Record:  JAL-Audit-Length");
+        System.out.println("DR1.017.007.008.003 - Transfer Records:  audit-record - Audit Record:  JAL-System-Metadata-Length");
+        System.out.println("DR1.017.007.008.004 - Transfer Records:  audit-record - Audit Record:  JAL-Application-Metadata-Length");
+        System.out.println("DR1.017.008 - Transfer Records:  journal-record");
+        System.out.println("DR1.017.008.001 - Transfer Records:  journal-record - JAL-Session-Id");
+        System.out.println("DR1.017.008.002 - Transfer Records:  journal-record - JAL-Id");
+        System.out.println("DR1.017.008.004 - Transfer Records:  journal-record - JAL-System-Metadata-Length");
+        System.out.println("DR1.017.008.004.001 - Transfer Records:  journal-record - JAL-System-Metadata-Length:  In Bytes");
+        System.out.println("DR1.017.008.005 - Transfer Records:  journal-record - JAL-Application-Metadata-Length");
+        System.out.println("DR1.017.008.005.001 - Transfer Records:  journal-record - JAL-Application-Metadata-Length:  In Bytes");
+        System.out.println("DR1.017.008.006 - Transfer Records:  journal-record - JAL-Journal-Length");
+        System.out.println("DR1.017.008.006.001 - Transfer Records:  journal-record - JAL-Journal-Length:  In Bytes");
+        System.out.println("DR1.017.008.007 - Transfer Records:  journal-record - Journal Record");
+        System.out.println("DR1.017.008.007.001 - Transfer Records:  journal-record - Journal Record:  JAL-Journal-Length");
+        System.out.println("DR1.017.008.007.002 - Transfer Records:  journal-record - Journal Record:  JAL-System-Metadata-Length");
+        System.out.println("DR1.017.008.007.003 - Transfer Records:  journal-record - Journal Record:  JAL-Application-Metadata-Length");
+
+        //Set archive mode on the subscriber
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        subscriber.getConfig().setMode(Mode.Archive);
+
+        try
+        {
+            String publisherId = UUID.randomUUID().toString();
+            for (RecordType recType : RecordType.values())
+            {
+                if (recType.equals(RecordType.Unset))
+                {
+                    continue;
+                }
+
+
+                System.out.println("Testing record type of " + recType.toString() + " with mode of archive");
+                String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, HttpUtils.MSG_ARCHIVE);
+
+                //send 3 archive records
+                for (int i=0; i < 3; i++)
+                {
+                    HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+                    String jalId = UUID.randomUUID().toString();
+                    HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
+
+                    for (Map.Entry<String, String> entry : headers.entrySet())
+                    {
+                        httpPost.setHeader(entry.getKey(), entry.getValue());
+                    }
+
+                    //Adds jal record to post
+                    File resourcesDirectory = new File("src/test/resources");
+
+                    String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+                    HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+                    httpPost.setEntity(entity);
+
+                    HttpClient client = HttpClientBuilder.create().build();
+
+                    final HttpResponse response = client.execute(httpPost);
+                    final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+                    final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
+                    final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+                    final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                    final int responseStatus = response.getStatusLine().getStatusCode();
+                    assertEquals(200, responseStatus);
+                    assertEquals(null, errorMessage);
+                    assertNotNull(digestHeader);
+
+                    //Validate digest is correct for test file sent.
+                    assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", digestHeader.getValue());
+                    assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+                    assertEquals(jalId, jalIdHeader.getValue());
+
+                }
+            }
+
+        }
+        finally
+        {
+            //Reset subscriber back to live mode
+            subscriber.getConfig().setMode(Mode.Live);
+        }
+
+        System.out.println("----testProcessArchiveJALRecordsRequirementTest success----\n");
     }
 
     @Test
