@@ -400,11 +400,11 @@ public class BaseConfig {
      */
     public RecordType objectToRecordType(final Object o) throws ConfigurationException {
         final String dataClass = asStringValue(this.source, null, o);
-        if (JOURNAL.equals(dataClass)) {
+        if (JOURNAL.equalsIgnoreCase(dataClass)) {
             return RecordType.Journal;
-        } else if (AUDIT.equals(dataClass)) {
+        } else if (AUDIT.equalsIgnoreCase(dataClass)) {
             return RecordType.Audit;
-        } else if (LOG.equals(dataClass)) {
+        } else if (LOG.equalsIgnoreCase(dataClass)) {
             return RecordType.Log;
         }
         throw new ConfigurationException(this.source, "Expected Record Type'"

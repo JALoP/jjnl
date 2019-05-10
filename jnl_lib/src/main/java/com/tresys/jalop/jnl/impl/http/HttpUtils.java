@@ -422,7 +422,7 @@ public class HttpUtils {
         }
 
         //Checks if supported record type.
-        if (!currRecordType.equalsIgnoreCase(supportedRecType.toString().toLowerCase()))
+        if (!currRecordType.equalsIgnoreCase(supportedRecType.toString()))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_RECORD_TYPE);
             return false;
