@@ -598,7 +598,7 @@ public class JalRecordTest {
     public void testProcessJALRecordsCaseInsensitiveTest() throws ClientProtocolException, IOException {
 
         JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-        String [] modes = new String[] {"lIVe"};  //, "archival"};  //TODO archival is not working currently
+        String [] modes = new String[] {"lIVe"};
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
