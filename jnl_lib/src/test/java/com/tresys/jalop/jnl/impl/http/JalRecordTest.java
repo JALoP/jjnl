@@ -595,6 +595,66 @@ public class JalRecordTest {
     }
 
     @Test
+    public void testProcessJALRecordsCaseInsensitiveTest() throws ClientProtocolException, IOException {
+
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        String [] modes = new String[] {"lIVe"};  //, "archival"};  //TODO archival is not working currently
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            for (String currMode : modes)
+            {
+                subscriber.getConfig().setMode(HttpUtils.getMode(currMode));
+                System.out.println("Testing record type of " + recType.toString() + " with mode of " + currMode);
+                String sessionId = TestResources.sendValidInitialize(recType, true, publisherId, currMode);
+
+                HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+                String jalId = UUID.randomUUID().toString();
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
+
+                for (Map.Entry<String, String> entry : headers.entrySet())
+                {
+                    httpPost.setHeader(entry.getKey().toLowerCase(), entry.getValue().toLowerCase());
+                }
+
+                //Adds jal record to post
+                File resourcesDirectory = new File("src/test/resources");
+
+                String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+                HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+                httpPost.setEntity(entity);
+
+                HttpClient client = HttpClientBuilder.create().build();
+
+                final HttpResponse response = client.execute(httpPost);
+                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+                final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final int responseStatus = response.getStatusLine().getStatusCode();
+                assertEquals(200, responseStatus);
+                assertEquals(null, errorMessage);
+                assertNotNull(digestHeader);
+
+                //Validate digest is correct for test file sent.
+                assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", digestHeader.getValue());
+                assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+                assertEquals(jalId, jalIdHeader.getValue());
+
+            }
+        }
+
+        subscriber.getConfig().setMode(Mode.Live);
+    }
+
+    @Test
     public void testProcessJALRecordMessageInvalidSessionId() throws ClientProtocolException, IOException {
 
         System.out.println("----testProcessJALRecordMessageInvalidSessionId---");

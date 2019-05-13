@@ -474,6 +474,48 @@ public class DigestResponseTest {
     }
 
     @Test
+    public void testValidConfirmedDigestResponseMessageCaseInsensitive() throws ClientProtocolException, IOException
+    {
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(recType, sessionId);
+
+            //Sends digest response
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader("CoNTent-TyPE", "aPPlication/ocTET-strEAm");
+            httpPost.setHeader("JAL-MeSSage", "dIGest-rESponse");
+            httpPost.setHeader("JAL-SeSSion-ID", sessionId);
+            httpPost.setHeader("Jal-ID", jalId);
+            httpPost.setHeader("JAL-DiGESt-StaTUs", "conFIRmed");
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_SYNC, messageHeader.getValue());
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
+        }
+    }
+
+    @Test
     public void testSyncFailureDigestResponseMessage() throws ClientProtocolException, IOException
     {
         String publisherId = UUID.randomUUID().toString();
