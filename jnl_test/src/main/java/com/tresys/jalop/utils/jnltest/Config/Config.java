@@ -196,7 +196,6 @@ public class Config extends BaseConfig {
 	 */
 	void handleCommon(final JSONObject obj) throws ConfigurationException {
 		handleAddress(obj);
-		handleDataClass(obj);
 		setPort(itemAsNumber(PORT, obj).intValue());
 		obj.get("ssl");
 		JSONObject ssl = asJsonObject(this.source, "ssl", obj.get("ssl"), false);
@@ -271,6 +270,13 @@ public class Config extends BaseConfig {
 		setInputPath(new File(itemAsString(INPUT, publisher, true)));
 		setMode(itemAsString(MODE, publisher, true));
 	}
+
+    @Override
+    void handleSubscriber(final JSONObject subscriber) throws ConfigurationException {
+        super.handleSubscriber(subscriber);
+
+        handleDataClass(subscriber);
+    }
 
 
 	/**
