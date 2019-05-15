@@ -288,6 +288,13 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler, JNLTes
     }
 
     @Override
+    public boolean notifyJournalMissing(final SubscriberSession sess, final String nonce) {
+
+        //Journal missing was not implemented in the beep implementation.
+        return true;
+    }
+
+    @Override
     public Mode getMode() {
         return this.config.getMode();
     }

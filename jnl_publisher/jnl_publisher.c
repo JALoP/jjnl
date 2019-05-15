@@ -162,8 +162,20 @@ struct curl_slist * getJALRecordHeaders(std::string recordType, std::string jalI
     std::string appMetadataStr = "JAL-Application-Metadata-Length: " + appMetadataLength;
     headers = curl_slist_append(headers, appMetadataStr.c_str());
 
-    //temp for now
-    std::string payloadStr = "JAL-Audit-Length: " + payloadLength;
+    std::string payloadStr;
+    if (AUDIT == recordType)
+    {
+        payloadStr = "JAL-Audit-Length: ";
+    }
+    else if (JOURNAL == recordType)
+    {
+        payloadStr = "JAL-Journal-Length: ";
+    }
+    else
+    {
+        payloadStr = "JAL-Log-Length: ";
+    }
+    payloadStr = payloadStr + payloadLength;
     headers = curl_slist_append(headers, payloadStr.c_str());
 
     std::string recordTypeMsg = "JAL-Message: " + recordType + "-record";
@@ -358,14 +370,14 @@ bool processInitializeResponse(std::string recordType)
 int main(void)
 {
     //Send initialize message to audit channel
-    if (!performHttpPost(getInitializeHeaders(AUDIT), false, AUDIT, ""))
+    if (!performHttpPost(getInitializeHeaders(JOURNAL), false, JOURNAL, ""))
     {
         fprintf(stdout, "Initialize HTTP post failed.\n");
         exit(1);
     }
 
     //If successful post, then proccess response
-    processInitializeResponse(AUDIT);
+    processInitializeResponse(JOURNAL);
 /*
     //Send initialize message to journal channel
     currRecordType = "journal";

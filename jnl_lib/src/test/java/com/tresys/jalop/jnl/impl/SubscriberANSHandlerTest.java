@@ -24,22 +24,16 @@
 package com.tresys.jalop.jnl.impl;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import javax.xml.soap.MimeHeader;
-
-import mockit.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -60,8 +54,15 @@ import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.SubscriberANSHandler.Dispatcher;
-import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
+
+import mockit.Deencapsulation;
+import mockit.Expectations;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
+import mockit.NonStrictExpectations;
+import mockit.Verifications;
 
 /**
  * Tests for SubscriberANSHandler class.
@@ -112,6 +113,11 @@ public class SubscriberANSHandlerTest {
 			return false;
 
 		}
+
+	    @Override
+	    public boolean notifyJournalMissing(final SubscriberSession sess, final String nonce) {
+	        return true;
+	    }
 
 		@Override
 		public SubscribeRequest getSubscribeRequest(final SubscriberSession sess) {

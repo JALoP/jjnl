@@ -719,8 +719,33 @@ public class SubscriberImpl implements Subscriber {
 
     @SuppressWarnings("unchecked")
     @Override
+    public final boolean notifyJournalMissing(final SubscriberSession sess,
+            final String jalId)
+    {
+        boolean ret = true;
+        LocalRecordInfo lri;
+
+        LOGGER.debug("notifyJournalMissing for nonce: " + nonce);
+        // try to locate the provided nonce in the map of received digests
+        synchronized (this.nonceMap) {
+            lri = this.nonceMap.get(jalId);
+        }
+        if (lri == null) {
+            LOGGER.error("Can't find local status for: " + nonce);
+            ret = true;
+        }
+        else
+        {
+            ret = deleteRecord(lri);
+        }
+
+        return ret;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public final boolean notifyDigestResponse(final SubscriberSession sess,
-                                    final String nonce, final DigestStatus status) {
+            final String nonce, final DigestStatus status) {
         boolean ret = true;
         LocalRecordInfo lri;
 
@@ -750,15 +775,25 @@ public class SubscriberImpl implements Subscriber {
 
             // Store off the status for the record - still in temp
             if (!dumpStatus(lri.statusFile, lri.status)) {
+                LOGGER.debug("Failed to dump status to " + lri.statusFile.getAbsolutePath());
                 ret = false;
             }
 
             // If the digest is confirmed, go ahead and move the record from temp directory
-            // Otherwise record stays in temp
+            // Otherwise delete the record
             if(DigestStatus.Confirmed.equals(status)) {
                 if(!moveConfirmedRecord(lri)) {
+                    LOGGER.error("Failed to sync record:  " + lri.recordDir.getAbsolutePath());
                     ret = false;
-        }
+                }
+            }
+            else
+            {
+                if (!deleteRecord(lri))
+                {
+                    LOGGER.error("Failed to delete record:  " + lri.recordDir.getAbsolutePath());
+                    ret = false;
+                }
             }
         }
 
@@ -783,6 +818,33 @@ public class SubscriberImpl implements Subscriber {
             dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
         } else {
             LOGGER.error("Error trying to move confirmed file.");
+            return false;
+        }
+
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean deleteRecord(final LocalRecordInfo lri) {
+
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Deleting record directory: " + lri.recordDir.getAbsolutePath());
+        }
+
+        if (!lri.recordDir.exists())
+        {
+            LOGGER.error("Record directory does not exist: " + lri.recordDir.getAbsolutePath());
+            return false;
+        }
+
+        try
+        {
+            FileUtils.deleteDirectory(lri.recordDir);
+        }
+        catch (IOException ioe)
+        {
+            LOGGER.error("Error deleting record directory: " + lri.recordDir.getAbsolutePath());
+            LOGGER.error(ioe);
             return false;
         }
 

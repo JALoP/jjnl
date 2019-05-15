@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -28,7 +27,6 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
-import com.tresys.jalop.jnl.exceptions.JNLMessageProcessingException;
 import com.tresys.jalop.jnl.exceptions.JNLSessionInvalidException;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
@@ -71,23 +69,50 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void processJournalMissingMessage(final RecordType supportedRecType, final HttpServletResponse response, final Collection<String> errorMessages) throws JNLMessageProcessingException
+    static boolean processJournalMissingMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, final String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
     {
-        logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
+        logger.debug(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
+
+        //Lookup the correct session based upon session id and process the record
+        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionBySessionId(sessionIdStr);
+
+        //If null then active session does not exist for this publisher, return error
+        if (sess == null)
+        {
+            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
+            return false;
+        }
+
+        //Checks the jal Id
+        String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
+        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        if (jalId == null)
+        {
+            //Set to empty string so header is correctly set.
+            digestResult.setJalId("");
+            logger.error("Digest response message failed due to invalid JAL Id value of: " + jalId);
+            errorMessages.add(HttpUtils.HDRS_INVALID_JAL_ID);
+            return false;
+        }
+        digestResult.setJalId(jalId);
+
         if (!RecordType.Journal.equals(supportedRecType))
         {
-            addErrorMessage(errorMessages, "Expected an " + RecordType.Journal + " record type but received " + supportedRecType);
+            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE);
+            return false;
         }
-        if (!CollectionUtils.isEmpty(errorMessages))
+
+        //Execute the notifyJournalMissing callback which will take care deleting the downloaded record in the output dir
+        if (!subscriber.notifyJournalMissing(sess, jalId))
         {
-            throw new JNLMessageProcessingException("Failed to process Journal Missing Message.");
+            logger.error("notifyJournalMissing failure: " + jalId);
+
+            errorMessages.add(HttpUtils.HDRS_JOURNAL_MISSING_FAILURE);
+            return false;
         }
-        else
-        {
-            response.setStatus(HttpServletResponse.SC_OK);
-            response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
-            logger.info(HttpUtils.MSG_JOURNAL_MISSING + " message processed");
-        }
+
+        return true;
     }
 
     @VisibleForTesting
@@ -536,10 +561,10 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setJournalMissingReponse(final HttpServletResponse response)
+    static void setJournalMissingResponse(final String jalId, final HttpServletResponse response)
     {
-        response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
+        response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         logger.debug(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE + " message processed");
     }
 
@@ -701,7 +726,17 @@ public class MessageProcessor {
                 {
                     updateSessionTimestamp(currSession);
 
-                    MessageProcessor.processJournalMissingMessage(supportedRecType, response, errorMessages);
+                    DigestResult digestResult = new DigestResult();
+                    if (!MessageProcessor.processJournalMissingMessage(currHeaders, supportedRecType, sessionIdStr, digestResult, errorMessages))
+                    {
+                        //Send record failure
+                        MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
+                    }
+                    else
+                    {
+                        //Send journal missing response
+                        MessageProcessor.setJournalMissingResponse(digestResult.getJalId(), response);
+                    }
                 }
                 else if (messageType.equalsIgnoreCase(HttpUtils.MSG_DIGEST_RESP))
                 {
@@ -742,11 +777,6 @@ public class MessageProcessor {
         {
             logger.error("Failed to process message. Cause: " + e);
             MessageProcessor.setSessionFailureResponse(errorMessages, response);
-        }
-        catch (JNLMessageProcessingException e)
-        {
-            logger.error("Failed to process message. Cause: " + e);
-            MessageProcessor.setErrorResponse(errorMessages, response);
         }
         catch (IOException ioe)
         {

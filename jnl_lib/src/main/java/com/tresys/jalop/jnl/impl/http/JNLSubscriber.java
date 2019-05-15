@@ -433,6 +433,11 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     }
 
     @Override
+    public boolean notifyJournalMissing(final SubscriberSession sess, final String nonce) {
+        return this.sessMap.get(sess).notifyJournalMissing(sess, nonce);
+    }
+
+    @Override
     public Mode getMode() {
         return config.getMode();
     }
@@ -442,4 +447,3 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         return config;
     }
 }
-

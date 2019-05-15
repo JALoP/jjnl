@@ -992,7 +992,7 @@ public class InitializeTest {
 
     @Test
     /**
-     * Testing that if we send a JOURNAL_MISSING message to an audit endpoint that we get back an HTTP status of Bad Request (400)
+     * Testing that if we send a JOURNAL_MISSING message to an audit endpoint that we get back a record-failure
      * @throws ClientProtocolException
      * @throws IOException
      */
@@ -1011,14 +1011,24 @@ public class InitializeTest {
 
         final HttpResponse response = client.execute(httpPost);
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertNull(response.getFirstHeader(HttpUtils.HDRS_MESSAGE));
-        assertNotNull(HttpUtils.HDRS_ERROR_MESSAGE);
         assertEquals(200, responseStatus);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE, errorHeader.getValue());
+
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+        assertNotNull(jalIdHeader);
+        assertEquals("1000", jalIdHeader.getValue());
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
     }
 
     @Test
     /**
-     * Testing that if we send a JOURNAL_MISSING message to an log endpoint that we get back an HTTP status of Bad Request (400)
+     * Testing that if we send a JOURNAL_MISSING message to an log endpoint that we get back a record-failure
      * @throws ClientProtocolException
      * @throws IOException
      */
@@ -1037,7 +1047,18 @@ public class InitializeTest {
 
         final HttpResponse response = client.execute(httpPost);
         final int responseStatus = response.getStatusLine().getStatusCode();
-        assertNull(response.getFirstHeader(HttpUtils.HDRS_MESSAGE));
         assertEquals(200, responseStatus);
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNotNull(errorHeader);
+        assertEquals(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE, errorHeader.getValue());
+
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+        assertNotNull(jalIdHeader);
+        assertEquals("1000", jalIdHeader.getValue());
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
     }
 }

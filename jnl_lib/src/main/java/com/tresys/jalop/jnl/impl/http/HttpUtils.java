@@ -100,6 +100,7 @@ public class HttpUtils {
     public static final String HDRS_UNSUPPORTED_RECORD_TYPE = "JAL-Unsupported-Record-Type";
     public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
     public static final String HDRS_SYNC_FAILURE = "JAL-Sync-Failure";
+    public static final String HDRS_JOURNAL_MISSING_FAILURE = "JAL-Journal-Missing-Failure";
 
     //Additional constants
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
