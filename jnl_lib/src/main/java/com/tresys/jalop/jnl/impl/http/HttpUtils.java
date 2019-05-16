@@ -19,6 +19,7 @@ import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
@@ -284,14 +285,14 @@ public class HttpUtils {
     }
 
     // Validates Session ID, must be UUID
-    public static boolean validateSessionId(String sessionId, List<String> errorResponseHeaders) //TODO add SubscriberSession as param
+    public static SubscriberHttpSessionImpl validateSessionId(String sessionId, List<String> errorResponseHeaders)
     {
         String currSessionId = checkForEmptyString(sessionId, HDRS_SESSION_ID);
 
         if (currSessionId == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
-            return false;
+            return null;
         }
 
         //Regular expression to match UUID format
@@ -299,7 +300,7 @@ public class HttpUtils {
         if (!currSessionId.matches(uuidPattern))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
-            return false;
+            return null;
         }
 
         //Lookup the correct session based upon session id
@@ -310,10 +311,10 @@ public class HttpUtils {
         if (sess == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
-            return false;
+            return null;
         }
 
-        return true;
+        return (SubscriberHttpSessionImpl)sess;
     }
 
     //Validates mode, must be publish live or publish archive

@@ -650,18 +650,13 @@ public class MessageProcessor {
             {
                 //Gets the session Id from header
                 String sessionIdStr = currHeaders.get(HttpUtils.HDRS_SESSION_ID);
-                if (!HttpUtils.validateSessionId(sessionIdStr, errorMessages))
+                SubscriberHttpSessionImpl currSession = HttpUtils.validateSessionId(sessionIdStr, errorMessages);
+                if (currSession == null)
                 {
                     String errMsg = "JAL Record message failed due to invalid Session ID value of: " + sessionIdStr;
                     logger.error(errMsg);
                     throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
                 }
-
-                //Lookup the correct session based upon session id
-                final Subscriber subscriber = HttpUtils.getSubscriber();
-                JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
-
-                SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)jnlSubscriber.getSessionBySessionId(sessionIdStr);
 
                 if (messageType.equalsIgnoreCase(HttpUtils.MSG_LOG) || messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL)
                         || messageType.equalsIgnoreCase(HttpUtils.MSG_AUDIT)) // process
