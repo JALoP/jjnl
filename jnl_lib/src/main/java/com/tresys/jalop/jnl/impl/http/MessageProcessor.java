@@ -240,14 +240,14 @@ public class MessageProcessor {
         {
             throw new IllegalArgumentException("requestHeaders is required");
         }
-        
+
         if (sessionIdStr == null)
         {
             throw new IllegalArgumentException("sessionIdStr is required");
         }
 
         digestResult.setFailedDueToSync(false);
-        
+
         //Lookup the correct session based upon session id
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         SubscriberSession sess = (SubscriberSession)subscriber.getSessionBySessionId(sessionIdStr);
@@ -662,7 +662,7 @@ public class MessageProcessor {
                             supportedRecType, digestResult, errorMessages))
                     {
                         lock.lock();
-                    	currSession.updateLastTouchedTimestamp();
+                        currSession.updateLastTouchedTimestamp();
                         lock.unlock();
 
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
@@ -678,7 +678,7 @@ public class MessageProcessor {
                     else
                     {
                         lock.lock();
-                    	currSession.updateLastTouchedTimestamp();
+                        currSession.updateLastTouchedTimestamp();
                         lock.unlock();
 
                         //If digest was performed send digest challenge otherwise send sync
@@ -697,7 +697,7 @@ public class MessageProcessor {
                 else if (messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL_MISSING))
                 {
                     lock.lock();
-                	currSession.updateLastTouchedTimestamp();
+                    currSession.updateLastTouchedTimestamp();
                     lock.unlock();
 
                     MessageProcessor.processJournalMissingMessage(supportedRecType, response, errorMessages);
@@ -712,7 +712,7 @@ public class MessageProcessor {
                     if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, digestResult, errorMessages))
                     {
                         lock.lock();
-                    	currSession.updateLastTouchedTimestamp();
+                        currSession.updateLastTouchedTimestamp();
                         lock.unlock();
 
                         //Determine if it failed due to a sync failure or record failure

@@ -209,7 +209,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     {
         return this.performDigest;
     }
-    
+
     public LocalDateTime getLastTouchedTimestamp() {
         return this.lastTouchedTimestamp;
     }

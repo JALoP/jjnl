@@ -309,7 +309,7 @@ public class HttpUtils {
         //If null then active session does not exist for this publisher, return error
         if (sess == null)
         {
-        	errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
+            errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
             return false;
         }
 

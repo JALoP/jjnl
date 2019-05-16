@@ -373,16 +373,16 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
                     }
 
                     SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)entry.getKey());
-                    
+
                     if (oldestLastTouchedTimestamp.compareTo(session.getLastTouchedTimestamp()) > 0)
                     {
-                    	oldestSessionId = session.getSessionId();
+                        oldestSessionId = session.getSessionId();
                         oldestLastTouchedTimestamp = session.getLastTouchedTimestamp();
                     }
                 }
 
                 removeSession(oldestSessionId);
-            	
+
             }
         }
     }

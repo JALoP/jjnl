@@ -68,7 +68,7 @@ public class SessionTest {
         server.stop();
     }
 
-    
+
     @Test
     public void testMaxConcurrentSessionEcxeededTest() throws ClientProtocolException, IOException, InterruptedException {
 
@@ -116,10 +116,10 @@ public class SessionTest {
         assertNull(jalIdHeader);
         assertEquals(HttpUtils.MSG_SESSION_FAILURE, responseMessage);
     }
-    
+
     @Test
     public void testMaxConcurrentSessionTest() throws ClientProtocolException, IOException, InterruptedException {
-    
+
 	    String publisherId = UUID.randomUUID().toString();
 
         System.out.println("Testing record type of " + RecordType.Journal.toString() + " with mode of live");
