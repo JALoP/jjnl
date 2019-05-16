@@ -239,7 +239,8 @@ public class MessageProcessor {
         return true;
     }
 
-    public static boolean processDigestResponseMessage(TreeMap<String, String> requestHeaders, String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
+    @VisibleForTesting
+    static boolean processDigestResponseMessage(TreeMap<String, String> requestHeaders, String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
         {
