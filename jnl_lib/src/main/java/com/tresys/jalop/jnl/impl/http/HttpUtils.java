@@ -18,6 +18,7 @@ import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.SubscriberSession;
 
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
@@ -82,7 +83,6 @@ public class HttpUtils {
     public static final String HDRS_SESSION_ID = "JAL-Session-Id";
     public static final String HDRS_SESSION_ALREADY_EXISTS = "JAL-Session-Already-Exists";
     public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
-    public static final String HDRS_UNAUTHORIZED_MODE = "JAL-Unauthorized-Mode";
     public static final String HDRS_UNSUPPORTED_AUDIT_FORMAT= "JAL-Unsupported-Audit-Format";
     public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";
     public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
@@ -302,7 +302,16 @@ public class HttpUtils {
             return false;
         }
 
-        //TODO must ensure that the UUID exists in a SubscriberSession and is not timed out
+        //Lookup the correct session based upon session id
+        final JNLSubscriber subscriber = (JNLSubscriber)getSubscriber();
+        SubscriberSession sess = (SubscriberSession)subscriber.getSessionBySessionId(currSessionId);
+
+        //If null then active session does not exist for this publisher, return error
+        if (sess == null)
+        {
+        	errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
+            return false;
+        }
 
         return true;
     }

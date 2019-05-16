@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,6 +39,7 @@ public class MessageProcessor {
 
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(MessageProcessor.class);
+    private static final Lock lock = new ReentrantLock();
 
     /**
      * Null-safe way to add strings to an arraylist of strings. This is specially intended for the use of adding errorMessages.
@@ -180,22 +183,16 @@ public class MessageProcessor {
             performDigest = false;
         }
 
-        //Checks if session already exists for the specific publisher/record type, if so then return initialize-nack
-        SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)jnlSubscriber.getSessionByPublisherId(publisherIdStr, HttpUtils.getRecordType(recordTypeStr), HttpUtils.getMode(modeStr));
+        lock.lock();
+        jnlSubscriber.prepareForNewSession();
+        lock.unlock();
 
-        if (currSession != null)
-        {
-            //TODO right now a new session is added no matter whether it exists or not
-            //Eventually add session cap/cleanup per session timeout
-        }
-
-        //TODO don't know if we need the default digest timeout and message values, set to 1 for both since currently we just digest the message immediately and return in the response.
+        //TODO remove default values of 1 for pending digest values, once we've refactored the code
         UUID sessionUUID = UUID.randomUUID();
         final String sessionId = sessionUUID.toString();
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
                 supportedRecType, HttpUtils.getMode(modeStr), subscriber, selectedDigest,
-                selectedXmlCompression, 1, //contextImpl.getDefaultDigestTimeout(),
-                1, performDigest/*contextImpl.getDefaultPendingDigestMax()*/);
+                selectedXmlCompression, 1, 1, performDigest);
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
 
@@ -243,24 +240,17 @@ public class MessageProcessor {
         {
             throw new IllegalArgumentException("requestHeaders is required");
         }
-
+        
         if (sessionIdStr == null)
         {
             throw new IllegalArgumentException("sessionIdStr is required");
         }
 
         digestResult.setFailedDueToSync(false);
-
+        
         //Lookup the correct session based upon session id
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         SubscriberSession sess = (SubscriberSession)subscriber.getSessionBySessionId(sessionIdStr);
-
-        //If null then active session does not exist for this publisher, return error
-        if (sess == null)
-        {
-            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
-            return false;
-        }
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -347,14 +337,8 @@ public class MessageProcessor {
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionBySessionId(sessionIdStr);
 
-        //If null then active session does not exist for this publisher, return error
-        if (sess == null)
-        {
-            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
-            return false;
-        }
-
         digestResult.setPerformDigest(sess.getPerformDigest());
+
 
         //Gets JAL-Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -603,8 +587,6 @@ public class MessageProcessor {
         }
 
         //Sets JAL-Id to indicate journal resume
-        //TODO - need to determine if this is correct, this is how the java code worked before, however this only handles resuming one record.
-        //if multiple record resumes are required then this will not work.
         successResponseHeaders.put(HttpUtils.HDRS_NONCE, nonce);
         successResponseHeaders.put(HttpUtils.HDRS_JOURNAL_OFFSET, Long.toString(offset));
 
@@ -660,15 +642,29 @@ public class MessageProcessor {
                     throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
                 }
 
+                //Lookup the correct session based upon session id
+                final Subscriber subscriber = HttpUtils.getSubscriber();
+                JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
+
+                SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)jnlSubscriber.getSessionBySessionId(sessionIdStr);
+
                 if (messageType.equalsIgnoreCase(HttpUtils.MSG_LOG) || messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL)
                         || messageType.equalsIgnoreCase(HttpUtils.MSG_AUDIT)) // process
                     // binary if jal
                     // record data
                 {
                     DigestResult digestResult = new DigestResult();
+
+                    lock.lock();
+                    currSession.updateLastTouchedTimestamp();
+                    lock.unlock();
                     if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
                             supportedRecType, digestResult, errorMessages))
                     {
+                        lock.lock();
+                    	currSession.updateLastTouchedTimestamp();
+                        lock.unlock();
+
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
                         if (!digestResult.getFailedDueToSync())
                         {
@@ -681,6 +677,10 @@ public class MessageProcessor {
                     }
                     else
                     {
+                        lock.lock();
+                    	currSession.updateLastTouchedTimestamp();
+                        lock.unlock();
+
                         //If digest was performed send digest challenge otherwise send sync
                         if (digestResult.getPerformDigest())
                         {
@@ -696,13 +696,25 @@ public class MessageProcessor {
                 }
                 else if (messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL_MISSING))
                 {
+                    lock.lock();
+                	currSession.updateLastTouchedTimestamp();
+                    lock.unlock();
+
                     MessageProcessor.processJournalMissingMessage(supportedRecType, response, errorMessages);
                 }
                 else if (messageType.equalsIgnoreCase(HttpUtils.MSG_DIGEST_RESP))
                 {
                     DigestResult digestResult = new DigestResult();
+
+                    lock.lock();
+                    currSession.updateLastTouchedTimestamp();
+                    lock.unlock();
                     if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, digestResult, errorMessages))
                     {
+                        lock.lock();
+                    	currSession.updateLastTouchedTimestamp();
+                        lock.unlock();
+
                         //Determine if it failed due to a sync failure or record failure
                         if (digestResult.getFailedDueToSync())
                         {
@@ -715,6 +727,10 @@ public class MessageProcessor {
                     }
                     else
                     {
+                        lock.lock();
+                    	currSession.updateLastTouchedTimestamp();
+                        lock.unlock();
+
                         //Send sync message
                         MessageProcessor.setSyncResponse(digestResult.getJalId(), response);
                     }

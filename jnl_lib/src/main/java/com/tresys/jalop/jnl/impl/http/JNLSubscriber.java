@@ -3,6 +3,7 @@ package com.tresys.jalop.jnl.impl.http;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -334,15 +335,14 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         return sub.getSubscribeRequest(sess);
     }
 
-    public Session getSessionByPublisherId(String publisherId, RecordType recordType, Mode mode)
+    public Session getSessionBySessionId(String sessionId)
     {
         Session foundSession = null;
         synchronized (this.sessMap) {
 
             for (Session currSession : this.sessMap.keySet())
             {
-                SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)currSession);
-                if (session.getPublisherId().equals(publisherId) && session.getRecordType().equals(recordType) && session.getMode().equals(mode))
+                if (((SubscriberHttpSessionImpl)currSession).getSessionId().equals(sessionId))
                 {
                     foundSession = currSession;
                     break;
@@ -351,6 +351,40 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         }
 
         return foundSession;
+    }
+
+
+    public void prepareForNewSession()
+    {
+        synchronized (this.sessMap) {
+
+            if (this.sessMap.size() == config.getMaxSessionLimit())
+            {
+                String oldestSessionId = null;
+                LocalDateTime oldestLastTouchedTimestamp = null;
+                for (Map.Entry<Session, SubscriberImpl> entry : sessMap.entrySet())
+                {
+                    if (oldestSessionId == null && oldestLastTouchedTimestamp == null)
+                    {
+                        SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)entry.getKey());
+                        oldestSessionId = session.getSessionId();
+                        oldestLastTouchedTimestamp = session.getLastTouchedTimestamp();
+                        continue;
+                    }
+
+                    SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)entry.getKey());
+                    
+                    if (oldestLastTouchedTimestamp.compareTo(session.getLastTouchedTimestamp()) > 0)
+                    {
+                    	oldestSessionId = session.getSessionId();
+                        oldestLastTouchedTimestamp = session.getLastTouchedTimestamp();
+                    }
+                }
+
+                removeSession(oldestSessionId);
+            	
+            }
+        }
     }
 
     public void removeSession(String sessionId)
@@ -371,24 +405,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             this.sessMap.remove(removeKey);
         }
-    }
-
-    public Session getSessionBySessionId(String sessionId)
-    {
-        Session foundSession = null;
-        synchronized (this.sessMap) {
-
-            for (Session currSession : this.sessMap.keySet())
-            {
-                if (((SubscriberHttpSessionImpl)currSession).getSessionId().equals(sessionId))
-                {
-                    foundSession = currSession;
-                    break;
-                }
-            }
-        }
-
-        return foundSession;
     }
 
     @Override

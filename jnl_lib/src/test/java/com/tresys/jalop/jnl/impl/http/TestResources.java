@@ -90,6 +90,7 @@ public class TestResources {
 
         HttpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
         config.setOutputPath(new File("./output"));
+        config.setMaxSessionLimit(5);
 
         JNLSubscriber subscriber = new JNLSubscriber(config);
         HttpUtils.setSubscriber(subscriber);

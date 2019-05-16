@@ -2,6 +2,7 @@ package com.tresys.jalop.jnl.impl.subscriber;
 
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +37,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     private String publisherId;
     private String sessionId;
     private boolean performDigest;
+    private LocalDateTime lastTouchedTimestamp;
 
     /**
      * Create a {@link SubscriberHttpSessionImpl} object.
@@ -112,6 +114,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         this.pendingDigestTimeoutSeconds = pendingDigestTimeoutSeconds;
         this.digestMap = new HashMap<String, String>();
         this.journalResumeOffset = 0;
+        this.lastTouchedTimestamp = LocalDateTime.now();
     }
 
     public String getDigestType(final String algorithm) {
@@ -205,6 +208,14 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     public boolean getPerformDigest()
     {
         return this.performDigest;
+    }
+    
+    public LocalDateTime getLastTouchedTimestamp() {
+        return this.lastTouchedTimestamp;
+    }
+
+    public void updateLastTouchedTimestamp() {
+        this.lastTouchedTimestamp = LocalDateTime.now();
     }
 
     /**

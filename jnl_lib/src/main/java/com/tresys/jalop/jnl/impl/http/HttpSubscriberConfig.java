@@ -17,6 +17,7 @@ public class HttpSubscriberConfig {
     private Set<RecordType> recordTypes;
     private List<String> allowedConfigureDigests;
     private String tlsConfiguration;
+    private int maxSessionLimit;
     private Role role;
     private Mode mode;
     private File outputPath;
@@ -56,6 +57,12 @@ public class HttpSubscriberConfig {
     }
     public void setTlsConfiguration(String tlsConfiguration) {
         this.tlsConfiguration = tlsConfiguration;
+    }
+    public int getMaxSessionLimit() {
+        return maxSessionLimit;
+    }
+    public void setMaxSessionLimit(int maxSessionLimit) {
+        this.maxSessionLimit = maxSessionLimit;
     }
     public List<String> getAllowedConfigureDigests() {
         return allowedConfigureDigests;

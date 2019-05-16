@@ -40,12 +40,14 @@ import com.tresys.jalop.jnl.impl.http.HttpUtils;
 public class HttpConfig extends BaseConfig {
 	private static final String CONFIGURE_DIGEST = "configureDigest";
     private static final String CONFIGURE_TLS = "configureTls";
+    private static final String MAX_SESSION_LIMIT = "maxSessionLimit";
     private static final String RECORD_TYPE = "recordType";
 
     private HashMap<String, String> sslConfig;
     private List<String> configureDigests;
     private String configureTls;
     private final Set<RecordType> recordTypes;
+    private final int maxSessionLimit;
 
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
     private static final String KEY_STORE = "Key Store";
@@ -115,6 +117,7 @@ public class HttpConfig extends BaseConfig {
         handleConfigureDigest(subscriber);
         handleTls(subscriber);
         handleRecordType(subscriber);
+        handleMaxSessionLimit(subscriber);
     }
 
 
@@ -128,6 +131,7 @@ public class HttpConfig extends BaseConfig {
     HttpConfig(final String source) {
         super(source);
         this.recordTypes = new HashSet<RecordType>();
+        this.maxSessionLimit = -1;
     }
 
     /**
@@ -221,6 +225,14 @@ public class HttpConfig extends BaseConfig {
         }
     }
 
+    public void handleMaxSessionLimit(final JSONObject obj) throws ConfigurationException {
+        final int maxSessionLimit = itemAsNumber(MAX_SESSION_LIMIT, obj).intValue();
+        this.maxSessionLimit = maxSessionLimit;
+        if (this.maxSessionLimit <= 0) {
+            throw new ConfigurationException (this.source, HttpConfig.MAX_SESSION_LIMIT + " must be a positive, non-zero value.");
+        }
+    }
+
     public List<String> getConfigureDigests()
     {
         return this.configureDigests;
@@ -229,6 +241,11 @@ public class HttpConfig extends BaseConfig {
     public String getTlsConfiguration()
     {
         return this.configureTls;
+    }
+
+    public int getMaxSessionLimit()
+    {
+        return this.maxSessionLimit();
     }
 
     public Set<RecordType> getRecordTypes()
@@ -285,6 +302,7 @@ public class HttpConfig extends BaseConfig {
         httpSubscriberConfig.setRecordTypes(this.getRecordTypes());
         httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
         httpSubscriberConfig.setTlsConfiguration(this.getTlsConfiguration());
+        httpSubscriberConfig.setMaxSessionLimit(this.getMaxSessionLimit());
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());
         httpSubscriberConfig.setOutputPath(this.getOutputPath());

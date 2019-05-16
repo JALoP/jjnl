@@ -424,10 +424,8 @@ public class DigestResponseTest {
 
             assertNull(jalIdHeader);
 
-            //TODO - once session management is implemented, this may need changed to session-failed depending on how this check is implemented.
-            //This is due to the check for if session exists is happening in the processDigestResponse message method currently.
             assertNotNull(messageHeader);
-            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+            assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
         }
     }
 
