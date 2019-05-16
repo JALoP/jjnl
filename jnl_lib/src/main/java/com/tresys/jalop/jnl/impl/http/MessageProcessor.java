@@ -25,6 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
@@ -40,6 +41,20 @@ public class MessageProcessor {
     /** Logger for this class */
     private static final Logger logger = Logger.getLogger(MessageProcessor.class);
     private static final Lock lock = new ReentrantLock();
+
+    private static void updateSessionTimestamp(SubscriberHttpSessionImpl currSession)
+    {
+        lock.lock();
+        try
+        {
+            currSession.updateLastTouchedTimestamp();
+        }
+
+        finally
+        {
+            lock.unlock();
+        }
+    }
 
     /**
      * Null-safe way to add strings to an arraylist of strings. This is specially intended for the use of adding errorMessages.
@@ -661,9 +676,7 @@ public class MessageProcessor {
                     if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
                             supportedRecType, digestResult, errorMessages))
                     {
-                        lock.lock();
-                        currSession.updateLastTouchedTimestamp();
-                        lock.unlock();
+                        updateSessionTimestamp(currSession);
 
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
                         if (!digestResult.getFailedDueToSync())
@@ -677,9 +690,7 @@ public class MessageProcessor {
                     }
                     else
                     {
-                        lock.lock();
-                        currSession.updateLastTouchedTimestamp();
-                        lock.unlock();
+                        updateSessionTimestamp(currSession);
 
                         //If digest was performed send digest challenge otherwise send sync
                         if (digestResult.getPerformDigest())
@@ -711,9 +722,7 @@ public class MessageProcessor {
                     lock.unlock();
                     if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, digestResult, errorMessages))
                     {
-                        lock.lock();
-                        currSession.updateLastTouchedTimestamp();
-                        lock.unlock();
+                        updateSessionTimestamp(currSession);
 
                         //Determine if it failed due to a sync failure or record failure
                         if (digestResult.getFailedDueToSync())
@@ -727,9 +736,7 @@ public class MessageProcessor {
                     }
                     else
                     {
-                        lock.lock();
-                        currSession.updateLastTouchedTimestamp();
-                        lock.unlock();
+                        updateSessionTimestamp(currSession);
 
                         //Send sync message
                         MessageProcessor.setSyncResponse(digestResult.getJalId(), response);
