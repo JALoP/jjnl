@@ -3,6 +3,7 @@ package com.tresys.jalop.jnl.impl.http;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -433,6 +434,10 @@ public class DigestResponseTest {
     public void testValidConfirmedDigestResponseMessage() throws ClientProtocolException, IOException
     {
         String publisherId = UUID.randomUUID().toString();
+
+        //Ensures output dir is clean
+        TestResources.cleanOutputDirectory(outputDirStr);
+
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -446,6 +451,18 @@ public class DigestResponseTest {
             //Valid JAL record post
             String jalId = TestResources.sendValidJalRecord(recType, sessionId);
 
+            //Verify record exists
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+            String recordDirStr = outputDirStr +  "/" + publisherId + "/" + recType.toString().toLowerCase() + "/" + autoNumberDir;
+            File recordDir = new File(recordDirStr);
+            assertTrue(recordDir.exists());
+            assertTrue(recordDir.list().length > 0);
+
+            //Verifies the confirmed location is empty
+            String confirmDirStr = outputDirStr +  "/" + recType.toString().toLowerCase() + "/" + autoNumberDir;
+            File confirmDir = new File(confirmDirStr);
+            assertTrue(!confirmDir.exists());
+
             //Sends digest response
             final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
@@ -456,6 +473,11 @@ public class DigestResponseTest {
 
             HttpClient client = HttpClientBuilder.create().build();
             final HttpResponse response = client.execute(httpPost);
+
+            //Verify record dir has been deleted and confirm record dir exists after confirm status
+            assertTrue(confirmDir.exists());
+            assertTrue(confirmDir.list().length > 0);
+            assertTrue(!recordDir.exists());
 
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
@@ -569,6 +591,10 @@ public class DigestResponseTest {
         System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
         System.out.println("DR1.018.006.001.011 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-Digest");
         String publisherId = UUID.randomUUID().toString();
+
+        //Ensures output dir is clean
+        TestResources.cleanOutputDirectory(outputDirStr);
+
         for (RecordType recType : RecordType.values())
         {
             if (recType.equals(RecordType.Unset))
@@ -584,6 +610,17 @@ public class DigestResponseTest {
             //Valid JAL record post
             String jalId = TestResources.sendValidJalRecord(recType, sessionId);
 
+            //Verify record exists
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+            String recordDirStr = outputDirStr +  "/" + publisherId + "/" + recType.toString().toLowerCase() + "/" + autoNumberDir;
+            File recordDir = new File(recordDirStr);
+            assertTrue(recordDir.exists());
+
+            //Verifies the confirmed location is empty
+            String confirmDirStr = outputDirStr +  "/" + recType.toString().toLowerCase() + "/" + autoNumberDir;
+            File confirmDir = new File(confirmDirStr);
+            assertTrue(!confirmDir.exists());
+
             //Sends digest response
             final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
             httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
@@ -597,6 +634,10 @@ public class DigestResponseTest {
 
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            //Ensure record was deleted and not moved to confirmed directory
+            assertTrue(!recordDir.exists());
+            assertTrue(!confirmDir.exists());
 
             assertNotNull(jalIdHeader);
             assertEquals(jalId, jalIdHeader.getValue());

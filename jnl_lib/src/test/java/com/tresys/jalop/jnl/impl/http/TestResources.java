@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +37,15 @@ import com.tresys.jalop.jnl.RecordType;
 public class TestResources {
     public static int HTTP_PORT = 8080;
     public static String SESSION_ID = "fe8a54d7-dd7c-4c50-a7e7-f948a140c556";
+
+    private static final String NONCE_FORMAT_STRING = "0000000000";
+    static final DecimalFormat NONCE_FORMATER =
+            new DecimalFormat(NONCE_FORMAT_STRING);
+
+    public static String getAutoNumberDirectoryName(int count)
+    {
+        return NONCE_FORMATER.format(count);
+    }
 
     //Disables all http client logging
     private static void disableHttpClientLogging()

@@ -3,6 +3,7 @@ package com.tresys.jalop.jnl.impl.http;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -353,11 +354,29 @@ public class JournalMissingTest {
     {
         String publisherId = UUID.randomUUID().toString();
 
+        //Ensures output dir is clean before test
+        TestResources.cleanOutputDirectory(outputDirStr);
+
         //Valid initialize
         String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId);
 
         //Valid JAL record post
         String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId);
+
+        //Verifies record is in output directory
+        String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+        String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+        File recordDir = new File(recordDirStr);
+
+        assertTrue(recordDir.exists());
+
+        //More than one indicates record data is present
+        assertTrue(recordDir.list().length > 1);
+
+        //Verifies the confirmed location is empty
+        String confirmDirStr = outputDirStr +  "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+        File confirmDir = new File(confirmDirStr);
+        assertTrue(!confirmDir.exists());
 
         final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
@@ -367,6 +386,12 @@ public class JournalMissingTest {
 
         HttpClient client = HttpClientBuilder.create().build();
         final HttpResponse response = client.execute(httpPost);
+
+        //Verifies that the record is no longer in the output directory after journal missing
+        assertTrue(!recordDir.exists());
+
+        //Verifies confirmed location is empty
+        assertTrue(!confirmDir.exists());
 
         final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
         final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
@@ -379,6 +404,94 @@ public class JournalMissingTest {
 
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         assertNull(errorHeader);
+    }
+
+    @Test
+    public void testValidMultipleJournaMissingMessage() throws ClientProtocolException, IOException
+    {
+        String publisherId = UUID.randomUUID().toString();
+
+        //Ensures output dir is clean before test
+        TestResources.cleanOutputDirectory(outputDirStr);
+
+        //Valid initialize
+        String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId);
+
+        //Adds 3 records, deletes the 2nd record on journal missing, ensures only 2nd record is deleted, while other two remain.
+        for (int i = 1; i <= 3; i ++)
+        {
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId);
+
+            //Verifies record is in output directory
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(i);
+            String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+            File recordDir = new File(recordDirStr);
+
+            assertTrue(recordDir.exists());
+
+            //More than one indicates record data is present
+            assertTrue(recordDir.list().length > 1);
+
+            //Verifies the confirmed location is empty
+            String confirmDirStr = outputDirStr +  "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+            File confirmDir = new File(confirmDirStr);
+            assertTrue(!confirmDir.exists());
+
+            //Only calls journal missing on 2nd record
+            if (i == 2)
+            {
+                final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
+                httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+                httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING);
+                httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+                httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+
+                HttpClient client = HttpClientBuilder.create().build();
+                final HttpResponse response = client.execute(httpPost);
+
+                //Record should not exist
+                assertTrue(!recordDir.exists());
+
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+                final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+                assertNotNull(jalIdHeader);
+                assertEquals(jalId, jalIdHeader.getValue());
+
+                assertNotNull(messageHeader);
+                assertEquals(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE, messageHeader.getValue());
+
+                final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                assertNull(errorHeader);
+            }
+            else
+            {
+                //Record should exist
+                assertTrue(recordDir.exists());
+            }
+
+            //Verify confirmed location is empty
+            assertTrue(!confirmDir.exists());
+        }
+
+        //One final check to verify contents of output dir
+        for (int i = 1; i <= 3; i ++)
+        {
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(i);
+            String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+            File recordDir = new File(recordDirStr);
+
+            //2nd record should not exist, while 1st and 3rd records still exist
+            if (i == 2)
+            {
+               assertTrue(!recordDir.exists());
+            }
+            else
+            {
+                assertTrue(recordDir.exists());
+            }
+        }
     }
 }
 
