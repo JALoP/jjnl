@@ -47,7 +47,7 @@ public class HttpConfig extends BaseConfig {
     private List<String> configureDigests;
     private String configureTls;
     private final Set<RecordType> recordTypes;
-    private final int maxSessionLimit;
+    private int maxSessionLimit;
 
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
     private static final String KEY_STORE = "Key Store";
@@ -245,7 +245,7 @@ public class HttpConfig extends BaseConfig {
 
     public int getMaxSessionLimit()
     {
-        return this.maxSessionLimit();
+        return this.maxSessionLimit;
     }
 
     public Set<RecordType> getRecordTypes()
