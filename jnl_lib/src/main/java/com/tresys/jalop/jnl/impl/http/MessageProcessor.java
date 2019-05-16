@@ -728,7 +728,7 @@ public class MessageProcessor {
                     else
                     {
                         lock.lock();
-                    	currSession.updateLastTouchedTimestamp();
+                        currSession.updateLastTouchedTimestamp();
                         lock.unlock();
 
                         //Send sync message
