@@ -26,7 +26,6 @@ import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
-import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLSessionInvalidException;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
@@ -69,20 +68,37 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJournalMissingMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, final String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJournalMissingMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, final SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
     {
+        if (digestResult == null)
+        {
+            throw new IllegalArgumentException("digestResult is required");
+        }
+
+        if (errorMessages == null)
+        {
+            throw new IllegalArgumentException("errorMessages is required");
+        }
+
+        if (requestHeaders == null)
+        {
+            throw new IllegalArgumentException("requestHeaders is required");
+        }
+
+        if (supportedRecType == null)
+        {
+            throw new IllegalArgumentException("supportedRecType is required");
+        }
+
+        if (sess == null)
+        {
+            throw new IllegalArgumentException("sess is required");
+        }
+
         logger.debug(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
 
         //Lookup the correct session based upon session id and process the record
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionBySessionId(sessionIdStr);
-
-        //If null then active session does not exist for this publisher, return error
-        if (sess == null)
-        {
-            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID);
-            return false;
-        }
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -116,7 +132,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processInitializeMessage(TreeMap<String, String> requestHeaders, RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
+    static boolean processInitializeMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
     {
         if (errorMessages == null)
         {
@@ -264,7 +280,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processDigestResponseMessage(TreeMap<String, String> requestHeaders, String sessionIdStr, DigestResult digestResult, List<String> errorMessages)
+    static boolean processDigestResponseMessage(final TreeMap<String, String> requestHeaders, final SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -281,16 +297,15 @@ public class MessageProcessor {
             throw new IllegalArgumentException("requestHeaders is required");
         }
 
-        if (sessionIdStr == null)
+        if (sess == null)
         {
-            throw new IllegalArgumentException("sessionIdStr is required");
+            throw new IllegalArgumentException("sess is required");
         }
 
         digestResult.setFailedDueToSync(false);
 
         //Lookup the correct session based upon session id
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-        SubscriberSession sess = (SubscriberSession)subscriber.getSessionBySessionId(sessionIdStr);
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -342,7 +357,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJALRecordMessage(TreeMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType,SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJALRecordMessage(final TreeMap<String, String> requestHeaders, final InputStream requestInputStream, final RecordType supportedRecType, final SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
     {
 
         if (digestResult == null)
@@ -727,7 +742,7 @@ public class MessageProcessor {
                     updateSessionTimestamp(currSession);
 
                     DigestResult digestResult = new DigestResult();
-                    if (!MessageProcessor.processJournalMissingMessage(currHeaders, supportedRecType, sessionIdStr, digestResult, errorMessages))
+                    if (!MessageProcessor.processJournalMissingMessage(currHeaders, supportedRecType, currSession, digestResult, errorMessages))
                     {
                         //Send record failure
                         MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
@@ -743,7 +758,7 @@ public class MessageProcessor {
                     DigestResult digestResult = new DigestResult();
 
                     updateSessionTimestamp(currSession);
-                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, digestResult, errorMessages))
+                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, currSession, digestResult, errorMessages))
                     {
                         updateSessionTimestamp(currSession);
 
