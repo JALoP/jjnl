@@ -25,7 +25,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
-import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
@@ -318,7 +317,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJALRecordMessage(TreeMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJALRecordMessage(TreeMap<String, String> requestHeaders, InputStream requestInputStream, RecordType supportedRecType,SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
     {
 
         if (digestResult == null)
@@ -351,7 +350,6 @@ public class MessageProcessor {
 
         //Lookup the correct session based upon session id and process the record
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-        SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriber.getSessionBySessionId(sessionIdStr);
 
         digestResult.setPerformDigest(sess.getPerformDigest());
 
@@ -666,11 +664,9 @@ public class MessageProcessor {
                 {
                     DigestResult digestResult = new DigestResult();
 
-                    lock.lock();
-                    currSession.updateLastTouchedTimestamp();
-                    lock.unlock();
+                    updateSessionTimestamp(currSession);
                     if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
-                            supportedRecType, digestResult, errorMessages))
+                            supportedRecType, currSession, digestResult, errorMessages))
                     {
                         updateSessionTimestamp(currSession);
 
@@ -703,9 +699,7 @@ public class MessageProcessor {
                 }
                 else if (messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL_MISSING))
                 {
-                    lock.lock();
-                    currSession.updateLastTouchedTimestamp();
-                    lock.unlock();
+                    updateSessionTimestamp(currSession);
 
                     MessageProcessor.processJournalMissingMessage(supportedRecType, response, errorMessages);
                 }
@@ -713,9 +707,7 @@ public class MessageProcessor {
                 {
                     DigestResult digestResult = new DigestResult();
 
-                    lock.lock();
-                    currSession.updateLastTouchedTimestamp();
-                    lock.unlock();
+                    updateSessionTimestamp(currSession);
                     if (!MessageProcessor.processDigestResponseMessage(currHeaders, sessionIdStr, digestResult, errorMessages))
                     {
                         updateSessionTimestamp(currSession);

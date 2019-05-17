@@ -82,7 +82,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("digestResult is required");
         byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, new ArrayList<String>());
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, null, new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -92,7 +92,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("errorMessages is required");
         byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, new DigestResult(), null);
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, new DigestResult(), null);
         assertEquals(false, result);
     }
 
@@ -102,7 +102,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("requestHeaders is required");
         byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(null, new ByteArrayInputStream(test), RecordType.Audit, new DigestResult(), new ArrayList<String>());
+        boolean result = MessageProcessor.processJALRecordMessage(null, new ByteArrayInputStream(test), RecordType.Audit, null, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -111,7 +111,7 @@ public class MessageProcessorTest {
     {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("requestInputStream is required");
-        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), null, RecordType.Audit, new DigestResult(), new ArrayList<String>());
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), null, RecordType.Audit, null, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -121,7 +121,7 @@ public class MessageProcessorTest {
         exception.expect(IllegalArgumentException.class);
         exception.expectMessage("supportedRecType is required");
         byte[] test = new byte[10];
-        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), null, new DigestResult(), new ArrayList<String>());
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), null, null, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
