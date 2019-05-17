@@ -655,9 +655,6 @@ public class MessageProcessor {
 
     public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
     {
-        //This is to set the error return message in the cases where an exception is thrown, so the correct error message is set in the JAL-Message header
-        String errorReturnMessage = "";
-
         //Used to capture all error messages that occur during the processing of this message
         List<String> errorMessages = new ArrayList<>();
         try
@@ -752,6 +749,8 @@ public class MessageProcessor {
                         //Send journal missing response
                         MessageProcessor.setJournalMissingResponse(digestResult.getJalId(), response);
                     }
+
+                    updateSessionTimestamp(currSession);
                 }
                 else if (messageType.equalsIgnoreCase(HttpUtils.MSG_DIGEST_RESP))
                 {
