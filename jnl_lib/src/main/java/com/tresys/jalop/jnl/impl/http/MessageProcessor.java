@@ -97,7 +97,12 @@ public class MessageProcessor {
 
         logger.debug(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
 
-        //Lookup the correct session based upon session id and process the record
+        if (!RecordType.Journal.equals(supportedRecType))
+        {
+            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE);
+            return false;
+        }
+
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
 
         //Checks the jal Id
@@ -112,12 +117,6 @@ public class MessageProcessor {
             return false;
         }
         digestResult.setJalId(jalId);
-
-        if (!RecordType.Journal.equals(supportedRecType))
-        {
-            errorMessages.add(HttpUtils.HDRS_UNSUPPORTED_RECORD_TYPE);
-            return false;
-        }
 
         //Execute the notifyJournalMissing callback which will take care deleting the downloaded record in the output dir
         if (!subscriber.notifyJournalMissing(sess, jalId))
@@ -304,7 +303,6 @@ public class MessageProcessor {
 
         digestResult.setFailedDueToSync(false);
 
-        //Lookup the correct session based upon session id
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
 
         //Checks the jal Id
@@ -386,11 +384,7 @@ public class MessageProcessor {
         }
 
         digestResult.setFailedDueToSync(false);
-        String sessionIdStr = requestHeaders.get(HttpUtils.HDRS_SESSION_ID);
-
-        //Lookup the correct session based upon session id and process the record
         final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
-
         digestResult.setPerformDigest(sess.getPerformDigest());
 
 
