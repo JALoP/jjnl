@@ -92,6 +92,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
             // Note that if you set this to port 0 then a randomly available port
             // will be assigned that you can either look in the logs for the port,
             // or programmatically obtain it for use in test cases.
+
             Server server = new Server();
 
             // The ServletHandler is a dead simple way to create a context handler

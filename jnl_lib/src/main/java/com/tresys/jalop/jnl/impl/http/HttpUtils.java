@@ -440,7 +440,6 @@ public class HttpUtils {
         }
 
         //TODO check to only allow journal/audit/log based upon config file
-
         return true;
     }
 
