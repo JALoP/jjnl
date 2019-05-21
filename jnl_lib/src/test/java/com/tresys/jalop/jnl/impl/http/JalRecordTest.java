@@ -387,7 +387,6 @@ public class JalRecordTest {
         System.out.println("DR1.017 - Transfer Records");
         System.out.println("DR1.017.001 - Transfer Records:  JAL-Id");
         System.out.println("DR1.017.002 - Transfer Records:  live");
-     //   System.out.println("DR1.017.003 - Transfer Records:  archive");
         System.out.println("DR1.017.006 - Transfer Records:  log-record");
         System.out.println("DR1.017.006.001 - Transfer Records:  log-record - JAL-Session-Id");
         System.out.println("DR1.017.006.002 - Transfer Records:  log-record - JAL-Id");
@@ -2207,6 +2206,104 @@ public class JalRecordTest {
                 assertEquals(HttpUtils.HDRS_RECORD_FAILURE, errorHeader.getValue());
             }
         }
+    }
+
+    @Test
+    public void testProcessJALRecordMessageInvalidLogRecord() throws ClientProtocolException, IOException {
+        System.out.println("----testProcessJALRecordMessageInvalidLogRecord---");
+        System.out.println("DR1.018.001 - record-failure:  log-record");
+        System.out.println("DR1.018.002 - record-failure:  audit-record");
+        System.out.println("DR1.017.008 - Transfer Records:  journal-record");
+        System.out.println("DR1.018.005 - record-failure:  JAL-Id");
+        System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
+        System.out.println("DR1.018.006.001 - record-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.018.006.001.014 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-Log-Record");
+        System.out.println("DR1.018.006.001.004 - record-failure:  JAL-Error-Message:  Error Reasons - JAL-Invalid-Audit-Length");
+
+        String publisherId = UUID.randomUUID().toString();
+        String [] auditFormats = new String[] {"", null, "invalidformat"};
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            System.out.println("Testing record type of " + recType.toString());
+
+
+                String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+                for (String auditFormat : auditFormats)
+                {
+                HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+                String jalId = UUID.randomUUID().toString();
+                String jalLengthHeader = "JAL-" + recType.toString() + "-Length";
+                String jalMessage = recType.toString().toLowerCase() +  "-record";
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "0", "0", jalLengthHeader, jalMessage, auditFormat);
+
+                for (Map.Entry<String, String> entry : headers.entrySet())
+                {
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
+                }
+
+                //Adds jal record to post
+                File resourcesDirectory = new File("src/test/resources");
+
+                String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/empty_app_metadata_and_payload.txt";
+                HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+                httpPost.setEntity(entity);
+
+                HttpClient client = HttpClientBuilder.create().build();
+
+                final HttpResponse response = client.execute(httpPost);
+                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+                final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final int responseStatus = response.getStatusLine().getStatusCode();
+                assertEquals(200, responseStatus);
+
+                //Only Log record should fail with JAL-Invalid-Log-Record error
+                if (recType.equals(RecordType.Log))
+                {
+                    //Check for failure
+                    assertNotNull(responseMessage);
+                    assertEquals(HttpUtils.MSG_RECORD_FAILURE, responseMessage);
+                    assertNotNull(errorMessage);
+                    assertEquals(HttpUtils.HDRS_INVALID_LOG_RECORD, errorMessage.getValue());
+                    assertNotNull(jalIdHeader);
+                    assertEquals(jalId, jalIdHeader.getValue());
+                    assertNull(digestHeader);
+                }
+                else if (recType.equals(RecordType.Journal))  //Journal should pass
+                {
+                    //Check for success
+                    assertEquals(null, errorMessage);
+                    assertNotNull(digestHeader);
+
+                    //Validate digest is correct for test file sent.
+                    assertEquals("951c2b91e958c6df4eb4d154902d980b16b906c26ba199ada8519081452a88e7", digestHeader.getValue());
+                    assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+                    assertEquals(jalId, jalIdHeader.getValue());
+                }
+                else //audit-record message, should fail with JAL-Invalid-Audit-Length
+                {
+                    //Check for failure
+                    assertNotNull(responseMessage);
+                    assertEquals(HttpUtils.MSG_RECORD_FAILURE, responseMessage);
+                    assertNotNull(errorMessage);
+                    assertEquals(HttpUtils.HDRS_INVALID_AUDIT_LEN, errorMessage.getValue());
+                    assertNotNull(jalIdHeader);
+                    assertEquals(jalId, jalIdHeader.getValue());
+                    assertNull(digestHeader);
+                }
+            }
+        }
+
+        System.out.println("----testProcessJALRecordMessageInvalidLogRecord success----\n");
     }
 
     @Test

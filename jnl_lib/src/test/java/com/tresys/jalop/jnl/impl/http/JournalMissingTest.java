@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+import javax.xml.crypto.dsig.DigestMethod;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -23,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 
 /**
@@ -352,6 +355,9 @@ public class JournalMissingTest {
     @Test
     public void testValidJournaMissingMessage() throws ClientProtocolException, IOException
     {
+        System.out.println("----testValidJournaMissingMessage---");
+        System.out.println("DR1.016.001.003 - journal-missing-response:  Missing Journal Acknowledged - Delete Partial Record");
+
         String publisherId = UUID.randomUUID().toString();
 
         //Ensures output dir is clean before test
@@ -404,6 +410,102 @@ public class JournalMissingTest {
 
         final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         assertNull(errorHeader);
+
+        System.out.println("----testValidJournaMissingMessage success---");
+    }
+
+    @Test
+    public void testValidJournaResumeMessage() throws ClientProtocolException, IOException
+    {
+        System.out.println("----testValidJournaResumeMessage---");
+        System.out.println("DR1.017.008.008 - Transfer Records:  journal-record - Resumed Record");
+        System.out.println("DR1.017.003.002 - Transfer Records:  archive - journal-resume");
+
+        //Set archive mode on the subscriber
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        subscriber.getConfig().setMode(Mode.Archive);
+        try
+        {
+            String publisherId = UUID.randomUUID().toString();
+
+            //Ensures output dir is clean before test
+            TestResources.cleanOutputDirectory(outputDirStr);
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId, HttpUtils.MSG_ARCHIVE);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId);
+
+            //Verifies record is in output directory
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+            String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+            File recordDir = new File(recordDirStr);
+
+            assertTrue(recordDir.exists());
+
+            String payloadFileStr = recordDirStr + "/payload";
+            File payloadFile = new File(payloadFileStr);
+
+            //More than one indicates record data is present
+            assertTrue(recordDir.list().length > 1);
+
+            //Verify size of file to be expected size
+            assertEquals(19, payloadFile.length());
+
+            //Verifies the confirmed location is empty
+            String confirmDirStr = outputDirStr +  "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+            File confirmDir = new File(confirmDirStr);
+            assertTrue(!confirmDir.exists());
+
+            //Send initialize again, should get journal resume, since record exists already in output directory
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+            httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+            httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_ON);
+
+            HttpClient client = HttpClientBuilder.create().build();
+
+            final HttpResponse response = client.execute(httpPost);
+            sessionId = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header offsetHeader = response.getFirstHeader(HttpUtils.HDRS_JOURNAL_OFFSET);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_INIT_ACK, messageHeader.getValue());
+
+            //Checks that offset is correctly returned
+            assertNotNull(offsetHeader);
+            assertEquals("19", offsetHeader.getValue());
+
+  /*          final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
+
+            //Resend record, verify that data is appending to existing record in the subscriber.
+            String currJalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId, jalId);
+
+            //Verify size of file to be expected size
+            assertEquals(38, payloadFile.length());
+            assertEquals(jalId, currJalId); */
+
+            System.out.println("----testValidJournaResumeMessage success---");
+        }
+        finally
+        {
+            //Resets subscriber back to live
+            subscriber.getConfig().setMode(Mode.Live);
+        }
     }
 
     @Test

@@ -153,13 +153,12 @@ public class TestResources {
         }
     }
 
-    public static String sendValidJalRecord(RecordType recType, String sessionId) throws ClientProtocolException, IOException
+    public static String sendValidJalRecord(RecordType recType, String sessionId, String jalId) throws ClientProtocolException, IOException
     {
         File resourcesDirectory = new File("src/test/resources");
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-        String jalId = UUID.randomUUID().toString();
         HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
@@ -186,6 +185,13 @@ public class TestResources {
         assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", responseMessage);
 
         return jalId;
+    }
+
+    public static String sendValidJalRecord(RecordType recType, String sessionId) throws ClientProtocolException, IOException
+    {
+        String jalId = UUID.randomUUID().toString();
+
+        return sendValidJalRecord(recType, sessionId, jalId);
     }
 
     public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, RecordType recType)

@@ -91,8 +91,6 @@ public class HttpUtils {
     public static final String HDRS_UNSUPPORTED_PUBLISHER_ID = "JAL-Unsupported-Publisher-Id";
     public static final String HDRS_UNSUPPORTED_SESSION_ID = "JAL-Unsupported-Session-Id";
     public static final String HDRS_UNSUPPORTED_VERSION = "JAL-Unsupported-Version";
-
-    //New headers added for http, not in original Utils.java, however listed in Jalop specification doc
     public static final String HDRS_VERSION = "JAL-Version";
     public static final String HDRS_ACCEPT_XML_COMPRESSION="JAL-Accept-XML-Compression";
     public static final String HDRS_UNSUPPORTED_XML_COMPRESSION = "JAL-Unsupported-XML-Compression";
@@ -101,6 +99,7 @@ public class HttpUtils {
     public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
     public static final String HDRS_SYNC_FAILURE = "JAL-Sync-Failure";
     public static final String HDRS_JOURNAL_MISSING_FAILURE = "JAL-Journal-Missing-Failure";
+    public static final String HDRS_INVALID_LOG_RECORD = "JAL-Invalid-Log-Record";
 
     //Additional constants
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};

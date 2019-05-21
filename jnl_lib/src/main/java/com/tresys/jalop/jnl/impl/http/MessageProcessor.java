@@ -457,6 +457,14 @@ public class MessageProcessor {
                 errorMessages.add(HttpUtils.HDRS_INVALID_LOG_LEN);
                 return false;
             }
+
+            //Special case for log records only.  A log record cannot have a zero length application metadata and zero length log length at the same time
+            if (payloadSize == 0 && appMetadataSize == 0)
+            {
+                errorMessages.add(HttpUtils.HDRS_INVALID_LOG_RECORD);
+                return false;
+            }
+
             recType = RecordType.Log;
         }
         else if (payloadType.equalsIgnoreCase(HttpUtils.MSG_AUDIT) && RecordType.Audit.equals(supportedRecType))
