@@ -489,15 +489,8 @@ public class JournalMissingTest {
             assertNotNull(offsetHeader);
             assertEquals("19", offsetHeader.getValue());
 
-  /*          final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNull(errorHeader);
-
-            //Resend record, verify that data is appending to existing record in the subscriber.
-            String currJalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId, jalId);
-
-            //Verify size of file to be expected size
-            assertEquals(38, payloadFile.length());
-            assertEquals(jalId, currJalId); */
 
             System.out.println("----testValidJournaResumeMessage success---");
         }

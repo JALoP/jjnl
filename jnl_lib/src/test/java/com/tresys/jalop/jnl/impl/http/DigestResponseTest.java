@@ -433,6 +433,19 @@ public class DigestResponseTest {
     @Test
     public void testValidConfirmedDigestResponseMessage() throws ClientProtocolException, IOException
     {
+        System.out.println("----testValidConfirmedDigestResponseMessage---");
+        System.out.println("DR1.020 - digest-response");
+        System.out.println("DR1.020.001.001 - digest-response:  Digest Comparison - JAL-Session-Id");
+        System.out.println("DR1.020.001.002 - digest-response:  Digest Comparison - JAL-Id");
+        System.out.println("DR1.020.001.003 - digest-response:  Digest Comparison - JAL-Digest-Status");
+        System.out.println("DR1.020.001.003.001 - digest-response:  Digest Comparison - JAL-Digest-Status:  confirmed");
+        System.out.println("DR1.022 - sync");
+        System.out.println("DR1.022.001 - sync:  log-record");
+        System.out.println("DR1.022.002 - sync:  audit-record");
+        System.out.println("DR1.022.003 - sync:  journal-record");
+        System.out.println("DR1.022.004 - sync:  digest-response");
+        System.out.println("DR1.022.005 - sync:  JAL-Id");
+
         String publisherId = UUID.randomUUID().toString();
 
         //Ensures output dir is clean
@@ -491,6 +504,8 @@ public class DigestResponseTest {
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNull(errorHeader);
         }
+
+        System.out.println("----testValidConfirmedDigestResponseMessage success---");
     }
 
     @Test
@@ -538,6 +553,21 @@ public class DigestResponseTest {
     @Test
     public void testSyncFailureDigestResponseMessage() throws ClientProtocolException, IOException
     {
+        System.out.println("----testSyncFailureDigestResponseMessage---");
+        System.out.println("DR1.020 - digest-response");
+        System.out.println("DR1.020.001.001 - digest-response:  Digest Comparison - JAL-Session-Id");
+        System.out.println("DR1.020.001.002 - digest-response:  Digest Comparison - JAL-Id");
+        System.out.println("DR1.020.001.003 - digest-response:  Digest Comparison - JAL-Digest-Status");
+        System.out.println("DR1.021 - sync-failure");
+        System.out.println("DR1.021.001 - sync-failure:  log-record");
+        System.out.println("DR1.021.002 - sync-failure:  audit-record");
+        System.out.println("DR1.021.003 - sync-failure:  journal-record");
+        System.out.println("DR1.021.004 - sync-failure:  digest-response");
+        System.out.println("DR1.021.005 - sync-failure:  JAL-Id");
+        System.out.println("DR1.021.006 - sync-failure:  JAL-Error-Message");
+        System.out.println("DR1.021.006.001 - sync-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.021.006.001.001 - sync-failure:  JAL-Error-Message:  Error Reasons - JAL-Sync-Failure");
+
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
         {
@@ -579,12 +609,19 @@ public class DigestResponseTest {
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_SYNC_FAILURE, errorHeader.getValue());
         }
+
+        System.out.println("----testSyncFailureDigestResponseMessage success---");
     }
 
     @Test
     public void testValidInvalidDigestResponseMessage() throws ClientProtocolException, IOException
     {
         System.out.println("----testValidInvalidDigestResponseMessage---");
+        System.out.println("DR1.020 - digest-response");
+        System.out.println("DR1.020.001.001 - digest-response:  Digest Comparison - JAL-Session-Id");
+        System.out.println("DR1.020.001.002 - digest-response:  Digest Comparison - JAL-Id");
+        System.out.println("DR1.020.001.003 - digest-response:  Digest Comparison - JAL-Digest-Status");
+        System.out.println("DR1.020.001.003.002 - digest-response:  Digest Comparison - JAL-Digest-Status:  invalid");
         System.out.println("DR1.018.004 - record-failure:  digest-response");
         System.out.println("DR1.018.005 - record-failure:  JAL-Id");
         System.out.println("DR1.018.006 - record-failure:  JAL-Error-Message");
