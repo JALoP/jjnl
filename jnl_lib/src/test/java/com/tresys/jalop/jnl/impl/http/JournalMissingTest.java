@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -418,8 +419,11 @@ public class JournalMissingTest {
     public void testValidJournaResumeMessage() throws ClientProtocolException, IOException
     {
         System.out.println("----testValidJournaResumeMessage---");
-        System.out.println("DR1.017.008.008 - Transfer Records:  journal-record - Resumed Record");
         System.out.println("DR1.017.003.002 - Transfer Records:  archive - journal-resume");
+        System.out.println("DR1.017.008.008 - Transfer Records:  journal-record - Resumed Record");
+        System.out.println("DR1.017.008.008.001 - Transfer Records:  journal-record - Resumed Record:  Offset Journal Data");
+        System.out.println("DR1.017.008.008.002 - Transfer Records:  journal-record - Resumed Record:  Append Journal Data");
+        System.out.println("DR1.017.008.008.003 - Transfer Records:  journal-record - Journal Record:  Replace Journal Metadata");
 
         //Set archive mode on the subscriber
         JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
@@ -435,7 +439,7 @@ public class JournalMissingTest {
             String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId, HttpUtils.MSG_ARCHIVE);
 
             //Valid JAL record post
-            String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId);
+            String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId, "deef71ca-16b8-4c9e-b9a4-f2b08f8b9a12");
 
             //Verifies record is in output directory
             String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
@@ -445,13 +449,36 @@ public class JournalMissingTest {
             assertTrue(recordDir.exists());
 
             String payloadFileStr = recordDirStr + "/payload";
+            String statusFileStr = recordDirStr + "/status.js";
+            String sysMetadataFileStr = recordDirStr + "/sys_metadata.xml";
+            String appMetadataFileStr = recordDirStr + "/app_metadata.xml";
             File payloadFile = new File(payloadFileStr);
+            File statusFile = new File(statusFileStr);
+            File sysMetadataFile = new File(sysMetadataFileStr);
+            File appMetadataFile = new File(appMetadataFileStr);
 
             //More than one indicates record data is present
             assertTrue(recordDir.list().length > 1);
 
             //Verify size of file to be expected size
             assertEquals(19, payloadFile.length());
+
+            //Now force copy of partial record to simulate a record that needs to be resumed
+            payloadFile.delete();
+            File simulatedPartialRecord = new File(resourcesDirectory.getAbsolutePath() + "/partial_jal_record1_payload.txt");
+            FileUtils.copyFile(simulatedPartialRecord, payloadFile);
+
+            //Verify size of file to be expected size
+            assertEquals(13, payloadFile.length());
+
+            //Verify the existence of app and sys metadata files
+            assertTrue(sysMetadataFile.exists());
+            assertTrue(appMetadataFile.exists());
+
+            //Force copy of status.js file with 13 partial bytes
+            statusFile.delete();
+            File simulatedStatusFile = new File(resourcesDirectory.getAbsolutePath() + "/partial_status.js");
+            FileUtils.copyFile(simulatedStatusFile, statusFile);
 
             //Verifies the confirmed location is empty
             String confirmDirStr = outputDirStr +  "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
@@ -487,10 +514,28 @@ public class JournalMissingTest {
 
             //Checks that offset is correctly returned
             assertNotNull(offsetHeader);
-            assertEquals("19", offsetHeader.getValue());
+            assertEquals("13", offsetHeader.getValue());
 
             final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
             assertNull(errorHeader);
+
+            //Verify size of file to be the partial length before the resume
+            assertEquals(13, payloadFile.length());
+
+            //Verify that the previous sys and app metadata files were deleted
+            assertTrue(!sysMetadataFile.exists());
+            assertTrue(!appMetadataFile.exists());
+
+            //Resend record, verify that data is appending to existing record in the subscriber, and digest is the expected digest of the original complete record.
+            String currJalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId, jalId, "6", "resume_jal_record1.txt", "bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a");
+
+            //Verify size of file to be expected size
+            assertEquals(19, payloadFile.length());
+            assertEquals(jalId, currJalId);
+
+            //Verify that the metadata files were written again
+            assertTrue(sysMetadataFile.exists());
+            assertTrue(appMetadataFile.exists());
 
             System.out.println("----testValidJournaResumeMessage success---");
         }

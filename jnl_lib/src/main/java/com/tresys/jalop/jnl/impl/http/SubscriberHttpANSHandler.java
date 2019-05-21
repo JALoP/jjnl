@@ -126,6 +126,7 @@ public class SubscriberHttpANSHandler {
             js.flush();
 
             long payloadSizeToRead = payloadSize;
+            long journalResumeOffset = subsess.getJournalResumeOffset();
             if(subsess.getJournalResumeOffset() > 0) {
 
                 //calculate already received payload before resuming
@@ -144,7 +145,9 @@ public class SubscriberHttpANSHandler {
                 if(log.isDebugEnabled()) {
                     log.debug("Updating payloadSize to account for the offset.");
                 }
-                payloadSizeToRead -= subsess.getJournalResumeOffset();
+
+              //NOTE, the old code performed this calculation, but it appears to result in a negative number causing a failure later, so removing for http implementation.
+              //  payloadSizeToRead -= subsess.getJournalResumeOffset();
             }
             js = new JalopHttpDataStream(payloadSizeToRead, is);
             if (!sub.notifyPayload(subsess, recInfo, js)) {

@@ -1,6 +1,7 @@
 package com.tresys.jalop.jnl.impl.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -155,11 +156,16 @@ public class TestResources {
 
     public static String sendValidJalRecord(RecordType recType, String sessionId, String jalId) throws ClientProtocolException, IOException
     {
+        return sendValidJalRecord(recType, sessionId, jalId, "19", "jal_record1.txt", "bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a");
+    }
+
+    public static String sendValidJalRecord(RecordType recType, String sessionId, String jalId, String payloadSize, String filename, String expectedDigest) throws ClientProtocolException, IOException
+    {
         File resourcesDirectory = new File("src/test/resources");
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", payloadSize, recType);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -167,7 +173,7 @@ public class TestResources {
         }
 
         //Adds jal record to post
-        String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+        String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/" + filename;
         HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
 
         httpPost.setEntity(entity);
@@ -175,14 +181,15 @@ public class TestResources {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE).getValue();
+        final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals(null, errorMessage);
 
         //Validate digest is correct for test file sent.
-        assertEquals("bbd801ce4dc24520c028025c05b44c5532b240824d2d7ce25644b73b667b6c7a", responseMessage);
+        assertNotNull(digestHeader);
+        assertEquals(expectedDigest, digestHeader.getValue());
 
         return jalId;
     }

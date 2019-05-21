@@ -259,6 +259,12 @@ public class MessageProcessor {
                 logger.debug("Sending a journal resume message.");
             }
 
+            //Sets the resume offset to the session.
+            sessionImpl.setJournalResumeOffset(subRequest.getResumeOffset());
+
+            //Sets the input stream to the current partial record being resumed to the session
+            sessionImpl.setJournalResumeIS(subRequest.getResumeInputStream());
+
             //Adds journal resume header
             if (!setJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorMessages))
             {

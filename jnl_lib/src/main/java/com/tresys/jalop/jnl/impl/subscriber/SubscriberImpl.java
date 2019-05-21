@@ -601,7 +601,10 @@ public class SubscriberImpl implements Subscriber {
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
         long total = 0;
+        long totalDataSize = dataSize;
+        boolean isJournalResume = false;
         if(this.journalOffset > 0 && PAYLOAD_FILENAME.equals(outputFilename)) {
+            isJournalResume = true;
             total = this.journalOffset;
         }
         boolean ret = true;
@@ -630,7 +633,15 @@ public class SubscriberImpl implements Subscriber {
             lri.status.put(statusKey, total);
             ret = dumpStatus(lri.statusFile, lri.status);
         }
-        if (total != dataSize) {
+
+        //Need special case to account for journal resume offset.  The dataSize is the size of the partial record being uploaded
+        //and total is the total bytes of the partial payload plus the resumed payload, therefore need to substract the journal resume offset from the total.
+        if (isJournalResume)
+        {
+            totalDataSize = total - this.journalOffset;
+        }
+
+        if (totalDataSize != dataSize) {
             LOGGER.error("System metadata reported to be: " + dataSize
                          + ", received " + total);
             ret = false;
