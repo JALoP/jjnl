@@ -35,7 +35,7 @@ import org.junit.rules.ExpectedException;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
-import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
+import com.tresys.jalop.utils.jnltest.JNLSubscriber;
 
 /**
  * Tests for common utility class.
@@ -527,7 +527,7 @@ public class JalRecordTest {
         System.out.println("DR1.017.008.007.003 - Transfer Records:  journal-record - Journal Record:  JAL-Application-Metadata-Length");
 
         //Set archive mode on the subscriber
-        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
 
         try
@@ -598,7 +598,7 @@ public class JalRecordTest {
     @Test
     public void testProcessJALRecordsCaseInsensitiveTest() throws ClientProtocolException, IOException {
 
-        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         String [] modes = new String[] {"lIVe"};
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())

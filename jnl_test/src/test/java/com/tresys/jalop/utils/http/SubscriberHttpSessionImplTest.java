@@ -17,7 +17,7 @@ import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
-import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
+import com.tresys.jalop.utils.jnltest.JNLSubscriber;
 
 public class SubscriberHttpSessionImplTest {
 
@@ -40,7 +40,7 @@ public class SubscriberHttpSessionImplTest {
         config.setKeystorePath("keystore.jks");
         config.setPort(8443);
 
-        JNLTestSubscriber subscriber = new JNLTestSubscriber(config);
+        JNLSubscriber subscriber = new JNLSubscriber(config);
         return subscriber;
     }
 

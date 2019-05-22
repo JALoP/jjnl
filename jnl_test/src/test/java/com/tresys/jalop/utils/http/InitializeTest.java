@@ -27,7 +27,7 @@ import org.junit.rules.ExpectedException;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
-import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
+import com.tresys.jalop.utils.jnltest.JNLSubscriber;
 
 /**
  * Tests for common utility class.
@@ -99,7 +99,7 @@ public class InitializeTest {
         System.out.println("DR1.014.001.002 - initialize-ack:  Communication Accepted - JAL-Digest");
         System.out.println("DR1.014.001.003 - initialize-ack:  Communication Accepted - JAL-Configure-Digest-Challenge");
 
-        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         UUID publisherUUID = UUID.randomUUID();
         final String publisherId = publisherUUID.toString();
         String [] configureDigests = new String[] {"on", "off"};
@@ -700,7 +700,7 @@ public class InitializeTest {
         System.out.println("----testInvalidModeReturnsInitializeNack----");
         System.out.println("DR1.013.001.001.006 - initialize-nack:  Communication Declined - Error Reasons:  JAL-Unsupported-Mode");
 
-        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         subscriber.getConfig().setMode(Mode.Live);
 
         UUID publisherUUID = UUID.randomUUID();
@@ -741,7 +741,7 @@ public class InitializeTest {
         System.out.println("----testInvalidModeReturnsInitializeNack----");
         System.out.println("DR1.013.001.001.006 - initialize-nack:  Communication Declined - Error Reasons:  JAL-Unsupported-Mode");
 
-        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
 
         UUID publisherUUID = UUID.randomUUID();

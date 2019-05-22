@@ -39,7 +39,7 @@ import com.tresys.jalop.jnl.impl.http.HttpUtils;
 import com.tresys.jalop.jnl.impl.http.JNLAuditServlet;
 import com.tresys.jalop.jnl.impl.http.JNLJournalServlet;
 import com.tresys.jalop.jnl.impl.http.JNLLogServlet;
-import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
+import com.tresys.jalop.utils.jnltest.JNLSubscriber;
 
 public class TestResources {
     public static int HTTP_PORT = 8080;
@@ -109,7 +109,7 @@ public class TestResources {
         config.setOutputPath(new File("./output"));
         config.setMaxSessionLimit(5);
 
-        JNLTestSubscriber subscriber = new JNLTestSubscriber(config);
+        JNLSubscriber subscriber = new JNLSubscriber(config);
         HttpUtils.setSubscriber(subscriber);
 
         return server;

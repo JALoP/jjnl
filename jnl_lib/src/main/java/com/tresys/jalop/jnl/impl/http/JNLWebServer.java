@@ -26,10 +26,10 @@ import com.tresys.jalop.jnl.exceptions.JNLException;
 
 
 @SuppressWarnings("serial")
-public class JNLSubscriber
+public class JNLWebServer
 {
     /** Logger for this class */
-    private static final Logger logger = Logger.getLogger(JNLSubscriber.class);
+    private static final Logger logger = Logger.getLogger(JNLWebServer.class);
 
 
     /**
@@ -44,7 +44,7 @@ public class JNLSubscriber
      * @param config
      *            A {@link Config}
      */
-    public JNLSubscriber(final HttpSubscriberConfig config) {
+    public JNLWebServer(final HttpSubscriberConfig config) {
 
         if (config == null) {
             throw new IllegalArgumentException("'HttpSubscriberConfig' is required.");

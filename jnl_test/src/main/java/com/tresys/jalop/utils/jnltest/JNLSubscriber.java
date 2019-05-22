@@ -17,21 +17,21 @@ import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
-import com.tresys.jalop.jnl.impl.http.JNLSubscriber;
+import com.tresys.jalop.jnl.impl.http.JNLWebServer;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
 
 @SuppressWarnings("serial")
-public class JNLTestSubscriber implements Subscriber, JNLTestInterface
+public class JNLSubscriber implements Subscriber, JNLTestInterface
 {
-    public JNLTestSubscriber(HttpSubscriberConfig config)
+    public JNLSubscriber(HttpSubscriberConfig config)
     {
         http_config = config;
     }
     /** Logger for this class */
-    private static final Logger logger = Logger.getLogger(JNLTestSubscriber.class);
+    private static final Logger logger = Logger.getLogger(JNLSubscriber.class);
 
     /**
      * Counter to keep track of the last used nonce for log records
@@ -85,10 +85,10 @@ public class JNLTestSubscriber implements Subscriber, JNLTestInterface
             throw new RuntimeException("Failed to call exit()");
         }
         http_config = config.getHttpSubscriberConfig();
-        final JNLSubscriber jt = new JNLSubscriber(config.getHttpSubscriberConfig());
+        final JNLWebServer jt = new JNLWebServer(config.getHttpSubscriberConfig());
         System.out.println("Starting Connections");
 
-        jt.start(new JNLTestSubscriber(http_config));
+        jt.start(new JNLSubscriber(http_config));
     }
 
     public HttpSubscriberConfig getConfig()

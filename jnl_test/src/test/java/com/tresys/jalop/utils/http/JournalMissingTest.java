@@ -29,7 +29,7 @@ import org.junit.rules.ExpectedException;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
-import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
+import com.tresys.jalop.utils.jnltest.JNLSubscriber;
 
 /**
  * Tests for common utility class.
@@ -428,7 +428,7 @@ public class JournalMissingTest {
         System.out.println("DR1.017.008.008.003 - Transfer Records:  journal-record - Journal Record:  Replace Journal Metadata");
 
         //Set archive mode on the subscriber
-        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
         try
         {
