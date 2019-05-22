@@ -57,7 +57,6 @@ import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
-import com.tresys.jalop.jnl.impl.subscriber.SubscriberImpl;
 import com.tresys.jalop.utils.jnltest.Config.Config;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.PeerConfig;
@@ -292,6 +291,17 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler, JNLTes
 
         //Journal missing was not implemented in the beep implementation.
         return true;
+    }
+
+    @Override
+    public Session getSessionBySessionId(String sessionId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void prepareForNewSession()
+    {
+        throw new UnsupportedOperationException();
     }
 
     @Override

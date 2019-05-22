@@ -304,7 +304,7 @@ public class HttpUtils {
         }
 
         //Lookup the correct session based upon session id
-        final JNLSubscriber subscriber = (JNLSubscriber)getSubscriber();
+        final Subscriber subscriber = getSubscriber();
         SubscriberSession sess = (SubscriberSession)subscriber.getSessionBySessionId(currSessionId);
 
         //If null then active session does not exist for this publisher, return error

@@ -1,4 +1,4 @@
-package com.tresys.jalop.jnl.impl.http;
+package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -28,6 +28,8 @@ import org.junit.rules.ExpectedException;
 
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
+import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
 
 /**
  * Tests for common utility class.
@@ -48,10 +50,10 @@ public class JournalMissingTest {
     public static void startWebServiceServer() throws Exception {
         TestResources.configureLogging(Level.DEBUG);
 
-        resourcesDirectory = new File("src/test/resources");
-        jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../..";
+        resourcesDirectory = new File("src/test/resources/unit_test");
+        jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../../../";
         inputDirStr = jjnlDirPath + "/input";
-        outputDirStr = jjnlDirPath + "/jnl_lib/output";
+        outputDirStr = jjnlDirPath + "/jnl_test/output";
 
         //Clears out input and output directories
         TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
@@ -426,7 +428,7 @@ public class JournalMissingTest {
         System.out.println("DR1.017.008.008.003 - Transfer Records:  journal-record - Journal Record:  Replace Journal Metadata");
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
         try
         {

@@ -183,4 +183,8 @@ public interface Subscriber {
 	 * @return {@link Mode}, either Archive or Live
 	 */
 	Mode getMode();
+
+    Session getSessionBySessionId(String sessionId);
+
+    void prepareForNewSession();
 }

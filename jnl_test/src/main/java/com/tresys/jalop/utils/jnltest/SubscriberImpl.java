@@ -1,3 +1,5 @@
+package com.tresys.jalop.utils.jnltest;
+
 /*
  * Source code in 3rd-party is licensed and owned by their respective
  * copyright holders.
@@ -21,7 +23,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tresys.jalop.jnl.impl.subscriber;
+
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -55,6 +57,7 @@ import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
@@ -888,4 +891,16 @@ public class SubscriberImpl implements Subscriber {
         }
         return latestNonce;
     }
+
+    @Override
+    public Session getSessionBySessionId(String sessionId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void prepareForNewSession()
+    {
+        throw new UnsupportedOperationException();
+    }
 }
+

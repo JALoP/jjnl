@@ -1,22 +1,15 @@
-package com.tresys.jalop.jnl.impl.http;
+package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -34,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
 
 /**
  * Tests for common utility class.
@@ -94,7 +88,7 @@ public class SessionTest {
         }
 
         //Adds jal record to post
-        File resourcesDirectory = new File("src/test/resources");
+        File resourcesDirectory = new File("src/test/resources/unit_test");
 
         String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
         HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -142,7 +136,7 @@ public class SessionTest {
         }
 
         //Adds jal record to post
-        File resourcesDirectory = new File("src/test/resources");
+        File resourcesDirectory = new File("src/test/resources/unit_test");
 
         String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
         HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();

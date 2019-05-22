@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.apache.log4j.Level;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +27,7 @@ public class MessageProcessorTest {
 
     @BeforeClass
     public static void init() throws Exception {
-        TestResources.configureLogging(Level.DEBUG);
+
     }
 
     @Test

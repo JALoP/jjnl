@@ -50,6 +50,7 @@ import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.IncompleteRecordException;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
+import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
@@ -113,6 +114,17 @@ public class SubscriberANSHandlerTest {
 			return false;
 
 		}
+
+	    @Override
+	    public Session getSessionBySessionId(String sessionId) {
+	        throw new UnsupportedOperationException();
+	    }
+
+	    @Override
+	    public void prepareForNewSession()
+	    {
+	        throw new UnsupportedOperationException();
+	    }
 
 	    @Override
 	    public boolean notifyJournalMissing(final SubscriberSession sess, final String nonce) {

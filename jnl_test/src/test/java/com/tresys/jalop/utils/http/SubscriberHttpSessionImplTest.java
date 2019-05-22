@@ -1,4 +1,4 @@
-package com.tresys.jalop.jnl.impl.http;
+package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
 
@@ -14,7 +14,10 @@ import org.junit.rules.ExpectedException;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
+import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
 
 public class SubscriberHttpSessionImplTest {
 
@@ -37,7 +40,7 @@ public class SubscriberHttpSessionImplTest {
         config.setKeystorePath("keystore.jks");
         config.setPort(8443);
 
-        JNLSubscriber subscriber = new JNLSubscriber(config);
+        JNLTestSubscriber subscriber = new JNLTestSubscriber(config);
         return subscriber;
     }
 

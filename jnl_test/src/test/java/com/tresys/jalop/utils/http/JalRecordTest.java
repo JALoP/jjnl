@@ -1,4 +1,4 @@
-package com.tresys.jalop.jnl.impl.http;
+package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,6 +34,8 @@ import org.junit.rules.ExpectedException;
 
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
+import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
 
 /**
  * Tests for common utility class.
@@ -86,11 +88,11 @@ public class JalRecordTest {
         TestResources.cleanAllDirectories(inputDirStr, outputDirStr);
 
         //gets jjnl dir path
-        resourcesDirectory = new File("src/test/resources");
-        jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../..";
+        resourcesDirectory = new File("src/test/resources/unit_test");
+        jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../../..";
         inputDirStr = jjnlDirPath + "/input";
         jalopTestDataDir = jjnlDirPath + "/../jalop/test-input";
-        outputDirStr = jjnlDirPath + "/jnl_lib/output";
+        outputDirStr = jjnlDirPath + "/jnl_test/output";
         jalopTestDataRepoDir = jjnlDirPath + "/../jalop-test-data";
 
         TestResources.configureLogging(Level.INFO);
@@ -449,7 +451,7 @@ public class JalRecordTest {
             }
 
             //Adds jal record to post
-            File resourcesDirectory = new File("src/test/resources");
+            File resourcesDirectory = new File("src/test/resources/unit_test");
 
             String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
             HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -525,7 +527,7 @@ public class JalRecordTest {
         System.out.println("DR1.017.008.007.003 - Transfer Records:  journal-record - Journal Record:  JAL-Application-Metadata-Length");
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
 
         try
@@ -556,7 +558,7 @@ public class JalRecordTest {
                     }
 
                     //Adds jal record to post
-                    File resourcesDirectory = new File("src/test/resources");
+                    File resourcesDirectory = new File("src/test/resources/unit_test");
 
                     String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
                     HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -596,7 +598,7 @@ public class JalRecordTest {
     @Test
     public void testProcessJALRecordsCaseInsensitiveTest() throws ClientProtocolException, IOException {
 
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLTestSubscriber subscriber = (JNLTestSubscriber)HttpUtils.getSubscriber();
         String [] modes = new String[] {"lIVe"};
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())
@@ -623,7 +625,7 @@ public class JalRecordTest {
                 }
 
                 //Adds jal record to post
-                File resourcesDirectory = new File("src/test/resources");
+                File resourcesDirectory = new File("src/test/resources/unit_test");
 
                 String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
                 HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -1320,7 +1322,7 @@ public class JalRecordTest {
             }
 
             //Adds jal record to post
-            File resourcesDirectory = new File("src/test/resources");
+            File resourcesDirectory = new File("src/test/resources/unit_test");
 
             String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
             HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -1388,7 +1390,7 @@ public class JalRecordTest {
                 }
 
                 //Adds jal record to post
-                File resourcesDirectory = new File("src/test/resources");
+                File resourcesDirectory = new File("src/test/resources/unit_test");
 
                 String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
                 HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -1457,7 +1459,7 @@ public class JalRecordTest {
             }
 
             //Adds jal record to post
-            File resourcesDirectory = new File("src/test/resources");
+            File resourcesDirectory = new File("src/test/resources/unit_test");
 
             String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
             HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -1521,7 +1523,7 @@ public class JalRecordTest {
             }
 
             //Adds jal record to post
-            File resourcesDirectory = new File("src/test/resources");
+            File resourcesDirectory = new File("src/test/resources/unit_test");
 
             String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
             HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -1585,7 +1587,7 @@ public class JalRecordTest {
             }
 
             //Adds jal record to post
-            File resourcesDirectory = new File("src/test/resources");
+            File resourcesDirectory = new File("src/test/resources/unit_test");
 
             String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
             HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -1648,7 +1650,7 @@ public class JalRecordTest {
             }
 
             //Adds jal record to post
-            File resourcesDirectory = new File("src/test/resources");
+            File resourcesDirectory = new File("src/test/resources/unit_test");
 
             String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
             HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
@@ -2249,7 +2251,7 @@ public class JalRecordTest {
                 }
 
                 //Adds jal record to post
-                File resourcesDirectory = new File("src/test/resources");
+                File resourcesDirectory = new File("src/test/resources/unit_test");
 
                 String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/empty_app_metadata_and_payload.txt";
                 HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();

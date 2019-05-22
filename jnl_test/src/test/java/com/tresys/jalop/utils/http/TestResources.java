@@ -1,4 +1,4 @@
-package com.tresys.jalop.jnl.impl.http;
+package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,6 +34,12 @@ import org.eclipse.jetty.servlet.ServletHandler;
 
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
+import com.tresys.jalop.jnl.impl.http.JNLAuditServlet;
+import com.tresys.jalop.jnl.impl.http.JNLJournalServlet;
+import com.tresys.jalop.jnl.impl.http.JNLLogServlet;
+import com.tresys.jalop.utils.jnltest.JNLTestSubscriber;
 
 public class TestResources {
     public static int HTTP_PORT = 8080;
@@ -103,7 +109,7 @@ public class TestResources {
         config.setOutputPath(new File("./output"));
         config.setMaxSessionLimit(5);
 
-        JNLSubscriber subscriber = new JNLSubscriber(config);
+        JNLTestSubscriber subscriber = new JNLTestSubscriber(config);
         HttpUtils.setSubscriber(subscriber);
 
         return server;
@@ -161,7 +167,7 @@ public class TestResources {
 
     public static String sendValidJalRecord(RecordType recType, String sessionId, String jalId, String payloadSize, String filename, String expectedDigest) throws ClientProtocolException, IOException
     {
-        File resourcesDirectory = new File("src/test/resources");
+        File resourcesDirectory = new File("src/test/resources/unit_test");
 
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 

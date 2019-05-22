@@ -1,4 +1,4 @@
-package com.tresys.jalop.jnl.impl.http;
+package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -20,6 +20,7 @@ import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+import com.tresys.jalop.jnl.impl.http.HttpUtils;
 
 /**
  * Tests for common utility class.

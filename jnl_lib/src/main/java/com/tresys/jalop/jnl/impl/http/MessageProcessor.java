@@ -97,7 +97,7 @@ public class MessageProcessor {
 
         logger.debug(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
 
-        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        final Subscriber subscriber = HttpUtils.getSubscriber();
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -154,7 +154,6 @@ public class MessageProcessor {
         }
 
         final Subscriber subscriber = HttpUtils.getSubscriber();
-        JNLSubscriber jnlSubscriber = (JNLSubscriber)subscriber;
 
         logger.info(HttpUtils.MSG_INIT + " message received.");
 
@@ -167,7 +166,7 @@ public class MessageProcessor {
 
         //Validates mode, must be live or archive, sets any error in response.
         String modeStr = requestHeaders.get(HttpUtils.HDRS_MODE);
-        if (!HttpUtils.validateMode(modeStr, jnlSubscriber.getMode(), errorMessages))
+        if (!HttpUtils.validateMode(modeStr, subscriber.getMode(), errorMessages))
         {
             logger.error("Initialize message failed due to invalid mode value of: " + modeStr);
             return false;
@@ -238,7 +237,7 @@ public class MessageProcessor {
         }
 
         lock.lock();
-        jnlSubscriber.prepareForNewSession();
+        subscriber.prepareForNewSession();
         lock.unlock();
 
         //TODO remove default values of 1 for pending digest values, once we've refactored the code
@@ -309,7 +308,7 @@ public class MessageProcessor {
 
         digestResult.setFailedDueToSync(false);
 
-        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        final Subscriber subscriber = HttpUtils.getSubscriber();
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -390,7 +389,7 @@ public class MessageProcessor {
         }
 
         digestResult.setFailedDueToSync(false);
-        final JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        final Subscriber subscriber = HttpUtils.getSubscriber();
         digestResult.setPerformDigest(sess.getPerformDigest());
 
 
