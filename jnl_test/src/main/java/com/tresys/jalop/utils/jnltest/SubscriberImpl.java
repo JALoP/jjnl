@@ -433,7 +433,7 @@ public class SubscriberImpl implements Subscriber {
 
         final Set<File> deleteDirs = new HashSet<File>();
 
-        if(this.recordType == RecordType.Journal && recordDirs.length > 0) {
+        if (this.recordType == RecordType.Journal && recordDirs.length > 0 && Mode.Archive.equals(this.getMode())) {
             // Checking the first record to see if it can be resumed, the rest will be deleted
             Arrays.sort(recordDirs);
             final List<File> sortedRecords = new ArrayList<File>(java.util.Arrays.asList(recordDirs));
