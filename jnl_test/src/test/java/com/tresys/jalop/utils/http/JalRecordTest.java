@@ -371,15 +371,23 @@ public class JalRecordTest {
 
         final HttpResponse response = client.execute(httpPost);
         final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
-        final String responseDigest = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE).getValue();
+        final Header responseDigestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         final int responseStatus = response.getStatusLine().getStatusCode();
         assertEquals(200, responseStatus);
         assertEquals(null, errorMessage);
 
         //Validate digest is correct for test file sent.
-        assertEquals(expectedDigest, responseDigest);
-        assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+        if (expectedDigest != null && expectedDigest != "")
+        {
+            assertNotNull(responseDigestHeader);
+            assertEquals(expectedDigest, responseDigestHeader.getValue());
+            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+        }
+        else
+        {
+            assertEquals(HttpUtils.MSG_SYNC, responseMessage);
+        }
     }
 
     @Test
@@ -2476,7 +2484,7 @@ public class JalRecordTest {
     }
 
     //NOTE comment in this test to stress test the system, this test takes over 10 minutes to run as it sends 3 GB of JAL records over audit,log,journal channels
- /*   @Test
+/*    @Test
     public void test1gigEachRecTypeConcurrent() throws ClientProtocolException, IOException {
 
         String publisherId = UUID.randomUUID().toString();
@@ -2512,7 +2520,14 @@ public class JalRecordTest {
 
                     try
                     {
-                        sendJalRecords(currRecType, currPublisherId, "0ef7425362bb001b7b7a408387185319c4ae7eecba914ea7c2034fae0cd34faf", true);
+                        boolean performDigest = false;
+                        String expectedDigest = "";
+
+                        if (performDigest)
+                        {
+                            expectedDigest = "0ef7425362bb001b7b7a408387185319c4ae7eecba914ea7c2034fae0cd34faf";
+                        }
+                        sendJalRecords(currRecType, currPublisherId, expectedDigest, performDigest);
                     }
                     catch (IOException e)
                     {
@@ -2533,7 +2548,7 @@ public class JalRecordTest {
                             //flag error
                             assertTrue(false);
                         }
-                        cleanInputDirectory(currRecType);
+                        TestResources.cleanInputDirectory(currRecType, inputDirStr);
                     }
                 }
             });
