@@ -62,27 +62,6 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>3.9</version>
 		</dependency>
-
-		<!-- Need to comment out for eclipse dev -->
-		<!-- TODO: remove these when we remove BEEP -->
-		<dependency>
-			<groupId>org.beepcore-java</groupId>
-			<artifactId>beepcore</artifactId>
-			<version>${beepcore.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.beepcore-java</groupId>
-			<artifactId>beeptls-jsse</artifactId>
-			<version>${beepcore.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>EDU.oswego.cs.dl.util</groupId>
-			<artifactId>concurrent</artifactId>
-			<version>${oswego.concurrent.version}</version>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
 </project>
 
