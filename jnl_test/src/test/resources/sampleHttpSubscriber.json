@@ -2,13 +2,10 @@
   "address": "127.0.0.1",
   "port": 8444,
   "subscriber": {
-    "sessionTimeout": "00:20:00",
     "maxSessionLimit": 100,
     "recordType": [ "audit", "journal", "log" ],
     "configureDigest": [ "on", "off"],
     "configureTls": "on",
-    "pendingDigestMax": 1,
-    "pendingDigestTimeout": 120,
     "output": "./output",
     "mode": "archive",
   }

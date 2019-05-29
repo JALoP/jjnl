@@ -16,6 +16,7 @@ package com.tresys.jalop.utils.jnltest.Config;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,7 +30,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.google.common.net.InetAddresses;
+import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
 
@@ -37,20 +41,39 @@ import com.tresys.jalop.jnl.impl.http.HttpUtils;
  * The {@link HttpConfig} class is used to to parse a configuration file, and
  * configure the JNLTest program.
  */
-public class HttpConfig extends BaseConfig {
-	private static final String CONFIGURE_DIGEST = "configureDigest";
+public class HttpConfig {
+    private static final String ADDRESS = "address";
+    private static final String AUDIT = "audit";
+    private static final String CONFIGURE_DIGEST = "configureDigest";
     private static final String CONFIGURE_TLS = "configureTls";
-    private static final String MAX_SESSION_LIMIT = "maxSessionLimit";
-    private static final String RECORD_TYPE = "recordType";
-
-    private HashMap<String, String> sslConfig;
-    private List<String> configureDigests;
-    private String configureTls;
-    private final Set<RecordType> recordTypes;
-    private int maxSessionLimit;
-
+    protected static final String HOSTS = "hosts";
+    protected static final String INPUT = "input";
+    private static final String JOURNAL = "journal";
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
     private static final String KEY_STORE = "Key Store";
+    protected static final String LISTENER = "listener";
+    private static final String LOG = "log";
+    protected static final String OUTPUT = "output";
+    private static final String MAX_SESSION_LIMIT = "maxSessionLimit";
+    protected static final String MODE = "mode";
+    private static final String MODE_ARCHIVE = "archive";
+    private static final String MODE_LIVE = "live";
+    protected static final String PORT = "port";
+    protected static final String PUBLISHER = "publisher";
+    private static final String RECORD_TYPE = "recordType";
+    protected static final String SUBSCRIBER = "subscriber";
+
+    protected InetAddress address;
+    private List<String> configureDigests;
+    private String configureTls;
+    private int maxSessionLimit;
+    private Mode mode;
+    private File outputPath;
+    private int port;
+    private final Set<RecordType> recordTypes;
+    private Role role;
+    protected final String source;
+    private HashMap<String, String> sslConfig; 
 
     /**
      * Parses a configuration file for use by the JNLTest program.
@@ -109,10 +132,11 @@ public class HttpConfig extends BaseConfig {
      * @throws ConfigurationException
      *             If an error is detected in the configuration.
      */
-    @Override
     void handleSubscriber(final JSONObject subscriber)
             throws ConfigurationException {
-        super.handleSubscriber(subscriber);
+        setRole(Role.Subscriber);
+        setOutputPath(new File(itemAsString(OUTPUT, subscriber, true)));
+        setMode(itemAsString(MODE, subscriber, true));
 
         handleConfigureDigest(subscriber);
         handleTls(subscriber);
@@ -129,9 +153,87 @@ public class HttpConfig extends BaseConfig {
      *            resources caused a problem.
      */
     HttpConfig(final String source) {
-        super(source);
+        this.source = source;
         this.recordTypes = new HashSet<RecordType>();
         this.maxSessionLimit = -1;
+        this.port = -1;
+        this.mode = Mode.Unset;
+    }
+    
+    /**
+     * Get the IP address.
+     *
+     * @return The {@link InetAddress}. Currently on IPv4 addresses are
+     *         supported.
+     */
+    public InetAddress getAddress() {
+        return this.address;
+    }
+
+    /**
+     * Retrieve the directory path to use when acting as a subscriber.
+     *
+     * @return The directory specified for store records into.
+     */
+    public File getOutputPath() {
+        return this.outputPath;
+    }
+
+    /**
+     * Get the port to listen on (for listeners) or connect to (for connector).
+     *
+     * @return The port
+     * @see Config#isListener()
+     */
+    public int getPort() {
+        return this.port;
+    }
+
+    /**
+     * Obtain the indicated role, {@link Role#Publisher} or
+     * {@link Role#Subscriber}. This is not applicable for listeners.
+     *
+     * @see Config#isListener()
+     * @return The designated role.
+     */
+    public Role getRole() {
+        return this.role;
+    }
+
+    /**
+     * Obtain the indicated role, {@link Mode#Live} or
+     * {@link Mode#Archive}. This is not applicable for listeners.
+     *
+     * @see Config#isListener()
+     * @return The designated mode.
+     */
+    public Mode getMode() {
+        return this.mode;
+    }
+
+    /**
+     * Obtain the identifier (i.e. path) of the configuration used to create
+     * this {@link BaseConfig} object.
+     *
+     * @see Config#Config(String)
+     * @return The source identifier.
+     */
+    public String getSource() {
+        return this.source;
+    }
+
+    /**
+     * Get IP address from the {@link JSONObject}. This expects there to be a
+     * key with the name "address" in the {@link JSONObject} obj.
+     *
+     * @param obj
+     *            The context to look in.
+     * @throws ConfigurationException
+     *             If 'address' is not found.
+     */
+    void handleAddress(final JSONObject obj) throws ConfigurationException {
+        final String addrString = itemAsString(ADDRESS, obj);
+        this.address = InetAddresses.forString(addrString);
     }
 
     /**
@@ -290,6 +392,367 @@ public class HttpConfig extends BaseConfig {
         }
 
         return keyStorePassword;
+    }
+    
+    /**
+     * Lookup the required element named by 'key' in the {@link JSONObject} obj.
+     *
+     *
+     * @see Config#itemAsArray(String, JSONObject, boolean)
+     * @param key
+     *            The name of the element to look up.
+     * @param obj
+     *            The {@link JSONObject} to find the key in.
+     * @return The {@link JSONArray} for the key, or NULL if none exists.
+     * @throws ConfigurationException
+     */
+    JSONArray itemAsArray(final String key, final JSONObject obj)
+            throws ConfigurationException {
+        return itemAsArray(key, obj, true);
+    }
+
+    /**
+     * Simple helper function to retrieve an element as a {@link JSONArray}. If
+     * the element is not an array, this function throws an appropriate
+     * {@link ConfigurationException}.
+     *
+     * @param key
+     *            The name of the element to look up.
+     * @param obj
+     *            The {@link JSONObject} to find the key in.
+     * @param required
+     *            If this is set to true, a {@link ConfigurationException} is
+     *            thrown if the key is not found.
+     * @return The {@link JSONArray} for the key, or NULL if none exists.
+     * @throws ConfigurationException
+     */
+    JSONArray itemAsArray(final String key, final JSONObject obj,
+            final boolean required) throws ConfigurationException {
+        final Object o = obj.get(key);
+
+        if (!required && (o == null)) {
+            return (JSONArray) o;
+        }
+        return asJsonArray(this.source, key, o);
+    }
+
+    /**
+     * Look up the required key as a Number in the {@link JSONObject} obj.
+     *
+     * @see Config#itemAsNumber(String, JSONObject, boolean)
+     *
+     * @param key
+     *            The key to look up.
+     * @param obj
+     *            The {@link JSONObject} to find the key in.
+     * @return The value of key as a {@link Number}.
+     * @throws ConfigurationException
+     */
+    Number itemAsNumber(final String key, final JSONObject obj)
+            throws ConfigurationException {
+        return itemAsNumber(key, obj, true);
+    }
+
+    /**
+     * Simple helper function to retrieve an element as a {@link Number}. If the
+     * element is not a number, this function throws an appropriate
+     * {@link ConfigurationException}.
+     *
+     * @param key
+     *            The name of the element to look up.
+     * @param obj
+     *            The {@link JSONObject} to find the key in.
+     * @param required
+     *            If this is set to true, a {@link ConfigurationException} is
+     *            thrown if the key is not found.
+     * @return The {@link JSONArray} for the key, or NULL if none exists.
+     * @throws ConfigurationException
+     */
+    Number itemAsNumber(final String key, final JSONObject obj,
+            final boolean required) throws ConfigurationException {
+        final Object o = obj.get(key);
+        if (!required && (o == null)) {
+            return (Number) o;
+        }
+        return asNumberValue(this.source, key, o);
+    }
+
+    /**
+     * Look up the required key in the {@link JSONObject} obj.
+     *
+     * @param key
+     *            The key to look up.
+     * @param obj
+     *            The {@link JSONObject} to find the key in.
+     * @return The value for key.
+     * @throws ConfigurationException
+     * @see {@link Config#itemAsString(String, JSONObject, boolean)}
+     */
+    String itemAsString(final String key, final JSONObject obj)
+            throws ConfigurationException {
+        return itemAsString(key, obj, true);
+    }
+
+    /**
+     * Simple helper function to retrieve an element as a {@link String}. If the
+     * element is not a string, this function throws an appropriate
+     * {@link ConfigurationException}.
+     *
+     * @param key
+     *            The name of the element to look up.
+     * @param obj
+     *            The {@link JSONObject} to find the key in.
+     * @param required
+     *            If this is set to true, a {@link ConfigurationException} is
+     *            thrown if the key is not found.
+     * @return The value for the key, or NULL if none exists.
+     * @throws ConfigurationException
+     */
+    String itemAsString(final String key, final JSONObject obj,
+            final boolean required) throws ConfigurationException {
+        final Object o = obj.get(key);
+        if (!required && (o == null)) {
+            return (String) o;
+        }
+        return asStringValue(this.source, key, o);
+    }
+
+    /**
+     * Helper utility to create a {@link RecordType} from a JSON Object.
+     *
+     * @param o
+     *            The object to convert to a {@link RecordType}. This is
+     *            expected to be a value from a {@link JSONObject} or
+     *            {@link JSONArray}.
+     * @return The {@link RecordType}
+     * @throws ConfigurationException
+     *             If there is a problem converting to a {@link RecordType}
+     */
+    public RecordType objectToRecordType(final Object o) throws ConfigurationException {
+        final String dataClass = asStringValue(this.source, null, o);
+        if (JOURNAL.equalsIgnoreCase(dataClass)) {
+            return RecordType.Journal;
+        } else if (AUDIT.equalsIgnoreCase(dataClass)) {
+            return RecordType.Audit;
+        } else if (LOG.equalsIgnoreCase(dataClass)) {
+            return RecordType.Log;
+        }
+        throw new ConfigurationException(this.source, "Expected Record Type'"
+                + "' to be one of '" + JOURNAL + "', '" + AUDIT + "', or '"
+                + LOG + "' (found '" + dataClass + "').");
+    }
+
+    /**
+     * Take a JSON array of strings and convert it to a set of
+     * {@link RecordType}.
+     *
+     * @param recordTypesArr
+     * @return A {@link Set} containing all the {@link RecordType} indicated in
+     *         recordTypesArr.
+     * @throws ConfigurationException
+     *             If there is an error converting the values to a
+     *             {@link RecordType}s.
+     */
+    Set<RecordType> recordSetFromArray(final JSONArray recordTypesArr)
+            throws ConfigurationException {
+        final Set<RecordType> rtSet = new HashSet<RecordType>();
+        if (recordTypesArr != null) {
+            for (final Object o : recordTypesArr) {
+                final RecordType rt = objectToRecordType(o);
+                rtSet.add(rt);
+            }
+        }
+        return rtSet;
+    }
+
+    /**
+     * Set the address for this {@link Config}.
+     *
+     * @param address
+     *            The address.
+     */
+    public void setAddress(final InetAddress address) {
+        this.address = address;
+    }
+
+    /**
+     * Set the path to store records from remotes in. Not applicable to a
+     * "Publisher".
+     *
+     * @param outputPath
+     */
+    public void setOutputPath(final File outputPath) {
+        this.outputPath = outputPath;
+    }
+
+    /**
+     * Set the port to connect to/listen on.
+     *
+     * @param port
+     *            The port number.
+     */
+    public void setPort(final int port) {
+        this.port = port;
+    }
+
+    /**
+     * Set the role. This is only applicable for connectors (i.e.
+     * {@link Config#isListener()} returns <code>false</code>).
+     *
+     * @param role
+     *            The role.
+     */
+    public void setRole(final Role role) {
+        this.role = role;
+    }
+
+    /**
+     * Set the mode. This is only applicable for connectors (i.e.
+     * {@link Config#isListener()} returns <code>false</code>).
+     *
+     * @param mode
+     *            The mode.
+     */
+    public void setMode(final String mode)
+            throws ConfigurationException {
+        if (mode.equalsIgnoreCase(MODE_LIVE)) {
+            this.mode = Mode.Live;
+        } else if (mode.equalsIgnoreCase(MODE_ARCHIVE)) {
+            this.mode = Mode.Archive;
+        } else {
+            throw new ConfigurationException(this.source,
+                "Expected '" + MODE_LIVE + " or " + MODE_ARCHIVE);
+        }
+    }
+
+    /**
+     * Helper utility to cast a {@link Object} as a {@link String}.
+     *
+     * @param path
+     *            The file where the error occurred.
+     * @param key
+     *            The key (if any) for <code>o</code>.
+     * @param o
+     *            The {@link Object} to cast.
+     * @return <code>o</code> cast as a {@link String}.
+     * @throws ConfigurationException
+     *             if <code>o</code> is <code>null</code> or not a
+     *             {@link String}.
+     */
+    static String asStringValue(final String path, final String key, final Object o)
+            throws ConfigurationException {
+        if (o instanceof String) {
+            return (String) o;
+        }
+        if (key != null) {
+            throw new ConfigurationException(path, "Expected String for '"
+                    + key + "', found '" + o + "'");
+        } else {
+            throw new ConfigurationException(path, "Expected String, found '"
+                    + o + "'");
+        }
+    }
+
+    /**
+     * Helper utility to cast a {@link Object} as a {@link Number}.
+     *
+     * @param path
+     *            The file where the error occurred.
+     * @param key
+     *            The key (if any) for <code>o</code>.
+     * @param o
+     *            The {@link Object} to cast.
+     * @return <code>o</code> cast as a {@link Number}.
+     * @throws ConfigurationException
+     *             if <code>o</code> is <code>null</code> or not a
+     *             {@link Number}.
+     */
+    static Number asNumberValue(final String path, final String key, final Object o)
+            throws ConfigurationException {
+        if (o instanceof Number) {
+            return (Number) o;
+        }
+        if (key != null) {
+            throw new ConfigurationException(path, "Expected Number for '"
+                    + key + "', found '" + o + "'");
+        } else {
+            throw new ConfigurationException(path, "Expected Number, found '"
+                    + o + "'");
+        }
+    }
+
+    /**
+     * Helper utility to cast an {@link Object} as a {@link JSONObject}.
+     *
+     * @param path
+     *            The file where the error occurred.
+     * @param key
+     *            The key (if any) for <code>o</code>.
+     * @param o
+     *            The {@link Object} to cast
+     * @return <code>o</code> cast as a {@link JSONObject}.
+     * @throws ConfigurationException
+     *             if <code>o</code> is <code>null</code> or not a
+     *             {@link JSONObject}.
+     */
+    static JSONObject asJsonObject(final String path, final String key, final Object o)
+            throws ConfigurationException {
+        return asJsonObject(path, key, o, true);
+    }
+    /**
+     * Helper utility to cast an {@link Object} as a {@link JSONObject}.
+     *
+     * @param path
+     *            The file where the error occurred.
+     * @param key
+     *            The key (if any) for <code>o</code>.
+     * @param o
+     *            The {@link Object} to cast
+     * @return <code>o</code> cast as a {@link JSONObject}.
+     * @throws ConfigurationException
+     *             if <code>o</code> is <code>null</code> or not a
+     *             {@link JSONObject}.
+     */
+    static JSONObject asJsonObject(String path, String key, Object o,
+            boolean required)  throws ConfigurationException {
+        if (o instanceof JSONObject) {
+            return (JSONObject) o;
+        }
+        if (key != null && o != null) {
+            throw new ConfigurationException(path, "Expected JSON Object for '"
+                    + key + "', found '" + o + "'");
+        } else if (required) {
+            throw new ConfigurationException(path,
+                    "Expected JSON Object, found '" + o + "'");
+        }
+        return null;
+    }
+    /**
+     * Helper utility to cast a value to a {@link JSONArray}.
+     *
+     * @param path
+     *            The file where the error occurred.
+     * @param key
+     *            The key (if any) for <code>o</code>.
+     * @param o
+     *            The {@link Object} to cast.
+     * @return <code>o</code> cast as a {@link JSONArray}
+     * @throws ConfigurationException
+     *             if <code>o</code> is <code>null</code> or not a
+     *             {@link JSONArray}.
+     */
+    static JSONArray asJsonArray(final String path, final String key, final Object o)
+            throws ConfigurationException {
+        if (o instanceof JSONArray) {
+            return (JSONArray) o;
+        }
+        if (key != null) {
+            throw new ConfigurationException(path, "Expected JSON Array for '"
+                    + key + "', found '" + o + "'");
+        } else {
+            throw new ConfigurationException(path,
+                    "Expected JSON Array, found '" + o + "'");
+        }
     }
 
     public HttpSubscriberConfig getHttpSubscriberConfig()
