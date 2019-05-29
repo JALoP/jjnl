@@ -30,12 +30,12 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.5.7</version>
+			<version>4.5.8</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.4.14.v20181114</version>
+			<version>9.4.18.v20190429</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
@@ -50,21 +50,21 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>9.4.14.v20181114</version>
+			<version>9.4.18.v20190429</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-			<version>4.0</version>
+			<version>4.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.4</version>
+			<version>3.9</version>
 		</dependency>
 
 		<!-- Need to comment out for eclipse dev -->
-		<!-- TODO remove these when we remove BEEP -->
+		<!-- TODO: remove these when we remove BEEP -->
 		<dependency>
 			<groupId>org.beepcore-java</groupId>
 			<artifactId>beepcore</artifactId>

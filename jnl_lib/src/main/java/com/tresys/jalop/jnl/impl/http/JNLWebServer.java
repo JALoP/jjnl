@@ -73,7 +73,7 @@ public class JNLWebServer
             // This handler then needs to be registered with the Server object.
             ServletContextHandler handler =  new ServletContextHandler(server, "/");
             server.setHandler(handler);
-            SslContextFactory sslContextFactory = new SslContextFactory();
+            org.eclipse.jetty.util.ssl.SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
 
             if (config.getTlsConfiguration().equals(HttpUtils.MSG_ON))
             {
