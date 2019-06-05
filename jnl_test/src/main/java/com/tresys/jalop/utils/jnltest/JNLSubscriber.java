@@ -17,8 +17,8 @@ import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
-import com.tresys.jalop.jnl.impl.http.JNLWebServer;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
+import com.tresys.jalop.jnl.impl.http.JNLWebServer;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
@@ -215,7 +215,8 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         }
     }
 
-    public void removeSession(String sessionId)
+    @Override
+    public boolean removeSession(String sessionId)
     {
         synchronized (this.sessMap) {
 
@@ -231,7 +232,16 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
                 }
             }
 
-            this.sessMap.remove(removeKey);
+            SubscriberImpl removedSession = this.sessMap.remove(removeKey);
+
+            if (removedSession == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 

@@ -284,6 +284,13 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
+    static boolean processCloseSessionMessage(String sessionId)
+    {
+        final Subscriber subscriber = HttpUtils.getSubscriber();
+        return subscriber.removeSession(sessionId);
+    }
+
+    @VisibleForTesting
     static boolean processDigestResponseMessage(final TreeMap<String, String> requestHeaders, final SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
@@ -600,6 +607,13 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
+    static void setCloseSessionResponse(final HttpServletResponse response)
+    {
+        response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_CLOSE_SESSION_RESPONSE);
+        logger.debug(HttpUtils.MSG_CLOSE_SESSION_RESPONSE + " message processed");
+    }
+
+    @VisibleForTesting
     static void setDigestChallengeResponse(final String jalId, final DigestResult digestResult, final HttpServletResponse response)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
@@ -696,7 +710,7 @@ public class MessageProcessor {
                 SubscriberHttpSessionImpl currSession = HttpUtils.validateSessionId(sessionIdStr, errorMessages);
                 if (currSession == null)
                 {
-                    String errMsg = "JAL Record message failed due to invalid Session ID value of: " + sessionIdStr;
+                    String errMsg = "JAL message failed due to invalid Session ID value of: " + sessionIdStr;
                     logger.error(errMsg);
                     throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
                 }
@@ -784,6 +798,20 @@ public class MessageProcessor {
 
                         //Send sync message
                         MessageProcessor.setSyncResponse(digestResult.getJalId(), response);
+                    }
+                }
+                else if (messageType.equalsIgnoreCase(HttpUtils.MSG_CLOSE_SESSION))
+                {
+                    if (!MessageProcessor.processCloseSessionMessage(sessionIdStr))
+                    {
+                        String errMsg = "JAL message failed due to invalid Session ID value of: " + sessionIdStr;
+                        logger.error(errMsg);
+                        throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
+                    }
+                    else
+                    {
+                        //Send close session response message
+                        MessageProcessor.setCloseSessionResponse(response);
                     }
                 }
                 else

@@ -184,7 +184,10 @@ public interface Subscriber {
 	 */
 	Mode getMode();
 
+    //Methods below are to support session management
     Session getSessionBySessionId(String sessionId);
+
+    boolean removeSession(String sessionId);
 
     void prepareForNewSession();
 }

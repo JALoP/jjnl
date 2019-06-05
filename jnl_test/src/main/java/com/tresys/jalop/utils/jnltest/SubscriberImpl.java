@@ -902,5 +902,11 @@ public class SubscriberImpl implements Subscriber {
     {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public boolean removeSession(String sessionId)
+    {
+        throw new UnsupportedOperationException();
+    }
 }
 

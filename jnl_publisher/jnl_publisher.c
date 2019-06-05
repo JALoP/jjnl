@@ -135,6 +135,18 @@ struct curl_slist * getInitializeHeaders(std::string recordType)
     return headers;
 }
 
+struct curl_slist * getCloseSessionHeaders(std::string recordType)
+{
+    struct curl_slist *headers=NULL;
+
+    headers = curl_slist_append(headers, "JAL-Message: close-session");
+
+    std::string sessionHeader = "JAL-Session-Id: " + getSessionIdByRecordType(recordType);
+    headers = curl_slist_append(headers, sessionHeader.c_str());
+
+    return headers;
+}
+
 struct curl_slist * getJALRecordHeaders(std::string recordType, std::string jalId, std::string sysMetadataLength, std::string appMetadataLength, std::string payloadLength)
 {
     struct curl_slist *headers=NULL;
@@ -378,6 +390,9 @@ int main(void)
 
     //If successful post, then proccess response
     processInitializeResponse(JOURNAL);
+
+    //Close the session
+    performHttpPost(getCloseSessionHeaders(JOURNAL), false, JOURNAL, "");
 /*
     //Send initialize message to journal channel
     currRecordType = "journal";

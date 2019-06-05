@@ -136,6 +136,8 @@ public class HttpUtils {
     public static final String MSG_SUBSCRIBE = "subscribe";
     public static final String MSG_SYNC = "sync";
     public static final String MSG_SYNC_FAILURE = "sync-failure";
+    public static final String MSG_CLOSE_SESSION = "close-session";
+    public static final String MSG_CLOSE_SESSION_RESPONSE = "close-session-response";
 
     public static final String NONCE = "nonce";
     public static final String STATUS = "status";
