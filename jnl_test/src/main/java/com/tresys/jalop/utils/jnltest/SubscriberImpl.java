@@ -450,11 +450,12 @@ public class SubscriberImpl implements Subscriber {
                 final Number progress = (Number) status.get(PAYLOAD_PROGRESS);
                 final Number expectedPayloadSize = (Number) status.get(PAYLOAD_SZ);
 
-                //#548 - Special case for journal resume, if the record completely uploaded, but wasn't synced and the publisher sends the same record again
-                //Delete the temp record and completely re-upload again.
+                //#548 - Special case for journal resume, if the record completely uploaded, but wasn't synced and the publisher sends the same record again.
+                //Only resume if the uploaded payload length is less than the expected length.  Delete the temp record and completely re-upload again if greater than or equal
+                //to expected payload length.
                 File payloadFile = new File(firstRecord, PAYLOAD_FILENAME);
 
-                if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null && payloadFile.length() != expectedPayloadSize.longValue()) {
+                if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null && payloadFile.length() < expectedPayloadSize.longValue()) {
                     // journal record can be resumed
                     this.lastNonceFromRemote =
                         (String) status.get(REMOTE_NONCE);
