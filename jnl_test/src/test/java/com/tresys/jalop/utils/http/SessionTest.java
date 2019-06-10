@@ -107,7 +107,12 @@ public class SessionTest {
         assertEquals(200, responseStatus);
         assertNotNull(errorMessage);
         assertNull(digestHeader);
-        assertNull(jalIdHeader);
+        assertNotNull(jalIdHeader);
+        assertEquals(jalId, jalIdHeader.getValue());
+
+        final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+        assertNotNull(sessionHeader);
+        assertEquals(sessionId, sessionHeader.getValue());
         assertEquals(HttpUtils.MSG_SESSION_FAILURE, responseMessage);
     }
 

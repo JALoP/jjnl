@@ -102,7 +102,12 @@ public class JournalMissingTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNull(sessionHeader);
+
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
         }
@@ -136,7 +141,11 @@ public class JournalMissingTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNull(sessionHeader);
 
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());

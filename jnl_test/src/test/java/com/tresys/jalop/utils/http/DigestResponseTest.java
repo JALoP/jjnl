@@ -99,9 +99,13 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
+
+            final Header sessionIdHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNull(sessionIdHeader);
         }
     }
 
@@ -134,7 +138,10 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+            final Header sessionIdHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNull(sessionIdHeader);
 
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
@@ -424,7 +431,12 @@ public class DigestResponseTest {
             final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
 
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNotNull(sessionHeader);
+            assertEquals(sessionId, sessionHeader.getValue());
 
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());

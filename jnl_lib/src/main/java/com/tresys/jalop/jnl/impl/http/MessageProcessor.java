@@ -640,10 +640,12 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setSessionFailureResponse(final List<String> errorMessages, final HttpServletResponse response)
+    static void setSessionFailureResponse(final List<String> errorMessages, final HttpServletResponse response, final String sessionId, final String jalId)
     {
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILURE);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
+        response.setHeader(HttpUtils.HDRS_NONCE, jalId);
+        response.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
         logger.debug(HttpUtils.MSG_SESSION_FAILURE + " message processed");
     }
 
@@ -713,7 +715,10 @@ public class MessageProcessor {
                 {
                     String errMsg = "JAL message failed due to invalid Session ID value of: " + sessionIdStr;
                     logger.error(errMsg);
-                    throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
+                    JNLSessionInvalidException jsie = new JNLSessionInvalidException("Session ID is either invalid or not found.");
+                    jsie.setSessionId(sessionIdStr);
+                    jsie.setJalId(currHeaders.get(HttpUtils.HDRS_NONCE));
+                    throw jsie;
                 }
 
                 if (messageType.equalsIgnoreCase(HttpUtils.MSG_LOG) || messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL)
@@ -807,7 +812,10 @@ public class MessageProcessor {
                     {
                         String errMsg = "JAL message failed due to invalid Session ID value of: " + sessionIdStr;
                         logger.error(errMsg);
-                        throw new JNLSessionInvalidException("Session ID is either invalid or not found.");
+                        JNLSessionInvalidException jsie = new JNLSessionInvalidException("Session ID is either invalid or not found.");
+                        jsie.setSessionId(sessionIdStr);
+                        jsie.setJalId(currHeaders.get(HttpUtils.HDRS_NONCE));
+                        throw jsie;
                     }
                     else
                     {
@@ -826,7 +834,7 @@ public class MessageProcessor {
         catch (JNLSessionInvalidException e)
         {
             logger.error("Failed to process message. Cause: " + e);
-            MessageProcessor.setSessionFailureResponse(errorMessages, response);
+            MessageProcessor.setSessionFailureResponse(errorMessages, response, HttpUtils.checkForEmptyString(e.getSessionId(), HttpUtils.HDRS_SESSION_ID), HttpUtils.checkForEmptyString(e.getJalId(), HttpUtils.HDRS_NONCE));
         }
         catch (IOException ioe)
         {

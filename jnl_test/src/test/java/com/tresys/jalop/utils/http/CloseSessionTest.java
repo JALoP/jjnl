@@ -120,6 +120,13 @@ public class CloseSessionTest {
             messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
+
+            final Header sessionIdHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNotNull(sessionIdHeader);
+            assertEquals(sessionId, sessionIdHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            assertNull(jalIdHeader);
         }
 
         TestResources.cleanOutputDirectory(outputDirStr);
@@ -154,6 +161,13 @@ public class CloseSessionTest {
             final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
             assertNotNull(messageHeader);
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
+
+            final Header sessionIdHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNotNull(sessionIdHeader);
+            assertEquals(sessionId, sessionIdHeader.getValue());
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            assertNull(jalIdHeader);
         }
     }
 }

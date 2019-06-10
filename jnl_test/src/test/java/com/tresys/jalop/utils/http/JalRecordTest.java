@@ -704,7 +704,20 @@ public class JalRecordTest {
                 assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
                 assertNotNull(errorHeader);
                 assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
-                assertNull(jalIdHeader);
+                assertNotNull(jalIdHeader);
+                assertEquals("jalId", jalIdHeader.getValue());
+
+                final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+
+                if (testValue == null || testValue.equals(""))
+                {
+                    assertNull(sessionHeader);
+                }
+                else
+                {
+                    assertNotNull(sessionHeader);
+                    assertEquals(testValue, sessionHeader.getValue());
+                }
                 assertNull(digestHeader);
             }
         }
@@ -1234,7 +1247,12 @@ public class JalRecordTest {
             assertEquals(HttpUtils.MSG_SESSION_FAILURE, messageHeader.getValue());
             assertNotNull(errorHeader);
             assertEquals(HttpUtils.HDRS_UNSUPPORTED_SESSION_ID, errorHeader.getValue());
-            assertNull(jalIdHeader);
+            assertNotNull(jalIdHeader);
+            assertEquals("jalId", jalIdHeader.getValue());
+
+            final Header sessionHeader = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID);
+            assertNotNull(sessionHeader);
+            assertEquals(TestResources.SESSION_ID, sessionHeader.getValue());
             assertNull(digestHeader);
         }
     }

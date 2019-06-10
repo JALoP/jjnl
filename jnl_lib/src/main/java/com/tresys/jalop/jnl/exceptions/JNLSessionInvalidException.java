@@ -14,6 +14,9 @@ public class JNLSessionInvalidException extends JNLException {
      */
     private static final long serialVersionUID = 1L;
 
+    private String sessionId = "";
+    private String jalId = "";
+
     /**
      * Create an Exception that is specific to the JALoP Network Library and processing a message
      *
@@ -21,6 +24,22 @@ public class JNLSessionInvalidException extends JNLException {
      */
     public JNLSessionInvalidException(final String string) {
         super(string);
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
+    public String getJalId() {
+        return jalId;
+    }
+
+    public void setJalId(String jalId) {
+        this.jalId = jalId;
     }
 
 }
