@@ -695,6 +695,7 @@ public class MessageProcessor {
                 if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, errorMessages))
                 {
                     //Send initialize-nack on error
+                    logger.info("Initialize message is invalid, sending intialize-nack");
                     MessageProcessor.setInitializeNackResponse(errorMessages, response);
                 }
                 else
