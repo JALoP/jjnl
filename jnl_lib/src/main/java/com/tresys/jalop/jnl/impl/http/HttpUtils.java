@@ -216,15 +216,12 @@ public class HttpUtils {
      *
      * @param toCheck
      *            The string to check.
-     * @param parameterName
-     *            A human readable name to add to the exception.
      * @return <code>toCheck</code> with leading/trailing whitespace removed.
      * @throws IllegalArgumentException
      *             if <code>toCheck</code> is <code>null</code> or is comprised
      *             entirely of whitespace.
      */
-    public static String checkForEmptyString(String toCheck,
-            final String parameterName) {
+    public static String checkForEmptyString(String toCheck) {
         if (toCheck == null) {
             return null;
         }
@@ -240,14 +237,10 @@ public class HttpUtils {
      *
      * @param stringList
      *            The list of strings to join.
-     * @param listName
-     *            A name for the list, this is used if the list contains
-     *            <code>null</code> or empty strings.
      * @return A {@link String} that is the comma separated list of the values
      *         in <code>stringList</code>
      */
-    public static String makeStringList(final List<String> stringList,
-            final String listName) {
+    public static String makeStringList(final List<String> stringList) {
         if ((stringList == null) || stringList.isEmpty()) {
             return null;
         }
@@ -255,7 +248,7 @@ public class HttpUtils {
         final StringBuilder sb = new StringBuilder();
         while (iter.hasNext()) {
             String s = iter.next();
-            s = checkForEmptyString(s, listName);
+            s = checkForEmptyString(s);
             sb.append(s);
             if (iter.hasNext()) {
                 sb.append(", ");
@@ -267,7 +260,7 @@ public class HttpUtils {
     // Validates Publisher ID, must be UUID
     public static boolean validatePublisherId(String publisherId, List<String> errorResponseHeaders)
     {
-        String currPublisherId = checkForEmptyString(publisherId, HDRS_PUBLISHER_ID);
+        String currPublisherId = checkForEmptyString(publisherId);
 
         if (currPublisherId == null)
         {
@@ -289,7 +282,7 @@ public class HttpUtils {
     // Validates Session ID, must be UUID
     public static SubscriberHttpSessionImpl validateSessionId(String sessionId, List<String> errorResponseHeaders)
     {
-        String currSessionId = checkForEmptyString(sessionId, HDRS_SESSION_ID);
+        String currSessionId = checkForEmptyString(sessionId);
 
         if (currSessionId == null)
         {
@@ -322,7 +315,7 @@ public class HttpUtils {
     //Validates mode, must be publish live or publish archive
     public static boolean validateMode(String mode, Mode supportedMode,  List<String> errorResponseHeaders)
     {
-        String currMode = checkForEmptyString(mode, HDRS_MODE);
+        String currMode = checkForEmptyString(mode);
 
         if (currMode == null)
         {
@@ -356,7 +349,7 @@ public class HttpUtils {
     //Validates supported digest
     public static String validateDigests(String digests,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
-        String currDigests = checkForEmptyString(digests, HDRS_ACCEPT_DIGEST);
+        String currDigests = checkForEmptyString(digests);
         String selectedDigest = null;
 
         if (currDigests == null)
@@ -386,7 +379,7 @@ public class HttpUtils {
     public static String validateXmlCompression(String xmlCompressions,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
         String selectedXmlCompression = null;
-        String currXmlCompressions = checkForEmptyString(xmlCompressions, HDRS_ACCEPT_XML_COMPRESSION);
+        String currXmlCompressions = checkForEmptyString(xmlCompressions);
 
         if (currXmlCompressions == null)
         {
@@ -401,7 +394,7 @@ public class HttpUtils {
         for (String currXmlCompression : acceptedXmlCompressions)
         {
 
-            if (supportedXmlCompressionList.contains(HttpUtils.checkForEmptyString(currXmlCompression.toLowerCase(), "")))
+            if (supportedXmlCompressionList.contains(HttpUtils.checkForEmptyString(currXmlCompression.toLowerCase())))
             {
                 selectedXmlCompression = currXmlCompression;
                 successResponseHeaders.put(HDRS_XML_COMPRESSION, selectedXmlCompression);
@@ -417,7 +410,7 @@ public class HttpUtils {
     //Validates recordType, must be journal, audit, or log
     public static boolean validateRecordType(String recordType, RecordType supportedRecType, List<String> errorResponseHeaders)
     {
-        String currRecordType = checkForEmptyString(recordType, HDRS_RECORD_TYPE);
+        String currRecordType = checkForEmptyString(recordType);
 
         if (supportedRecType == null)
         {
@@ -447,11 +440,11 @@ public class HttpUtils {
     //Validates version, must be 2.0
     public static boolean validateVersion(String version, List<String> errorResponseHeaders)
     {
-        String currVersion = checkForEmptyString(version, HDRS_VERSION);
+        String currVersion = checkForEmptyString(version);
 
         //Checks if supported version, only 2.0 is currently supported
         List<String> supportedVersionsList = Arrays.asList(SUPPORTED_VERSIONS);
-        if (currVersion == null || !supportedVersionsList.contains(HttpUtils.checkForEmptyString(currVersion, "")))
+        if (currVersion == null || !supportedVersionsList.contains(HttpUtils.checkForEmptyString(currVersion)))
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_VERSION);
             return false;
@@ -463,7 +456,7 @@ public class HttpUtils {
     //Validates audit format, must be xml
     public static boolean validateAuditFormat(String auditFormat, List<String> errorResponseHeaders)
     {
-        String currAuditFormat = checkForEmptyString(auditFormat, HttpUtils.HDRS_AUDIT_FORMAT);
+        String currAuditFormat = checkForEmptyString(auditFormat);
 
         //Checks if supported audit format, currently only xml is supported
         if (currAuditFormat == null || !currAuditFormat.equalsIgnoreCase(ENC_XML))
@@ -478,7 +471,7 @@ public class HttpUtils {
     //Validates configure digest challenge, must be on/off
     public static String validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
-        String currConfigDigests = checkForEmptyString(configureDigestChallenge, HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE);
+        String currConfigDigests = checkForEmptyString(configureDigestChallenge);
         String selectedConfigureDigest = null;
 
         //Checks if supported configure digest challenge, only on/off is supported
@@ -493,7 +486,7 @@ public class HttpUtils {
         //Check to ensure the configre digest challenge is valid, only on/off, the first one found is the preferred value
         for (String currConfigDigest : acceptedConfigDigests)
         {
-            if (HttpUtils.getAllowedConfigureDigests().contains(HttpUtils.checkForEmptyString(currConfigDigest, "")))
+            if (HttpUtils.getAllowedConfigureDigests().contains(HttpUtils.checkForEmptyString(currConfigDigest)))
             {
                 selectedConfigureDigest = currConfigDigest;
                 successResponseHeaders.put(HDRS_CONFIGURE_DIGEST_CHALLENGE, currConfigDigest);

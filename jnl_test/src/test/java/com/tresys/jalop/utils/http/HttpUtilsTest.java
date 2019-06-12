@@ -550,7 +550,7 @@ public class HttpUtilsTest {
     public void testCheckForEmptyStringReturnsTrimmedString() {
 
         final String padded = "   string   ";
-        final String returned = HttpUtils.checkForEmptyString(padded, "padded string");
+        final String returned = HttpUtils.checkForEmptyString(padded);
         assertEquals(padded.trim(), returned);
         assertEquals("string", returned);
     }
@@ -562,7 +562,7 @@ public class HttpUtilsTest {
         words.add("word1");
         words.add("word2");
         words.add("word3");
-        final String wordList = HttpUtils.makeStringList(words, "listname");
+        final String wordList = HttpUtils.makeStringList(words);
         assertEquals("word1, word2, word3", wordList);
     }
 
@@ -572,7 +572,7 @@ public class HttpUtilsTest {
         final List<String> words = new ArrayList<String>();
         words.add("word1");
         words.add("word2");
-        final String wordList = HttpUtils.makeStringList(words, "listname");
+        final String wordList = HttpUtils.makeStringList(words);
         assertTrue(wordList.contains(","));
     }
 
@@ -581,14 +581,14 @@ public class HttpUtilsTest {
 
         final List<String> words = new ArrayList<String>();
         words.add("word1");
-        final String wordList = HttpUtils.makeStringList(words, "listname");
+        final String wordList = HttpUtils.makeStringList(words);
         assertEquals("word1", wordList);
     }
 
     @Test
     public void testMakeStringListReturnsNullWhenNull() {
 
-        final String wordList = HttpUtils.makeStringList(null, "listname");
+        final String wordList = HttpUtils.makeStringList(null);
         assertNull(wordList);
     }
 
@@ -596,7 +596,7 @@ public class HttpUtilsTest {
     public void testMakeStringListReturnsNullWhenBlank() {
 
         final List<String> words = new ArrayList<String>();
-        final String wordList = HttpUtils.makeStringList(words, "listname");
+        final String wordList = HttpUtils.makeStringList(words);
         assertNull(wordList);
     }
 

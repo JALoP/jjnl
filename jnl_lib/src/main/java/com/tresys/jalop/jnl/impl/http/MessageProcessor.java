@@ -101,7 +101,7 @@ public class MessageProcessor {
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
-        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        jalId = HttpUtils.checkForEmptyString(jalId);
         if (jalId == null)
         {
             //Set to empty string so header is correctly set.
@@ -319,7 +319,7 @@ public class MessageProcessor {
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
-        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        jalId = HttpUtils.checkForEmptyString(jalId);
         if (jalId == null)
         {
             //Set to empty string so header is correctly set.
@@ -404,7 +404,7 @@ public class MessageProcessor {
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
 
         //Verifies not empty
-        jalId = HttpUtils.checkForEmptyString(jalId, HttpUtils.HDRS_NONCE);
+        jalId = HttpUtils.checkForEmptyString(jalId);
         if (jalId == null)
         {
             //Set to empty string so header is correctly set.
@@ -653,7 +653,7 @@ public class MessageProcessor {
     @VisibleForTesting
     static Boolean setJournalResumeMessage(final String nonce,
             final long offset, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders) {
-        HttpUtils.checkForEmptyString(nonce, HttpUtils.HDRS_NONCE);
+        HttpUtils.checkForEmptyString(nonce);
 
         if (offset < 0) {
             logger.error("offset for '"
@@ -834,7 +834,7 @@ public class MessageProcessor {
         catch (JNLSessionInvalidException e)
         {
             logger.error("Failed to process message. Cause: " + e);
-            MessageProcessor.setSessionFailureResponse(errorMessages, response, HttpUtils.checkForEmptyString(e.getSessionId(), HttpUtils.HDRS_SESSION_ID), HttpUtils.checkForEmptyString(e.getJalId(), HttpUtils.HDRS_NONCE));
+            MessageProcessor.setSessionFailureResponse(errorMessages, response, HttpUtils.checkForEmptyString(e.getSessionId()), HttpUtils.checkForEmptyString(e.getJalId()));
         }
         catch (IOException ioe)
         {
