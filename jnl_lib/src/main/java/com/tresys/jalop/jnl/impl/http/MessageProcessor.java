@@ -255,7 +255,7 @@ public class MessageProcessor {
                 RecordType.Journal.equals(supportedRecType) &&
                 Mode.Archive.equals(HttpUtils.getMode(modeStr))) {
             if(logger.isDebugEnabled()) {
-                logger.debug("Sending a journal resume message.");
+                logger.debug("Journal resume initiated.");
             }
 
             //Sets the resume offset to the session.
@@ -267,18 +267,19 @@ public class MessageProcessor {
             //Adds journal resume header
             if (!setJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorMessages))
             {
-                logger.error("Set Journal resume message failed.");
+                logger.error("Journal resume failed.");
                 return false;
             }
             //Add the session ID before we send the initialize-ack message
             successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, sessionId);
         } else {
-            //If no errors, return initialize-ack with supported digest/encoding
-            logger.info("Initialize message is valid, sending intialize-ack");
 
             //Add the session ID before we send the initialize-ack message
             successResponseHeaders.put(HttpUtils.HDRS_SESSION_ID, sessionId);
         }
+
+        //If no errors, return initialize-ack with supported digest/encoding
+        logger.info("Initialize message is valid, sending intialize-ack");
 
         return true;
     }
