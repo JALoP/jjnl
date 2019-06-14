@@ -1722,7 +1722,7 @@ public class JalRecordTest {
 
                 //Currently it appears no validation is performed on the subscriber on if the system metadata is malformed
                 //TODO determine if this is a requirement, doesn't appear that the old code performed any validation.
-                sendJalRecords(recType, publisherId, "98d22311ac6e009c84073d1fbf0aa60aca9e18104a923b2dfec4d28dbcf18c9f", true);
+                sendJalRecords(recType, publisherId, "36eed06644011545939ba64028d4d4e354e9fa132d9096ce64aeefa4a90eadbc", true);
             }
             finally
             {
@@ -1759,7 +1759,7 @@ public class JalRecordTest {
                 boolean result = generateRecords(recType, 1, SYS_METADATA_MALFORMED, APP_METADATA_GOOD, PAYLOAD_BAD_INPUT );
                 assertTrue(result);
 
-                sendJalRecords(recType, publisherId, "fafe52beef2cb201521f6a465db0d4c67be61a9694ccc60223ecfc7f579b319f", true);
+                sendJalRecords(recType, publisherId, "ccb26d3b28eb8f7dc5fd521aa237903c5475faed7da7dd54b87d3925fb043018", true);
             }
             finally
             {
@@ -2350,7 +2350,7 @@ public class JalRecordTest {
                 boolean result = generateRecords(recType, 1000, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL );
                 assertTrue(result);
 
-                sendJalRecords(recType, publisherId, "0b601ac35ea3cd61984ad46f4b9726f4380fdf07dc69540f6ef8b594b5a013c0", true);
+                sendJalRecords(recType, publisherId, "8dc8c3f7917b992cc4aafe5e70bea854ec6ee82034ada9ab3591f2f3a6510e1b", true);
             }
             finally
             {
@@ -2406,7 +2406,7 @@ public class JalRecordTest {
 
                     try
                     {
-                        sendJalRecords(currRecType, currPublisherId, "0b601ac35ea3cd61984ad46f4b9726f4380fdf07dc69540f6ef8b594b5a013c0", true);
+                        sendJalRecords(currRecType, currPublisherId, "8dc8c3f7917b992cc4aafe5e70bea854ec6ee82034ada9ab3591f2f3a6510e1b", true);
                     }
                     catch (IOException e)
                     {
@@ -2481,7 +2481,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            sendJalRecordsConcurrent(recType, publisherId, "0b601ac35ea3cd61984ad46f4b9726f4380fdf07dc69540f6ef8b594b5a013c0", true);
+            sendJalRecordsConcurrent(recType, publisherId, "8dc8c3f7917b992cc4aafe5e70bea854ec6ee82034ada9ab3591f2f3a6510e1b", true);
 
             try
             {
