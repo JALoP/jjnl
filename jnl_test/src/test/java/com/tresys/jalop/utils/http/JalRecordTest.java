@@ -73,6 +73,11 @@ public class JalRecordTest {
     private static String jalopTestDataRepoDir = "";
     private static File resourcesDirectory;
 
+    //global variables set from command line config parameters to configure the stress unit tests
+    private static long numRecords = 0;
+    private static ArrayList<RecordType> recordTypes;
+    private static boolean performDigest;
+
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
@@ -103,6 +108,56 @@ public class JalRecordTest {
         {
             inputDir.mkdir();
         }
+
+
+        //Retrieves the optional unit test parameters to configure the stress tests
+        String numRecordsStr = System.getProperty("numRecords");
+
+        if (numRecordsStr != null)
+        {
+            numRecords = Long.parseLong(numRecordsStr);
+        }
+
+        String recordTypesStr = System.getProperty("recordTypes");
+        recordTypes = TestResources.getRecordTypes(recordTypesStr);
+
+        String performDigestStr = System.getProperty("performDigest");
+        if (performDigestStr != null && performDigestStr.trim().equalsIgnoreCase("no"))
+        {
+            performDigest = false;
+        }
+        else
+        {
+            performDigest = true;
+        }
+
+        //Configures logging
+        String logLevel = System.getProperty("logLevel");
+        if (logLevel != null)
+        {
+            if (logLevel.trim().equalsIgnoreCase("info"))
+            {
+                TestResources.configureLogging(Level.INFO);
+            }
+            else if (logLevel.trim().equalsIgnoreCase("warn"))
+            {
+                TestResources.configureLogging(Level.WARN);
+            }
+            else if (logLevel.trim().equalsIgnoreCase("off"))
+            {
+                TestResources.configureLogging(Level.OFF);
+            }
+            else if (logLevel.trim().equalsIgnoreCase("debug"))
+            {
+                TestResources.configureLogging(Level.DEBUG);
+            }
+            else if (logLevel.trim().equalsIgnoreCase("error"))
+            {
+                TestResources.configureLogging(Level.ERROR);
+            }
+        }
+
+        //End config parameter parsing section
 
         server = TestResources.getWebServer();
         server.start();
@@ -284,6 +339,7 @@ public class JalRecordTest {
         File inputDir = new File(inputDirStr + "/" + recType.toString().toLowerCase());
         File[] directoryListing = inputDir.listFiles();
         if (directoryListing != null) {
+            final ArrayList<AssertionError> assertErr = new ArrayList<AssertionError>();
             for (File currDir : directoryListing) {
                 if (!currDir.isDirectory())
                 {
@@ -314,6 +370,14 @@ public class JalRecordTest {
                             //flag error
                             assertTrue(false);
                         }
+                        catch (AssertionError ae)
+                        {
+                            if (assertErr.size() == 0)
+                            {
+                                assertErr.add(ae);
+                            }
+                            throw(ae);
+                        }
                     }
                 });
                 t1.start();
@@ -335,6 +399,9 @@ public class JalRecordTest {
                     assertTrue(false);
                 }
             }
+
+            //Ensures no assert errors occurred in any threads
+            assertEquals(0, assertErr.size());
         }
 
         try
@@ -2441,6 +2508,7 @@ public class JalRecordTest {
             assertTrue(result);
         }
 
+        final ArrayList<AssertionError> assertErr = new ArrayList<AssertionError>();
         for (RecordType recType : RecordType.values())
         {
 
@@ -2466,6 +2534,14 @@ public class JalRecordTest {
                         e.printStackTrace();
                         //flag error
                         assertTrue(false);
+                    }
+                    catch (AssertionError ae)
+                    {
+                        if (assertErr.size() == 0)
+                        {
+                            assertErr.add(ae);
+                        }
+                        throw(ae);
                     }
                     finally
                     {
@@ -2504,6 +2580,9 @@ public class JalRecordTest {
             }
         }
 
+        //Ensures no assert errors occurred in any threads
+        assertEquals(0, assertErr.size());
+
         //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
         cleanOutputDirectoryByPublisherId(publisherId);
     }
@@ -2511,7 +2590,7 @@ public class JalRecordTest {
 
     //This test sends each record in a separate thread to test full concurrent record posts.  1000 records sent, 1000 threads all concurrent.
     @Test
-    public void testConcurrentRecordPost() throws ClientProtocolException, IOException {
+    public void test1000EachRecTypeConcurrentRecordPost() throws ClientProtocolException, IOException {
 
         String publisherId = UUID.randomUUID().toString();
 
@@ -2554,25 +2633,56 @@ public class JalRecordTest {
         cleanOutputDirectoryByPublisherId(publisherId);
     }
 
-    //NOTE comment in this test to stress test the system, this test takes over 10 minutes to run as it sends 3 GB of JAL records over audit,log,journal channels
-/*    @Test
-    public void test1gigEachRecTypeConcurrent() throws ClientProtocolException, IOException {
+
+    @Test
+    public void testStressTestLargeFilesConcurrent() throws ClientProtocolException, IOException {
+
+        //This test allows for sending a specific number of 100 mb records to the specified channels
+        //Only run stress test if number of records is set via config setting on command line.
+        //During a normal build -DnumRecords parameter is not set, and this test is not executed.
+
+        /*To manually execute this test run the following at the command line in the <jalop git root>/jjnl/jnl_parent directory:
+             /usr/local/apache-maven-3.6.0/bin/mvn test -Dtest=com.tresys.jalop.utils.http.JalRecordTest#testStressTestLargeFilesConcurrent -DfailIfNoTests=false -DnumRecords=5 -DrecordTypes=audit,log,journal -DperformDigest=yes -DlogLevel=off
+         *
+         * Set -DnumRecords to the number of records you want to send. If empty, then default value is set to 0 and this test is not executed
+         * Set -DrecordTypes to a comma separate list of the record types you want to send these number of records each to.
+         * Set -DperformDigest to "yes" to enable digesting, "no" for no digesting.  Default is "yes" if not specified
+         * Set -DlogLevel to one of the following values: (off, info, warn, debug, error), default is info
+         *
+         * Example of payload size calculation: -DnumRecords=5 and -DrecordTypes=audit,journal = 5 x 2 record types x 100mb = 1 gig of payload data sent.
+         */
+        if (numRecords <= 0 )
+        {
+            return;
+        }
+
+        long totalsize = numRecords * 100 * recordTypes.size();
+        long totalRecords = numRecords * recordTypes.size();
+
+        String recordTypeStr = String.join(",", TestResources.getRecordTypeNames(recordTypes));
+
+        System.out.println("\n**********************************************************");
+        System.out.println("Performing testStressTestLargeFilesConcurrent unit test with following parameters using 100MB payload per record:");
+        System.out.println("Sending " + Long.toString(numRecords) + " records each on " + recordTypeStr + " channel(s) for a total of " + totalRecords + " records sent and total payload transfer size of " + totalsize  + " MB");
+        System.out.println("**********************************************************\n");
 
         String publisherId = UUID.randomUUID().toString();
         ArrayList<Thread> arrThreads = new ArrayList<Thread>();
 
-        for (RecordType recType : RecordType.values())
+        for (RecordType recType : recordTypes)
         {
             if (recType.equals(RecordType.Unset))
             {
                 continue;
             }
 
-            //To stress test more, increase the record count param below, currently set to 10, so 10 x 100MB = 1 GB per channel.
-            boolean result = generateRecords(recType, 10, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_100MB);
+            //To stress test more, increase the record count param, example if set to 10, then 10 x 100MB = 1 GB per channel.
+            boolean result = generateRecords(recType, numRecords, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_100MB);
             assertTrue(result);
         }
 
+        final long startTime = System.currentTimeMillis();
+        final ArrayList<AssertionError> assertErr = new ArrayList<AssertionError>();
         for (RecordType recType : RecordType.values())
         {
 
@@ -2591,12 +2701,11 @@ public class JalRecordTest {
 
                     try
                     {
-                        boolean performDigest = false;
                         String expectedDigest = "";
 
                         if (performDigest)
                         {
-                            expectedDigest = "0ef7425362bb001b7b7a408387185319c4ae7eecba914ea7c2034fae0cd34faf";
+                            expectedDigest = "4b5880a00d4adbe43cddc06c500db6b85951debf7437d070c9044a399cf16bc9";
                         }
                         sendJalRecords(currRecType, currPublisherId, expectedDigest, performDigest);
                     }
@@ -2605,6 +2714,14 @@ public class JalRecordTest {
                         e.printStackTrace();
                         //flag error
                         assertTrue(false);
+                    }
+                    catch (AssertionError ae)
+                    {
+                        if (assertErr.size() == 0)
+                        {
+                            assertErr.add(ae);
+                        }
+                        throw(ae);
                     }
                     finally
                     {
@@ -2643,7 +2760,164 @@ public class JalRecordTest {
             }
         }
 
+        //Ensures no assert errors occurred in any threads
+        assertEquals(0, assertErr.size());
+
+        final long elapsedTimeMillis = System.currentTimeMillis() - startTime;
+        String time = TestResources.formatElapsedTime(elapsedTimeMillis);
+
+        System.out.println("\n**********************************************************");
+        System.out.println(totalRecords + " total records with " + totalsize + " MB sent in " + time);
+        System.out.println("**********************************************************\n");
+
         //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
         cleanOutputDirectoryByPublisherId(publisherId);
-    } */
+    }
+
+    @Test
+    public void testStressTestSmallFilesConcurrent() throws ClientProtocolException, IOException {
+
+        //This test allows for sending a specific number of 1kb records to the specified channels
+        //Only run stress test if number of records is set via config setting on command line.
+        //During a normal build -DnumRecords parameter is not set, and this test is not executed.
+
+        /*To manually execute this test run the following at the command line in the <jalop git root>/jjnl/jnl_parent directory:
+             /usr/local/apache-maven-3.6.0/bin/mvn test -Dtest=com.tresys.jalop.utils.http.JalRecordTest#testStressTestSmallFilesConcurrent -DfailIfNoTests=false -DnumRecords=500 -DrecordTypes=audit,log,journal -DperformDigest=yes -DlogLevel=off
+         *
+         * Set -DnumRecords to the number of records you want to send. If empty, then default value is set to 0 and this test is not executed
+         * Set -DrecordTypes to a comma separate list of the record types you want to send these number of records each to, if left empty defaults to audit,journal,log
+         * Set -DperformDigest to "yes" to enable digesting, "no" for no digesting.  Default is "yes" if not specified
+         * Set -DlogLevel to one of the following values: (off, info, warn, debug, error), default is info
+         *
+         * Example of payload size calculation: -DnumRecords=500 and -DrecordTypes=audit,journal = 500 x 2 record types x 1kb = 1 MB of payload data sent.
+         */
+
+        if (numRecords <= 0 )
+        {
+            return;
+        }
+
+        long totalsize = numRecords * 1 * recordTypes.size();
+        long totalRecords = numRecords * recordTypes.size();
+
+        String recordTypeStr = String.join(",", TestResources.getRecordTypeNames(recordTypes));
+
+        String digestValue = "on";
+        if (!performDigest)
+        {
+            digestValue = "off";
+        }
+
+        System.out.println("\n**********************************************************");
+        System.out.println("Performing testStressTestSmallFilesConcurrent unit test with following parameters using 1KB payload per record:");
+        System.out.println("Digesting is " + digestValue);
+        System.out.println("Sending " + Long.toString(numRecords) + " records each on " + recordTypeStr + " channel(s) for a total of " + totalRecords + " records sent and total payload transfer size of " + totalsize  + " MB");
+        System.out.println("**********************************************************\n");
+
+        String publisherId = UUID.randomUUID().toString();
+        ArrayList<Thread> arrThreads = new ArrayList<Thread>();
+
+        for (RecordType recType : recordTypes)
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            //To stress test more, increase the record count param below, currently set to 10, so 10 x 1kb = 1 MB per channel.
+            boolean result = generateRecords(recType, numRecords, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL);
+            assertTrue(result);
+        }
+
+        final long startTime = System.currentTimeMillis();
+        final ArrayList<AssertionError> assertErr = new ArrayList<AssertionError>();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            final RecordType currRecType = recType;
+            final String currPublisherId = publisherId;
+
+            Thread t1 = new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+
+                    try
+                    {
+                        String expectedDigest = "";
+
+                        if (performDigest)
+                        {
+                            expectedDigest = "8dc8c3f7917b992cc4aafe5e70bea854ec6ee82034ada9ab3591f2f3a6510e1b";
+                        }
+                        sendJalRecords(currRecType, currPublisherId, expectedDigest, performDigest);
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                        //flag error
+                        assertTrue(false);
+                    }
+                    catch (AssertionError ae)
+                    {
+                        if (assertErr.size() == 0)
+                        {
+                            assertErr.add(ae);
+                        }
+                        throw(ae);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            //Need sleep to clean up input dir correctly
+                            Thread.sleep(1000);
+                        }
+                        catch(Exception e)
+                        {
+                            e.printStackTrace();
+                            //flag error
+                            assertTrue(false);
+                        }
+                        TestResources.cleanInputDirectory(currRecType, inputDirStr);
+                    }
+                }
+            });
+            t1.start();
+            arrThreads.add(t1);
+
+        }
+
+        //Wait until all threads are done executing
+        for (int i = 0; i < arrThreads.size(); i++)
+        {
+            try
+            {
+                arrThreads.get(i).join();
+            }
+            catch (InterruptedException ie)
+            {
+                ie.printStackTrace();
+                //flag error
+                assertTrue(false);
+            }
+        }
+
+        //Ensures no assert errors occurred in any threads
+        assertEquals(0, assertErr.size());
+
+        final long elapsedTimeMillis = System.currentTimeMillis() - startTime;
+        String time = TestResources.formatElapsedTime(elapsedTimeMillis);
+
+        System.out.println("\n**********************************************************");
+        System.out.println(totalRecords + " total records with " + totalsize + " KB sent in " + time);
+        System.out.println("**********************************************************\n");
+
+        //If you want to see the files in the output directory on the subscriber side, comment this line out so files remain after unit test execution
+        cleanOutputDirectoryByPublisherId(publisherId);
+    }
 }
