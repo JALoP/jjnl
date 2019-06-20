@@ -553,7 +553,7 @@ public class SubscriberImpl implements Subscriber {
         }
         return handleRecordData(lri, recordInfo.getSysMetaLength(),
                                 SYS_META_FILENAME, SYS_META_PROGRESS,
-                                sysMetaData);
+                                sysMetaData, sess);
     }
 
     /**
@@ -606,17 +606,65 @@ public class SubscriberImpl implements Subscriber {
                                    final long dataSize,
                                    final String outputFilename,
                                    final String statusKey,
-                                   final InputStream incomingData) {
+                                   final InputStream incomingData,
+                                   SubscriberSession sess) {
         final byte[] buffer = new byte[this.bufferSize];
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
         long total = 0;
         long totalDataSize = dataSize;
         boolean isJournalResume = false;
+
+        //#580 - need one additional check to ensure the record being sent has the exact same jalId of the record that was partially uploaded and being resumed
+        //if jal ids do not match the same destination dir, then delete the current record, and reset journal resume so record being uploaded is treated as a new record.
+        if (this.journalOffset > 0)
+        {
+            LocalRecordInfo checkLri = null;
+            synchronized (this.nonceMap) {
+                checkLri = this.nonceMap.get(this.lastNonceFromRemote);
+            }
+
+            if (checkLri == null || lri == null || (!lri.recordDir.getAbsolutePath().equalsIgnoreCase(checkLri.recordDir.getAbsolutePath())))
+            {
+                //Jal ids do not match between record being uploaded and the existing partial record, therefore delete the partial record and perform a fresh upload instead of resume.
+                this.journalOffset = 0;
+                sess.resetJournalOffset();
+
+                final Set<File> deleteDirs = new HashSet<File>();
+
+                final File[] recordDirs =
+                        this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
+
+                deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
+
+                for (final File f: deleteDirs) {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Removing directory for unsynced record: "
+                                    + f.getAbsolutePath());
+                    }
+
+                    try
+                    {
+                        FileUtils.forceDelete(f);
+                    }
+                    catch (IOException e)
+                    {
+                        LOGGER.fatal("Failed to clean existing directories on an invalid journal resume record: ");
+                        LOGGER.fatal(e);
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                lri.recordDir.mkdir();
+            }
+        }
+
         if(this.journalOffset > 0 && PAYLOAD_FILENAME.equals(outputFilename)) {
+
             isJournalResume = true;
             total = this.journalOffset;
         }
+
         boolean ret = true;
         try {
             w = new BufferedOutputStream(new FileOutputStream(outputFile, true));
@@ -677,7 +725,7 @@ public class SubscriberImpl implements Subscriber {
 
             return handleRecordData(lri, recordInfo.getAppMetaLength(),
                                     APP_META_FILENAME, APP_META_PROGRESS,
-                                    appMetaData);
+                                    appMetaData, sess);
         }
 
         return true;
@@ -700,7 +748,7 @@ public class SubscriberImpl implements Subscriber {
 
             final boolean retVal = handleRecordData(lri, recordInfo.getPayloadLength(),
                                     PAYLOAD_FILENAME, PAYLOAD_PROGRESS,
-                                    payload);
+                                    payload, sess);
             // resetting journalOffset to 0 since only the first payload can ever have an offset
             this.journalOffset = 0;
             return retVal;
