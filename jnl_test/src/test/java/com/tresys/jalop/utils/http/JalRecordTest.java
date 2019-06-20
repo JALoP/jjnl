@@ -1377,6 +1377,59 @@ public class JalRecordTest {
     }
 
     @Test
+    public void testProcessJALRecordMessageWithDigestOff() throws ClientProtocolException, IOException {
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            System.out.println("Testing record type of " + recType.toString());
+
+            String sessionId = TestResources.sendValidInitialize(recType, false, publisherId);
+            HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+
+            //Send 3 records of each
+            for (int i = 0; i < 3; i++)
+            {
+                String jalId = UUID.randomUUID().toString();
+                HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
+
+                for (Map.Entry<String, String> entry : headers.entrySet())
+                {
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
+                }
+
+                //Adds jal record to post
+                File resourcesDirectory = new File("src/test/resources/unit_test");
+
+                String jalRecord1Path = resourcesDirectory.getAbsolutePath() + "/jal_record1.txt";
+                HttpEntity entity = EntityBuilder.create().setFile(new File(jalRecord1Path)).build();
+
+                httpPost.setEntity(entity);
+
+                HttpClient client = HttpClientBuilder.create().build();
+
+                final HttpResponse response = client.execute(httpPost);
+                final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+                final Header digestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
+                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+                final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+                final int responseStatus = response.getStatusLine().getStatusCode();
+                assertEquals(200, responseStatus);
+                assertEquals(null, errorMessage);
+
+                //Validate digest is empty since digest is off and that sync message was sent instead
+                assertNull(digestHeader);
+                assertEquals(HttpUtils.MSG_SYNC, responseMessage);
+                assertEquals(jalId, jalIdHeader.getValue());
+            }
+        }
+    }
+
+    @Test
     public void testProcessJALRecordMessageUnsupportedAuditFormat() throws ClientProtocolException, IOException {
         System.out.println("----testProcessJALRecordMessageUnsupportedAuditFormat---");
         System.out.println("DR1.018.001 - record-failure:  log-record");
