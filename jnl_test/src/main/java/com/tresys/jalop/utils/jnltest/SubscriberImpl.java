@@ -977,6 +977,18 @@ public class SubscriberImpl implements Subscriber {
             final String remoteNonce = (String) lri.status.get(REMOTE_NONCE);
             lastConfirmedStatus.put(LAST_CONFIRMED_NONCE, remoteNonce);
             dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
+
+            //Creates confirmed file
+            File confirmedFile = new File(dest, "confirmed");
+
+            try
+            {
+                confirmedFile.createNewFile();
+            }
+            catch(IOException ie)
+            {
+                //Ignore, the confirmed file is only used for the stress test sub-test.sh script to ensure only confirmed directories get purged
+            }
         } else {
             LOGGER.error("Error trying to move confirmed file.");
             return false;
