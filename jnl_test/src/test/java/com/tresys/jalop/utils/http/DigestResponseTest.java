@@ -825,6 +825,204 @@ public class DigestResponseTest {
     }
 
     @Test
+    public void testModifiedPayloadFileDigestResponseMessage() throws ClientProtocolException, IOException
+    {
+        System.out.println("----testModifiedPayloadFileDigestResponseMessage---");
+        System.out.println("DR1.020 - digest-response");
+        System.out.println("DR1.020.001.001 - digest-response:  Digest Comparison - JAL-Session-Id");
+        System.out.println("DR1.020.001.002 - digest-response:  Digest Comparison - JAL-Id");
+        System.out.println("DR1.020.001.003 - digest-response:  Digest Comparison - JAL-Digest-Status");
+        System.out.println("DR1.021 - sync-failure");
+        System.out.println("DR1.021.001 - sync-failure:  log-record");
+        System.out.println("DR1.021.002 - sync-failure:  audit-record");
+        System.out.println("DR1.021.003 - sync-failure:  journal-record");
+        System.out.println("DR1.021.004 - sync-failure:  digest-response");
+        System.out.println("DR1.021.005 - sync-failure:  JAL-Id");
+        System.out.println("DR1.021.006 - sync-failure:  JAL-Error-Message");
+        System.out.println("DR1.021.006.001 - sync-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.021.006.001.001 - sync-failure:  JAL-Error-Message:  Error Reasons - JAL-Sync-Failure");
+
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(recType, sessionId);
+
+            //Force delete of payload file in temporary storage area
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+            String payloadFileStr = outputDirStr +  "/" + publisherId + "/" + recType.toString().toLowerCase() + "/" + autoNumberDir + "/" + TestResources.PAYLOAD_FILENAME;
+            File payloadFile = new File(payloadFileStr);
+            payloadFile.setLastModified(100);
+
+            //Sends digest response
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+            httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "confirmed");
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_SYNC_FAILURE, errorHeader.getValue());
+        }
+
+        System.out.println("----testModifiedPayloadFileDigestResponseMessage success---");
+    }
+
+    @Test
+    public void testModifiedAppMetadataFileDigestResponseMessage() throws ClientProtocolException, IOException
+    {
+        System.out.println("----testModifiedAppMetadataFileDigestResponseMessage---");
+        System.out.println("DR1.020 - digest-response");
+        System.out.println("DR1.020.001.001 - digest-response:  Digest Comparison - JAL-Session-Id");
+        System.out.println("DR1.020.001.002 - digest-response:  Digest Comparison - JAL-Id");
+        System.out.println("DR1.020.001.003 - digest-response:  Digest Comparison - JAL-Digest-Status");
+        System.out.println("DR1.021 - sync-failure");
+        System.out.println("DR1.021.001 - sync-failure:  log-record");
+        System.out.println("DR1.021.002 - sync-failure:  audit-record");
+        System.out.println("DR1.021.003 - sync-failure:  journal-record");
+        System.out.println("DR1.021.004 - sync-failure:  digest-response");
+        System.out.println("DR1.021.005 - sync-failure:  JAL-Id");
+        System.out.println("DR1.021.006 - sync-failure:  JAL-Error-Message");
+        System.out.println("DR1.021.006.001 - sync-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.021.006.001.001 - sync-failure:  JAL-Error-Message:  Error Reasons - JAL-Sync-Failure");
+
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(recType, sessionId);
+
+            //Force modification of app metadata file in temporary storage area
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+            String appMetaFileStr = outputDirStr +  "/" + publisherId + "/" + recType.toString().toLowerCase() + "/" + autoNumberDir + "/" + TestResources.APP_META_FILENAME;
+            File appMetaFile = new File(appMetaFileStr);
+            appMetaFile.setLastModified(100);
+
+            //Sends digest response
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+            httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "confirmed");
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_SYNC_FAILURE, errorHeader.getValue());
+        }
+
+        System.out.println("----testModifiedAppMetadataFileDigestResponseMessage success---");
+    }
+
+    @Test
+    public void testModifiedSysMetadataFileDigestResponseMessage() throws ClientProtocolException, IOException
+    {
+        System.out.println("----testModifiedSysMetadataFileDigestResponseMessage---");
+        System.out.println("DR1.020 - digest-response");
+        System.out.println("DR1.020.001.001 - digest-response:  Digest Comparison - JAL-Session-Id");
+        System.out.println("DR1.020.001.002 - digest-response:  Digest Comparison - JAL-Id");
+        System.out.println("DR1.020.001.003 - digest-response:  Digest Comparison - JAL-Digest-Status");
+        System.out.println("DR1.021 - sync-failure");
+        System.out.println("DR1.021.001 - sync-failure:  log-record");
+        System.out.println("DR1.021.002 - sync-failure:  audit-record");
+        System.out.println("DR1.021.003 - sync-failure:  journal-record");
+        System.out.println("DR1.021.004 - sync-failure:  digest-response");
+        System.out.println("DR1.021.005 - sync-failure:  JAL-Id");
+        System.out.println("DR1.021.006 - sync-failure:  JAL-Error-Message");
+        System.out.println("DR1.021.006.001 - sync-failure:  JAL-Error-Message:  Error Reasons");
+        System.out.println("DR1.021.006.001.001 - sync-failure:  JAL-Error-Message:  Error Reasons - JAL-Sync-Failure");
+
+        String publisherId = UUID.randomUUID().toString();
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(recType, sessionId);
+
+            //Force delete of sys metadata file in temporary storage area
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+            String sysMetaFileStr = outputDirStr +  "/" + publisherId + "/" + recType.toString().toLowerCase() + "/" + autoNumberDir + "/" + TestResources.SYS_META_FILENAME;
+            File sysMetaFile = new File(sysMetaFileStr);
+            sysMetaFile.setLastModified(100);
+
+            //Sends digest response
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+            httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "confirmed");
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_SYNC_FAILURE, messageHeader.getValue());
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_SYNC_FAILURE, errorHeader.getValue());
+        }
+
+        System.out.println("----testModifiedSysMetadataFileDigestResponseMessage success---");
+    }
+
+    @Test
     public void testValidInvalidDigestResponseMessage() throws ClientProtocolException, IOException
     {
         System.out.println("----testValidInvalidDigestResponseMessage---");
