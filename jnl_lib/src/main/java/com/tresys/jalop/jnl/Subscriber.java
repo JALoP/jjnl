@@ -170,11 +170,15 @@ public interface Subscriber {
 	 *            {@link DigestStatus}, indicating if the
 	 *            remote JALoP Network Store agrees with the digest value
 	 *            calculated locally for the specified nonce.
+     * @param testMode
+     *            {boolean}, true if running in test mode, this will create an extra
+     *            empty zero byte "confirmed" file in the confirm dir for the record
+     *            so sub-test.sh stress test script will know which records it can successfully purge.
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyDigestResponse(SubscriberSession sess,
-			final String nonce, final DigestStatus status);
+			final String nonce, final DigestStatus status, boolean testMode);
 
 	/**
 	 * The {@link ContextImpl} executes this method to get the
@@ -190,4 +194,6 @@ public interface Subscriber {
     boolean removeSession(String sessionId);
 
     void prepareForNewSession();
+
+    boolean getTestMode();
 }

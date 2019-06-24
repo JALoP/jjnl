@@ -46,6 +46,7 @@ public class HttpConfig {
     private static final String AUDIT = "audit";
     private static final String CONFIGURE_DIGEST = "configureDigest";
     private static final String CONFIGURE_TLS = "configureTls";
+    private static final String TEST_MODE = "testMode";
     protected static final String HOSTS = "hosts";
     protected static final String INPUT = "input";
     private static final String JOURNAL = "journal";
@@ -66,6 +67,7 @@ public class HttpConfig {
     protected InetAddress address;
     private List<String> configureDigests;
     private String configureTls;
+    private String testMode;
     private int maxSessionLimit;
     private Mode mode;
     private File outputPath;
@@ -73,7 +75,7 @@ public class HttpConfig {
     private final Set<RecordType> recordTypes;
     private Role role;
     protected final String source;
-    private HashMap<String, String> sslConfig; 
+    private HashMap<String, String> sslConfig;
 
     /**
      * Parses a configuration file for use by the JNLTest program.
@@ -140,6 +142,7 @@ public class HttpConfig {
 
         handleConfigureDigest(subscriber);
         handleTls(subscriber);
+        handleTestMode(subscriber);
         handleRecordType(subscriber);
         handleMaxSessionLimit(subscriber);
     }
@@ -159,7 +162,7 @@ public class HttpConfig {
         this.port = -1;
         this.mode = Mode.Unset;
     }
-    
+
     /**
      * Get the IP address.
      *
@@ -327,6 +330,15 @@ public class HttpConfig {
         }
     }
 
+    public void handleTestMode(final JSONObject obj) throws ConfigurationException {
+        final String testModeString = itemAsString(TEST_MODE, obj);
+        this.testMode = testModeString;
+
+        if (!this.testMode.equals("on") && !this.testMode.equals("off")) {
+            throw new ConfigurationException (this.source, HttpConfig.TEST_MODE + " must only contain " + HttpUtils.MSG_ON + " or " + HttpUtils.MSG_OFF);
+        }
+    }
+
     public void handleMaxSessionLimit(final JSONObject obj) throws ConfigurationException {
         final int maxSessionLimit = itemAsNumber(MAX_SESSION_LIMIT, obj).intValue();
         this.maxSessionLimit = maxSessionLimit;
@@ -343,6 +355,11 @@ public class HttpConfig {
     public String getTlsConfiguration()
     {
         return this.configureTls;
+    }
+
+    public String getTestMode()
+    {
+        return this.testMode;
     }
 
     public int getMaxSessionLimit()
@@ -393,7 +410,7 @@ public class HttpConfig {
 
         return keyStorePassword;
     }
-    
+
     /**
      * Lookup the required element named by 'key' in the {@link JSONObject} obj.
      *
@@ -765,6 +782,7 @@ public class HttpConfig {
         httpSubscriberConfig.setRecordTypes(this.getRecordTypes());
         httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
         httpSubscriberConfig.setTlsConfiguration(this.getTlsConfiguration());
+        httpSubscriberConfig.setTestMode(this.getTestMode());
         httpSubscriberConfig.setMaxSessionLimit(this.getMaxSessionLimit());
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());

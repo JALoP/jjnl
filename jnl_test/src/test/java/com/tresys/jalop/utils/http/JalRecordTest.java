@@ -388,7 +388,9 @@ public class JalRecordTest {
 
             try
             {
-                sendJalRecord(currRecType, currInputDir, currSessionId, currExpectedDigest, currRecordLen);
+                String jalId = sendJalRecord(currRecType, currInputDir, currSessionId, currExpectedDigest, currRecordLen);
+
+                confirmRecord(jalId, currRecType, currSessionId);
             }
             catch (IOException e)
             {
@@ -403,6 +405,32 @@ public class JalRecordTest {
                 throw(ae);
             }
         }
+    }
+
+    private void confirmRecord(String jalId, RecordType recType, String sessionId) throws ClientProtocolException, IOException
+    {
+        //Sends digest response
+        final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+        httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+        httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+        httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+        httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "confirmed");
+
+        HttpClient client = HttpClientBuilder.create().build();
+        final HttpResponse response = client.execute(httpPost);
+
+        final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+        final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+        assertNotNull(jalIdHeader);
+        assertEquals(jalId, jalIdHeader.getValue());
+
+        assertNotNull(messageHeader);
+        assertEquals(HttpUtils.MSG_SYNC, messageHeader.getValue());
+
+        final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+        assertNull(errorHeader);
     }
 
     private ArrayList<JalRecordTask> sendJalRecordsWithThreadPool(RecordType recType, String publisherId, String expectedDigest, boolean performDigest, ThreadPoolExecutor executor) throws ClientProtocolException, IOException
@@ -529,11 +557,12 @@ public class JalRecordTest {
       //  TestResources.cleanInputDirectory(recType, inputDirStr);
     }
 
-    private void sendJalRecord(RecordType recType, File currDir, String sessionId, String expectedDigest, JalRecordLength recordLen) throws ClientProtocolException, IOException
+    private String sendJalRecord(RecordType recType, File currDir, String sessionId, String expectedDigest, JalRecordLength recordLen) throws ClientProtocolException, IOException
     {
         HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, UUID.randomUUID().toString(), Long.toString(recordLen.sysMetadataLen), Long.toString(recordLen.appMetadataLen), Long.toString(recordLen.payloadLen), recType);
+        String jalId = UUID.randomUUID().toString();
+        HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, Long.toString(recordLen.sysMetadataLen), Long.toString(recordLen.appMetadataLen), Long.toString(recordLen.payloadLen), recType);
 
         for (Map.Entry<String, String> entry : headers.entrySet())
         {
@@ -566,6 +595,8 @@ public class JalRecordTest {
         {
             assertEquals(HttpUtils.MSG_SYNC, responseMessage);
         }
+
+        return jalId;
     }
 
     @Test

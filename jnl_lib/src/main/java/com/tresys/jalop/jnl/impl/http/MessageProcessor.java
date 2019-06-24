@@ -346,7 +346,7 @@ public class MessageProcessor {
         logger.trace("Processing: " + jalId);
 
         // Execute the notify digest callback which will take care of moving the record from temp to perm
-        if (subscriber.notifyDigestResponse(sess, jalId, digestStatus)) {
+        if (subscriber.notifyDigestResponse(sess, jalId, digestStatus, subscriber.getTestMode())) {
             // For a confirmed digest, send a sync message and remove the nonce from the sent queue
             if(digestStatus != DigestStatus.Confirmed)
             {
@@ -556,7 +556,7 @@ public class MessageProcessor {
             {
                 //Execute the notify digest callback which will take care of moving the record from temp to perm
                 //Status is always confirmed if digesting is disabled
-                if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed))
+                if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed, subscriber.getTestMode()))
                 {
                     logger.error("notifyDigestResponse failure: " + jalId + ", " + DigestStatus.Confirmed);
                     digestResult.setFailedDueToSync(true);
