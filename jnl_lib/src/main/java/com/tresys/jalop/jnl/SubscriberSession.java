@@ -67,4 +67,6 @@ public interface SubscriberSession extends Session {
     String getPublisherId();
 
     String getSessionId();
+
+    void resetJournalOffset();
 }

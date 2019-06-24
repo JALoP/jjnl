@@ -117,6 +117,12 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         this.lastTouchedTimestamp = LocalDateTime.now();
     }
 
+    @Override
+    public void resetJournalOffset()
+    {
+        this.journalResumeOffset = 0;
+    }
+
     public String getDigestType(final String algorithm) {
 
         if (DigestMethod.SHA256.equals(algorithm)) {
