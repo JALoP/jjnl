@@ -869,6 +869,35 @@ public class SubscriberImpl implements Subscriber {
         return ret;
     }
 
+    private boolean checkFiles(File currRecordDir)
+    {
+        File payloadFile = new File(currRecordDir, PAYLOAD_FILENAME);
+
+        if (!payloadFile.exists())
+        {
+            LOGGER.error(PAYLOAD_FILENAME + " file is missing.");
+            return false;
+        }
+
+        File sysMetadataFile = new File(currRecordDir, SYS_META_FILENAME);
+
+        if (!sysMetadataFile.exists())
+        {
+            LOGGER.error(SYS_META_FILENAME + " file is missing.");
+            return false;
+        }
+
+        File appMetadataFile = new File(currRecordDir, APP_META_FILENAME);
+
+        if (!appMetadataFile.exists())
+        {
+            LOGGER.error(APP_META_FILENAME + " file is missing.");
+            return false;
+        }
+
+        return true;
+    }
+
     @SuppressWarnings("unchecked")
     private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
 
@@ -878,6 +907,14 @@ public class SubscriberImpl implements Subscriber {
         if(LOGGER.isDebugEnabled()) {
             LOGGER.debug("Renaming directory from: " +lri.recordDir.getAbsolutePath() + " to: "+
                     dest.getAbsolutePath());
+        }
+
+        //Ensures that the payload, sys metadata, app metadata files are all present before performing the sync.
+        boolean result = checkFiles(lri.recordDir);
+        if (!result)
+        {
+            LOGGER.error("The temporary record dir " + lri.recordDir.getAbsolutePath() + " is missing required files and can not be confirmed.");
+            return false;
         }
 
         if(lri.recordDir.renameTo(dest)) {

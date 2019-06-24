@@ -44,6 +44,14 @@ import com.tresys.jalop.utils.jnltest.JNLSubscriber;
 public class TestResources {
     public static int HTTP_PORT = 8080;
     public static String SESSION_ID = "fe8a54d7-dd7c-4c50-a7e7-f948a140c556";
+    /** The filename for the system meta-data document. */
+    public static final String SYS_META_FILENAME = "sys_metadata.xml";
+
+    /** The filename for the application meta-data document. */
+    public static final String APP_META_FILENAME = "app_metadata.xml";
+
+    /** The filename for the payload. */
+    public static final String PAYLOAD_FILENAME = "payload";
 
     private static final String NONCE_FORMAT_STRING = "0000000000";
     static final DecimalFormat NONCE_FORMATER =
