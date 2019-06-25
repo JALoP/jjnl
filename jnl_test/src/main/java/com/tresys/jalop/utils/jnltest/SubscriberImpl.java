@@ -254,6 +254,14 @@ public class SubscriberImpl implements Subscriber {
         /** Cached copy of the JSON stats. */
         public final JSONObject status;
 
+        public boolean appMetadataExists = false;
+        public boolean payloadExists = false;
+        public boolean sysMetadataExists = false;
+
+        public long appMetadataLastModified = 0;
+        public long sysMetadataLastModified = 0;
+        public long payloadLastModified = 0;
+
         /**
          * Create a new {@link LocalRecordInfo} object.
          *
@@ -551,9 +559,20 @@ public class SubscriberImpl implements Subscriber {
         if (!dumpStatus(lri.statusFile, lri.status)) {
             return false;
         }
-        return handleRecordData(lri, recordInfo.getSysMetaLength(),
+        final boolean retVal = handleRecordData(lri, recordInfo.getSysMetaLength(),
                                 SYS_META_FILENAME, SYS_META_PROGRESS,
-                                sysMetaData, sess);
+                               sysMetaData, sess);
+
+        //Update local record modified date and if it exists for future verification
+        //Before moving to confirmed location.
+        if (retVal == true)
+        {
+            File sysMetadataFile = new File(lri.recordDir, SYS_META_FILENAME);
+            lri.sysMetadataExists = sysMetadataFile.exists();
+            lri.sysMetadataLastModified = sysMetadataFile.lastModified();
+        }
+
+        return retVal;
     }
 
     /**
@@ -723,9 +742,20 @@ public class SubscriberImpl implements Subscriber {
                 return false;
             }
 
-            return handleRecordData(lri, recordInfo.getAppMetaLength(),
+            final boolean result =  handleRecordData(lri, recordInfo.getAppMetaLength(),
                                     APP_META_FILENAME, APP_META_PROGRESS,
                                     appMetaData, sess);
+
+            //Update local record modified date and if it exists for future verification
+            //before moving to confirmed location.
+            if (result == true)
+            {
+                File appMetadataFile = new File(lri.recordDir, APP_META_FILENAME);
+                lri.appMetadataExists = appMetadataFile.exists();
+                lri.appMetadataLastModified = appMetadataFile.lastModified();
+            }
+
+            return result;
         }
 
         return true;
@@ -751,6 +781,16 @@ public class SubscriberImpl implements Subscriber {
                                     payload, sess);
             // resetting journalOffset to 0 since only the first payload can ever have an offset
             this.journalOffset = 0;
+
+            //Update local record modified date and if it exists for future verification
+            //before moving to confirmed location.
+            if (retVal == true)
+            {
+                File payloadFile = new File(lri.recordDir, PAYLOAD_FILENAME);
+                lri.payloadExists = payloadFile.exists();
+                lri.payloadLastModified = payloadFile.lastModified();
+            }
+
             return retVal;
         }
         return true;
@@ -869,6 +909,50 @@ public class SubscriberImpl implements Subscriber {
         return ret;
     }
 
+    private boolean checkFiles(LocalRecordInfo lri)
+    {
+        File payloadFile = new File(lri.recordDir, PAYLOAD_FILENAME);
+
+        if (lri.payloadExists != payloadFile.exists())
+        {
+            LOGGER.error(PAYLOAD_FILENAME + " file was added or removed since being uploaded.");
+            return false;
+        }
+        else if (lri.payloadLastModified != payloadFile.lastModified())
+        {
+            LOGGER.error(PAYLOAD_FILENAME + " file was modified since being uploaded.");
+            return false;
+        }
+
+        File sysMetadataFile = new File(lri.recordDir, SYS_META_FILENAME);
+
+        if (lri.sysMetadataExists != sysMetadataFile.exists())
+        {
+            LOGGER.error(SYS_META_FILENAME + " was added or removed since being uploaded.");
+            return false;
+        }
+        else if (lri.sysMetadataLastModified != sysMetadataFile.lastModified())
+        {
+            LOGGER.error(SYS_META_FILENAME + " file was modified since being uploaded.");
+            return false;
+        }
+
+        File appMetadataFile = new File(lri.recordDir, APP_META_FILENAME);
+
+        if (lri.appMetadataExists != appMetadataFile.exists())
+        {
+            LOGGER.error(APP_META_FILENAME + " was added or removed since being uploaded.");
+            return false;
+        }
+        else if (lri.appMetadataLastModified != appMetadataFile.lastModified())
+        {
+            LOGGER.error(APP_META_FILENAME + " file was modified since being uploaded.");
+            return false;
+        }
+
+        return true;
+    }
+
     @SuppressWarnings("unchecked")
     private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
 
@@ -878,6 +962,14 @@ public class SubscriberImpl implements Subscriber {
         if(LOGGER.isDebugEnabled()) {
             LOGGER.debug("Renaming directory from: " +lri.recordDir.getAbsolutePath() + " to: "+
                     dest.getAbsolutePath());
+        }
+
+        //Ensures the files uploaded weren't deleted or modified before confirming.
+        boolean result = checkFiles(lri);
+        if (!result)
+        {
+            LOGGER.error("Error: the contents of the temporary record dir " + lri.recordDir.getAbsolutePath() + " were modified since being uploaded and this record can not be confirmed.");
+            return false;
         }
 
         if(lri.recordDir.renameTo(dest)) {
