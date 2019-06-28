@@ -57,11 +57,11 @@ import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
-import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
+import com.tresys.jalop.jnl.impl.http.SubscriberAndSession;
 
 /**
  * Sample implementation of a {@link Subscriber}. This {@link Subscriber} simply
@@ -540,7 +540,7 @@ public class SubscriberImpl implements Subscriber {
     @Override
     public final boolean notifySysMetadata(final SubscriberSession sess,
                                            final RecordInfo recordInfo,
-                                           final InputStream sysMetaData) {
+                                           final InputStream sysMetaData, Subscriber subscriber) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Got sysmetadata for " + recordInfo.getNonce());
         }
@@ -730,7 +730,7 @@ public class SubscriberImpl implements Subscriber {
     @Override
     public final boolean notifyAppMetadata(final SubscriberSession sess,
                     final RecordInfo recordInfo,
-                    final InputStream appMetaData) {
+                    final InputStream appMetaData, Subscriber subscriber) {
         if (recordInfo.getAppMetaLength() != 0) {
             LocalRecordInfo lri;
             synchronized (this.nonceMap) {
@@ -764,7 +764,7 @@ public class SubscriberImpl implements Subscriber {
     @Override
     public final boolean notifyPayload(final SubscriberSession sess,
                                        final RecordInfo recordInfo,
-                                       final InputStream payload) {
+                                       final InputStream payload, Subscriber subscriber) {
         if (recordInfo.getPayloadLength() != 0) {
             LocalRecordInfo lri;
             synchronized (this.nonceMap) {
@@ -801,7 +801,7 @@ public class SubscriberImpl implements Subscriber {
     @Override
     public final boolean notifyDigest(final SubscriberSession sess,
                                       final RecordInfo recordInfo,
-                                      final byte[] digest) {
+                                      final byte[] digest, Subscriber subscriber) {
         String hexString = "";
         for (byte b : digest) {
             hexString = hexString + String.format("%02x",b);
@@ -829,7 +829,7 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
     @Override
     public final boolean notifyJournalMissing(final SubscriberSession sess,
-            final String jalId)
+            final String jalId, Subscriber subscriber)
     {
         boolean ret = true;
         LocalRecordInfo lri;
@@ -854,7 +854,7 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
     @Override
     public final boolean notifyDigestResponse(final SubscriberSession sess,
-            final String nonce, final DigestStatus status, boolean testMode) {
+            final String nonce, final DigestStatus status, boolean testMode, Subscriber subscriber) {
         boolean ret = true;
         LocalRecordInfo lri;
 
@@ -1055,12 +1055,7 @@ public class SubscriberImpl implements Subscriber {
     }
 
     @Override
-    public Session getSessionBySessionId(String sessionId) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void prepareForNewSession()
+    public SubscriberAndSession getSessionAndSubscriberBySessionId(String sessionId)
     {
         throw new UnsupportedOperationException();
     }

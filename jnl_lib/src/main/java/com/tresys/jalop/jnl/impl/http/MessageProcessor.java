@@ -68,7 +68,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJournalMissingMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, final SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJournalMissingMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -90,9 +90,16 @@ public class MessageProcessor {
             throw new IllegalArgumentException("supportedRecType is required");
         }
 
+        if (subscriberAndSession == null)
+        {
+            throw new IllegalArgumentException("subscriberAndSession is required");
+        }
+
+        final SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriberAndSession.getSession();
+
         if (sess == null)
         {
-            throw new IllegalArgumentException("sess is required");
+            throw new IllegalArgumentException("session cannot be null");
         }
 
         logger.debug(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
@@ -119,7 +126,7 @@ public class MessageProcessor {
         }
 
         //Execute the notifyJournalMissing callback which will take care deleting the downloaded record in the output dir
-        if (!subscriber.notifyJournalMissing(sess, jalId))
+        if (!subscriber.notifyJournalMissing(sess, jalId, subscriberAndSession.getSubscriber()))
         {
             logger.error("notifyJournalMissing failure: " + jalId);
 
@@ -236,10 +243,6 @@ public class MessageProcessor {
             performDigest = false;
         }
 
-        lock.lock();
-        subscriber.prepareForNewSession();
-        lock.unlock();
-
         //TODO remove default values of 1 for pending digest values, once we've refactored the code
         UUID sessionUUID = UUID.randomUUID();
         final String sessionId = sessionUUID.toString();
@@ -292,7 +295,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processDigestResponseMessage(final TreeMap<String, String> requestHeaders, final SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
+    static boolean processDigestResponseMessage(final TreeMap<String, String> requestHeaders, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -309,9 +312,16 @@ public class MessageProcessor {
             throw new IllegalArgumentException("requestHeaders is required");
         }
 
+        if (subscriberAndSession == null)
+        {
+            throw new IllegalArgumentException("subscriberAndSession is required");
+        }
+
+        final SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriberAndSession.getSession();
+
         if (sess == null)
         {
-            throw new IllegalArgumentException("sess is required");
+            throw new IllegalArgumentException("session cannot be null");
         }
 
         digestResult.setFailedDueToSync(false);
@@ -346,7 +356,7 @@ public class MessageProcessor {
         logger.trace("Processing: " + jalId);
 
         // Execute the notify digest callback which will take care of moving the record from temp to perm
-        if (subscriber.notifyDigestResponse(sess, jalId, digestStatus, subscriber.getTestMode())) {
+        if (subscriber.notifyDigestResponse(sess, jalId, digestStatus, subscriber.getTestMode(), subscriberAndSession.getSubscriber())) {
             // For a confirmed digest, send a sync message and remove the nonce from the sent queue
             if(digestStatus != DigestStatus.Confirmed)
             {
@@ -368,9 +378,8 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJALRecordMessage(final TreeMap<String, String> requestHeaders, final InputStream requestInputStream, final RecordType supportedRecType, final SubscriberHttpSessionImpl sess, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJALRecordMessage(final TreeMap<String, String> requestHeaders, final InputStream requestInputStream, final RecordType supportedRecType, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, List<String> errorMessages)
     {
-
         if (digestResult == null)
         {
             throw new IllegalArgumentException("digestResult is required");
@@ -394,6 +403,18 @@ public class MessageProcessor {
         if (supportedRecType == null)
         {
             throw new IllegalArgumentException("supportedRecType is required");
+        }
+
+        if (subscriberAndSession == null)
+        {
+            throw new IllegalArgumentException("subscriberAndSession is required");
+        }
+
+        final SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriberAndSession.getSession();
+
+        if (sess == null)
+        {
+            throw new IllegalArgumentException("session cannot be null");
         }
 
         digestResult.setFailedDueToSync(false);
@@ -537,7 +558,7 @@ public class MessageProcessor {
                     .getInstance(sess.getDigestType(sess.getDigestMethod()));
 
             SubscriberHttpANSHandler subscriberHandler = new SubscriberHttpANSHandler(md, sess, sess.getPerformDigest());
-            String digest = subscriberHandler.handleJALRecord(sysMetadataSize, appMetadataSize, payloadSize, payloadType, recType, jalId, requestInputStream);
+            String digest = subscriberHandler.handleJALRecord(sysMetadataSize, appMetadataSize, payloadSize, payloadType, recType, jalId, requestInputStream, subscriberAndSession.getSubscriber());
 
             //If null, then failure occurred
             if (digest == null)
@@ -556,7 +577,7 @@ public class MessageProcessor {
             {
                 //Execute the notify digest callback which will take care of moving the record from temp to perm
                 //Status is always confirmed if digesting is disabled
-                if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed, subscriber.getTestMode()))
+                if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed, subscriber.getTestMode(), subscriberAndSession.getSubscriber()))
                 {
                     logger.error("notifyDigestResponse failure: " + jalId + ", " + DigestStatus.Confirmed);
                     digestResult.setFailedDueToSync(true);
@@ -711,8 +732,10 @@ public class MessageProcessor {
             {
                 //Gets the session Id from header
                 String sessionIdStr = currHeaders.get(HttpUtils.HDRS_SESSION_ID);
-                SubscriberHttpSessionImpl currSession = HttpUtils.validateSessionId(sessionIdStr, errorMessages);
-                if (currSession == null)
+
+                SubscriberAndSession subscriberAndSession = HttpUtils.validateSessionId(sessionIdStr, errorMessages);
+
+                if (subscriberAndSession == null)
                 {
                     String errMsg = "JAL message failed due to invalid Session ID value of: " + sessionIdStr;
                     logger.error(errMsg);
@@ -721,6 +744,8 @@ public class MessageProcessor {
                     jsie.setJalId(currHeaders.get(HttpUtils.HDRS_NONCE));
                     throw jsie;
                 }
+
+                SubscriberHttpSessionImpl currSession = (SubscriberHttpSessionImpl)subscriberAndSession.getSession();
 
                 if (messageType.equalsIgnoreCase(HttpUtils.MSG_LOG) || messageType.equalsIgnoreCase(HttpUtils.MSG_JOURNAL)
                         || messageType.equalsIgnoreCase(HttpUtils.MSG_AUDIT)) // process
@@ -731,7 +756,7 @@ public class MessageProcessor {
 
                     updateSessionTimestamp(currSession);
                     if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
-                            supportedRecType, currSession, digestResult, errorMessages))
+                            supportedRecType, subscriberAndSession, digestResult, errorMessages))
                     {
                         updateSessionTimestamp(currSession);
 
@@ -767,7 +792,7 @@ public class MessageProcessor {
                     updateSessionTimestamp(currSession);
 
                     DigestResult digestResult = new DigestResult();
-                    if (!MessageProcessor.processJournalMissingMessage(currHeaders, supportedRecType, currSession, digestResult, errorMessages))
+                    if (!MessageProcessor.processJournalMissingMessage(currHeaders, supportedRecType, subscriberAndSession, digestResult, errorMessages))
                     {
                         //Send record failure
                         MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
@@ -785,7 +810,7 @@ public class MessageProcessor {
                     DigestResult digestResult = new DigestResult();
 
                     updateSessionTimestamp(currSession);
-                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, currSession, digestResult, errorMessages))
+                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, subscriberAndSession, digestResult, errorMessages))
                     {
                         updateSessionTimestamp(currSession);
 
@@ -839,18 +864,18 @@ public class MessageProcessor {
         }
         catch (IOException ioe)
         {
-            logger.error(ioe);
+            logger.error("An io exception occurred:", ioe);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
         catch (IllegalArgumentException iae)
         {
-            logger.error(iae);
+            logger.error("An illegal argument exception occurred: ", iae);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
         catch (Exception e)
         {
             //Global catch all to prevent exceptions from ever being returned in the http response.
-            logger.error(e);
+            logger.error("A general excpetion occurred: ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }

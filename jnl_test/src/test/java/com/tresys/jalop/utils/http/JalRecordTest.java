@@ -188,6 +188,7 @@ public class JalRecordTest {
         //End config parameter parsing section
 
         server = TestResources.getWebServer();
+
         server.start();
     }
 
@@ -577,7 +578,7 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final Header responseMessageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header responseDigestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         final int responseStatus = response.getStatusLine().getStatusCode();
@@ -589,11 +590,13 @@ public class JalRecordTest {
         {
             assertNotNull(responseDigestHeader);
             assertEquals(expectedDigest, responseDigestHeader.getValue());
-            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+            assertNotNull(responseMessageHeader);
+            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessageHeader.getValue());
         }
         else
         {
-            assertEquals(HttpUtils.MSG_SYNC, responseMessage);
+            assertNotNull(responseMessageHeader);
+            assertEquals(HttpUtils.MSG_SYNC, responseMessageHeader.getValue());
         }
 
         return jalId;
