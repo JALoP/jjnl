@@ -854,7 +854,7 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
     @Override
     public final boolean notifyDigestResponse(final SubscriberSession sess,
-            final String nonce, final DigestStatus status) {
+            final String nonce, final DigestStatus status, boolean testMode) {
         boolean ret = true;
         LocalRecordInfo lri;
 
@@ -891,7 +891,7 @@ public class SubscriberImpl implements Subscriber {
             // If the digest is confirmed, go ahead and move the record from temp directory
             // Otherwise delete the record
             if(DigestStatus.Confirmed.equals(status)) {
-                if(!moveConfirmedRecord(lri)) {
+                if(!moveConfirmedRecord(lri, testMode)) {
                     LOGGER.error("Failed to sync record:  " + lri.recordDir.getAbsolutePath());
                     ret = false;
                 }
@@ -954,7 +954,7 @@ public class SubscriberImpl implements Subscriber {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
+    private boolean moveConfirmedRecord(final LocalRecordInfo lri, boolean testMode) {
 
         final long latestNonce = retrieveLatestNonce();
         final File dest = new File(this.outputRoot, SubscriberImpl.NONCE_FORMATER.format(latestNonce));
@@ -977,6 +977,21 @@ public class SubscriberImpl implements Subscriber {
             final String remoteNonce = (String) lri.status.get(REMOTE_NONCE);
             lastConfirmedStatus.put(LAST_CONFIRMED_NONCE, remoteNonce);
             dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
+
+            //Creates confirmed file if in test mode only
+            if (testMode == true)
+            {
+                File confirmedFile = new File(dest, "confirmed");
+
+                try
+                {
+                    confirmedFile.createNewFile();
+                }
+                catch(IOException ie)
+                {
+                    //Ignore, the confirmed file is only used for the stress test sub-test.sh script to ensure only confirmed directories get purged
+                }
+            }
         } else {
             LOGGER.error("Error trying to move confirmed file.");
             return false;
@@ -1052,6 +1067,12 @@ public class SubscriberImpl implements Subscriber {
 
     @Override
     public boolean removeSession(String sessionId)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean getTestMode()
     {
         throw new UnsupportedOperationException();
     }

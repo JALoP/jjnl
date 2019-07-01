@@ -85,6 +85,61 @@ public class TestResources {
         LogManager.getRootLogger().setLevel(logLevel);
     }
 
+    public static ArrayList<RecordType> getRecordTypes(String recordTypeString)
+    {
+        ArrayList<RecordType> recordTypes = new ArrayList<RecordType>();
+        if (recordTypeString != null)
+        {
+            String [] splitValues = recordTypeString.split(",");
+
+            for (String value : splitValues)
+            {
+                RecordType recType = HttpUtils.getRecordType(value.trim());
+
+                if (recType != RecordType.Unset)
+                {
+                    recordTypes.add(recType);
+                }
+            }
+        }
+        else
+        {
+            //Add all record types by default if none passed in.
+            for (RecordType recType : RecordType.values())
+            {
+                if (recType != RecordType.Unset)
+                {
+                    recordTypes.add(recType);
+                }
+            }
+        }
+
+        return recordTypes;
+    }
+
+    public static ArrayList<String> getRecordTypeNames(ArrayList<RecordType> recordTypes)
+    {
+        ArrayList<String> recordTypeNames = new ArrayList<String>();
+
+        for (RecordType recType : recordTypes)
+        {
+            recordTypeNames.add(recType.toString());
+        }
+
+        return recordTypeNames;
+    }
+
+    public static String formatElapsedTime(final long elapsedTimeMillis)
+    {
+        long millis = elapsedTimeMillis % 1000;
+        long second = (elapsedTimeMillis / 1000) % 60;
+        long minute = (elapsedTimeMillis / (1000 * 60)) % 60;
+        long hour = (elapsedTimeMillis / (1000 * 60 * 60)) % 24;
+
+        String time = String.format("%02d:%02d:%02d.%d hh:mm:ss:SSS", hour, minute, second, millis);
+
+        return time;
+    }
 
     public static Server getWebServer()
     {

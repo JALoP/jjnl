@@ -180,6 +180,11 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
         return foundSession;
     }
 
+    @Override
+    public boolean getTestMode()
+    {
+        return http_config.getTestMode();
+    }
 
     @Override
     public void prepareForNewSession()
@@ -266,8 +271,8 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     }
 
     @Override
-    public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status) {
-        return this.sessMap.get(sess).notifyDigestResponse(sess, nonce, status);
+    public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status, final boolean testMode) {
+        return this.sessMap.get(sess).notifyDigestResponse(sess, nonce, status, testMode);
     }
 
     @Override

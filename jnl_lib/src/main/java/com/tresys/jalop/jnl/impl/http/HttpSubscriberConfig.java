@@ -21,6 +21,7 @@ public class HttpSubscriberConfig {
     private Role role;
     private Mode mode;
     private File outputPath;
+    private boolean testMode;
 
     public String getKeystorePath() {
         return keystorePath;
@@ -88,5 +89,18 @@ public class HttpSubscriberConfig {
     public void setOutputPath(File outputPath) {
         this.outputPath = outputPath;
     }
+    public boolean getTestMode() {
+        return testMode;
+    }
+    public void setTestMode(String testMode) {
 
+        if (testMode != null && testMode.equalsIgnoreCase("on"))
+        {
+            this.testMode = true;
+        }
+        else
+        {
+            this.testMode = false;
+        }
+    }
 }
