@@ -124,6 +124,16 @@ public class MessageProcessorTest {
         assertEquals(false, result);
     }
 
+    @Test
+    public void testProcessJALRecordMessageEmptySubscriberAndSession()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("subscriberAndSession is required");
+        byte[] test = new byte[10];
+        boolean result = MessageProcessor.processJALRecordMessage(new TreeMap<String, String>(), new ByteArrayInputStream(test), RecordType.Audit, null, new DigestResult(), new ArrayList<String>());
+        assertEquals(false, result);
+    }
+
     public void testProcessDigestResponseMessageNullErrorMessagesParam()
     {
         exception.expect(IllegalArgumentException.class);
@@ -142,11 +152,21 @@ public class MessageProcessorTest {
     }
 
     @Test
-    public void testProcessDigestResponseMessageEmptySessionId()
+    public void testProcessDigestResponseMessageEmptySubscriberAndSession()
     {
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("sess is required");
+        exception.expectMessage("subscriberAndSession is required");
         boolean result = MessageProcessor.processDigestResponseMessage(new TreeMap<String, String>(), null, new DigestResult(), new ArrayList<String>());
+        assertEquals(false, result);
+    }
+
+    @Test
+    public void testProcessDigestResponseMessageEmptySession()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("session cannot be null");
+        SubscriberAndSession subscriberAndSession = new SubscriberAndSession(null, null);
+        boolean result = MessageProcessor.processDigestResponseMessage(new TreeMap<String, String>(), subscriberAndSession, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
@@ -187,11 +207,21 @@ public class MessageProcessorTest {
     }
 
     @Test
+    public void testProcessJournalMissingEmptySubscriberAndSession()
+    {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("subscriberAndSession is required");
+        boolean result = MessageProcessor.processJournalMissingMessage(new TreeMap<String, String>(), RecordType.Journal, null, new DigestResult(), new ArrayList<String>());
+        assertEquals(false, result);
+    }
+
+    @Test
     public void testProcessJournalMissingEmptySession()
     {
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("sess is required");
-        boolean result = MessageProcessor.processJournalMissingMessage(new TreeMap<String, String>(), RecordType.Journal, null, new DigestResult(), new ArrayList<String>());
+        exception.expectMessage("session cannot be null");
+        SubscriberAndSession subscriberAndSession = new SubscriberAndSession(null, null);
+        boolean result = MessageProcessor.processJournalMissingMessage(new TreeMap<String, String>(), RecordType.Journal, subscriberAndSession, new DigestResult(), new ArrayList<String>());
         assertEquals(false, result);
     }
 
