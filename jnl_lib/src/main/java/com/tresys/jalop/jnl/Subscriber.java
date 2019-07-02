@@ -45,9 +45,11 @@ public interface Subscriber {
 	 *
 	 * @param sess
 	 *            The {@link SubscriberSession}
+     * @param createConfirmedFile
+     *            The {@link createConfirmedFile}
 	 * @return Details to send in a "subscribe" or "journal-resume" message.
 	 */
-	SubscribeRequest getSubscribeRequest(SubscriberSession sess);
+	SubscribeRequest getSubscribeRequest(SubscriberSession sess, boolean createConfirmedFile);
 
 	/**
 	 * The {@link SubscriberSession} executes this method to deliver the system
@@ -187,10 +189,10 @@ public interface Subscriber {
 	 *            {@link DigestStatus}, indicating if the
 	 *            remote JALoP Network Store agrees with the digest value
 	 *            calculated locally for the specified nonce.
-     * @param testMode
-     *            {boolean}, true if running in test mode, this will create an extra
+     * @param createConfirmedFile
+     *            {boolean}, if true, this will create an extra
      *            empty zero byte "confirmed" file in the confirm dir for the record
-     *            so sub-test.sh stress test script will know which records it can successfully purge.
+     *            so any record purge functionality will know which records are complete and can be purged.
      * @param subscriber
      *            {@SubscriberImpl} for the current session.  This is passed in so if the session is removed
      *            while this method is in progress, the current method call will still successfully complete.
@@ -198,7 +200,7 @@ public interface Subscriber {
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyDigestResponse(SubscriberSession sess,
-			final String nonce, final DigestStatus status, boolean testMode, Subscriber subscriber);
+			final String nonce, final DigestStatus status, Subscriber subscriber);
 
 	/**
 	 * The {@link ContextImpl} executes this method to get the
@@ -213,5 +215,5 @@ public interface Subscriber {
 
     boolean removeSession(String sessionId);
 
-    boolean getTestMode();
+    boolean getCreateConfirmedFile();
 }

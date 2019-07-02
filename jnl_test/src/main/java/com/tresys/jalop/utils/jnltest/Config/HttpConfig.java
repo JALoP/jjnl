@@ -46,7 +46,7 @@ public class HttpConfig {
     private static final String AUDIT = "audit";
     private static final String CONFIGURE_DIGEST = "configureDigest";
     private static final String CONFIGURE_TLS = "configureTls";
-    private static final String TEST_MODE = "testMode";
+    private static final String CREATE_CONFIRMED_FILE = "createConfirmedFile";
     protected static final String HOSTS = "hosts";
     protected static final String INPUT = "input";
     private static final String JOURNAL = "journal";
@@ -67,7 +67,7 @@ public class HttpConfig {
     protected InetAddress address;
     private List<String> configureDigests;
     private String configureTls;
-    private String testMode;
+    private String createConfirmedFile;
     private int maxSessionLimit;
     private Mode mode;
     private File outputPath;
@@ -142,7 +142,7 @@ public class HttpConfig {
 
         handleConfigureDigest(subscriber);
         handleTls(subscriber);
-        handleTestMode(subscriber);
+        handleCreateConfirmedFile(subscriber);
         handleRecordType(subscriber);
         handleMaxSessionLimit(subscriber);
     }
@@ -330,12 +330,12 @@ public class HttpConfig {
         }
     }
 
-    public void handleTestMode(final JSONObject obj) throws ConfigurationException {
-        final String testModeString = itemAsString(TEST_MODE, obj);
-        this.testMode = testModeString;
+    public void handleCreateConfirmedFile(final JSONObject obj) throws ConfigurationException {
+        final String createConfirmedFileString = itemAsString(CREATE_CONFIRMED_FILE, obj);
+        this.createConfirmedFile = createConfirmedFileString;
 
-        if (!this.testMode.equals("on") && !this.testMode.equals("off")) {
-            throw new ConfigurationException (this.source, HttpConfig.TEST_MODE + " must only contain " + HttpUtils.MSG_ON + " or " + HttpUtils.MSG_OFF);
+        if (!this.createConfirmedFile.equals("on") && !this.createConfirmedFile.equals("off")) {
+            throw new ConfigurationException (this.source, HttpConfig.CREATE_CONFIRMED_FILE + " must only contain " + HttpUtils.MSG_ON + " or " + HttpUtils.MSG_OFF);
         }
     }
 
@@ -357,9 +357,9 @@ public class HttpConfig {
         return this.configureTls;
     }
 
-    public String getTestMode()
+    public String getCreateConfirmedFile()
     {
-        return this.testMode;
+        return this.createConfirmedFile;
     }
 
     public int getMaxSessionLimit()
@@ -782,7 +782,7 @@ public class HttpConfig {
         httpSubscriberConfig.setRecordTypes(this.getRecordTypes());
         httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
         httpSubscriberConfig.setTlsConfiguration(this.getTlsConfiguration());
-        httpSubscriberConfig.setTestMode(this.getTestMode());
+        httpSubscriberConfig.setCreateConfirmedFile(this.getCreateConfirmedFile());
         httpSubscriberConfig.setMaxSessionLimit(this.getMaxSessionLimit());
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());

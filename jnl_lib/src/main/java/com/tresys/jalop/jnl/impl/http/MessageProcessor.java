@@ -250,7 +250,7 @@ public class MessageProcessor {
                 supportedRecType, HttpUtils.getMode(modeStr), subscriber, selectedDigest,
                 selectedXmlCompression, 1, 1, performDigest);
 
-        final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl);
+        final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl, subscriber.getCreateConfirmedFile());
 
         //If there is a Journal Offset, the Record Type is journal, and the communication Mode is Archive,
         //Send a journal resume message
@@ -356,7 +356,7 @@ public class MessageProcessor {
         logger.trace("Processing: " + jalId);
 
         // Execute the notify digest callback which will take care of moving the record from temp to perm
-        if (subscriber.notifyDigestResponse(sess, jalId, digestStatus, subscriber.getTestMode(), subscriberAndSession.getSubscriber())) {
+        if (subscriber.notifyDigestResponse(sess, jalId, digestStatus, subscriberAndSession.getSubscriber())) {
             // For a confirmed digest, send a sync message and remove the nonce from the sent queue
             if(digestStatus != DigestStatus.Confirmed)
             {
@@ -577,7 +577,7 @@ public class MessageProcessor {
             {
                 //Execute the notify digest callback which will take care of moving the record from temp to perm
                 //Status is always confirmed if digesting is disabled
-                if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed, subscriber.getTestMode(), subscriberAndSession.getSubscriber()))
+                if (!subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Confirmed, subscriberAndSession.getSubscriber()))
                 {
                     logger.error("notifyDigestResponse failure: " + jalId + ", " + DigestStatus.Confirmed);
                     digestResult.setFailedDueToSync(true);

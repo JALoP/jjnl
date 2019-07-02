@@ -160,6 +160,8 @@ public class SubscriberImpl implements Subscriber {
     /** Key in the status file to indicate if a 'sync' message was sent. */
     private static final String SYNCED = "synced";
 
+    private boolean createConfirmedFile;
+
     /**
      * Root of the output directories. Each record gets it's own
      * sub-directory. Records that have been confirmed are
@@ -322,8 +324,9 @@ public class SubscriberImpl implements Subscriber {
      *          The {@link InetAddress} of the remote.
      */
     public SubscriberImpl(final RecordType recordType, final File outputRoot,
-            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId) {
+            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId, boolean createConfirmedFile) {
         this.recordType = recordType;
+        this.createConfirmedFile = createConfirmedFile;
 
         //If publisherId is not null, then use publisher uuid instead of ip for dir names
         if (publisherId != null)
@@ -508,7 +511,7 @@ public class SubscriberImpl implements Subscriber {
 
     @Override
     public final SubscribeRequest
-                    getSubscribeRequest(final SubscriberSession sess) {
+                    getSubscribeRequest(final SubscriberSession sess, boolean createConfirmedFile) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Returning subscriber request for: " + sess.getRole()
                         + sess.getRecordType());
@@ -854,7 +857,7 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
     @Override
     public final boolean notifyDigestResponse(final SubscriberSession sess,
-            final String nonce, final DigestStatus status, boolean testMode, Subscriber subscriber) {
+            final String nonce, final DigestStatus status, Subscriber subscriber) {
         boolean ret = true;
         LocalRecordInfo lri;
 
@@ -891,7 +894,7 @@ public class SubscriberImpl implements Subscriber {
             // If the digest is confirmed, go ahead and move the record from temp directory
             // Otherwise delete the record
             if(DigestStatus.Confirmed.equals(status)) {
-                if(!moveConfirmedRecord(lri, testMode)) {
+                if(!moveConfirmedRecord(lri)) {
                     LOGGER.error("Failed to sync record:  " + lri.recordDir.getAbsolutePath());
                     ret = false;
                 }
@@ -954,7 +957,7 @@ public class SubscriberImpl implements Subscriber {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean moveConfirmedRecord(final LocalRecordInfo lri, boolean testMode) {
+    private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
 
         final long latestNonce = retrieveLatestNonce();
         final File dest = new File(this.outputRoot, SubscriberImpl.NONCE_FORMATER.format(latestNonce));
@@ -978,8 +981,8 @@ public class SubscriberImpl implements Subscriber {
             lastConfirmedStatus.put(LAST_CONFIRMED_NONCE, remoteNonce);
             dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
 
-            //Creates confirmed file if in test mode only
-            if (testMode == true)
+            //Creates confirmed file if configured to be on
+            if (this.createConfirmedFile == true)
             {
                 File confirmedFile = new File(dest, "confirmed");
 
@@ -989,7 +992,8 @@ public class SubscriberImpl implements Subscriber {
                 }
                 catch(IOException ie)
                 {
-                    //Ignore, the confirmed file is only used for the stress test sub-test.sh script to ensure only confirmed directories get purged
+                    LOGGER.error("Error creating empty confirmed file in directory.");
+                    return false;
                 }
             }
         } else {
@@ -1067,7 +1071,7 @@ public class SubscriberImpl implements Subscriber {
     }
 
     @Override
-    public boolean getTestMode()
+    public boolean getCreateConfirmedFile()
     {
         throw new UnsupportedOperationException();
     }

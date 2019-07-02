@@ -21,7 +21,7 @@ public class HttpSubscriberConfig {
     private Role role;
     private Mode mode;
     private File outputPath;
-    private boolean testMode;
+    private boolean createConfirmedFile;
 
     public String getKeystorePath() {
         return keystorePath;
@@ -89,18 +89,18 @@ public class HttpSubscriberConfig {
     public void setOutputPath(File outputPath) {
         this.outputPath = outputPath;
     }
-    public boolean getTestMode() {
-        return testMode;
+    public boolean getCreateConfirmedFile() {
+        return createConfirmedFile;
     }
-    public void setTestMode(String testMode) {
+    public void setCreateConfirmedFile(String createConfirmedFile) {
 
-        if (testMode != null && testMode.equalsIgnoreCase("on"))
+        if (createConfirmedFile != null && createConfirmedFile.equalsIgnoreCase("on"))
         {
-            this.testMode = true;
+            this.createConfirmedFile = true;
         }
         else
         {
-            this.testMode = false;
+            this.createConfirmedFile = false;
         }
     }
 }

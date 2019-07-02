@@ -147,13 +147,14 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     }
 
     @Override
-    public SubscribeRequest getSubscribeRequest(final SubscriberSession sess) {
+    public SubscribeRequest getSubscribeRequest(final SubscriberSession sess, boolean createConfirmedFile) {
         // TODO: All the code here to manage the maps should really be happening in the
         // connection handler callbacks, but the library isn't generating those events
         // quite yet.
         SubscriberImpl sub;
         synchronized (this.sessMap) {
 
+            //Handles removing the oldest session before new one is added if session limit has been reached.
             if (this.sessMap.size() >= http_config.getMaxSessionLimit())
             {
                 String oldestSessionId = null;
@@ -181,12 +182,12 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             sub = this.sessMap.get(sess);
             if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId());
+                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile);
                 this.sessMap.put(sess, sub);
             }
         }
 
-        return sub.getSubscribeRequest(sess);
+        return sub.getSubscribeRequest(sess, createConfirmedFile);
     }
 
     @Override
@@ -215,9 +216,9 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     }
 
     @Override
-    public boolean getTestMode()
+    public boolean getCreateConfirmedFile()
     {
-        return http_config.getTestMode();
+        return http_config.getCreateConfirmedFile();
     }
 
     @Override
@@ -275,9 +276,9 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     }
 
     @Override
-    public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status, final boolean testMode, Subscriber subscriber) {
+    public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status, Subscriber subscriber) {
         SubscriberImpl currSubscriberImpl = (SubscriberImpl)subscriber;
-        return currSubscriberImpl.notifyDigestResponse(sess, nonce, status, testMode, subscriber);
+        return currSubscriberImpl.notifyDigestResponse(sess, nonce, status, subscriber);
     }
 
     @Override
