@@ -39,7 +39,7 @@ import com.tresys.jalop.jnl.impl.http.SubscriberAndSession;
 public interface Subscriber {
 	/**
 	 * A {@link SubscriberSession} executes this method so it may generate a
-	 * "subscribe" or "journal-resume" message. If the {@link Subscriber}
+	 * new session instance for the publisher on an initialize message. If the {@link Subscriber}
 	 * returns <tt>null</tt>, or an otherwise invalid {@link SubscribeRequest},
 	 * then the {@link SubscriberSession} will shutdown.
 	 *
@@ -47,7 +47,7 @@ public interface Subscriber {
 	 *            The {@link SubscriberSession}
      * @param createConfirmedFile
      *            The {@link createConfirmedFile}
-	 * @return Details to send in a "subscribe" or "journal-resume" message.
+	 * @return Details to resume a journal record in an initialize-ack response message to the publisher if applicable.
 	 */
 	SubscribeRequest getSubscribeRequest(SubscriberSession sess, boolean createConfirmedFile);
 
