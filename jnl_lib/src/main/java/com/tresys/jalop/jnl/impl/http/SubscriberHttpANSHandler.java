@@ -66,7 +66,7 @@ public class SubscriberHttpANSHandler {
     }
 
     public String handleJALRecord(final long sysMetadataSize, final long appMetadataSize,
-            final long payloadSize, final String payloadType, final RecordType recType, final String jalId,  InputStream is)
+            final long payloadSize, final String payloadType, final RecordType recType, final String jalId,  InputStream is, Subscriber subscriber)
     {
         JalopHttpDataStream js = null;
 
@@ -114,13 +114,13 @@ public class SubscriberHttpANSHandler {
             };
 
             js = new JalopHttpDataStream(sysMetadataSize, is);
-            if (!sub.notifySysMetadata(subsess, recInfo, js)) {
+            if (!sub.notifySysMetadata(subsess, recInfo, js, subscriber)) {
                 throw new IOException("Error in notifySysMetadata");
             }
             js.flush();
 
             js = new JalopHttpDataStream(appMetadataSize, is);
-            if (!sub.notifyAppMetadata(subsess, recInfo, js)) {
+            if (!sub.notifyAppMetadata(subsess, recInfo, js, subscriber)) {
                 throw new IOException("Error in notifyAppMetadata");
             }
             js.flush();
@@ -150,7 +150,7 @@ public class SubscriberHttpANSHandler {
               //  payloadSizeToRead -= subsess.getJournalResumeOffset();
             }
             js = new JalopHttpDataStream(payloadSizeToRead, is);
-            if (!sub.notifyPayload(subsess, recInfo, js)) {
+            if (!sub.notifyPayload(subsess, recInfo, js, subscriber)) {
                 throw new IOException("Error in notifyPayload");
             }
             js.flush();
@@ -185,7 +185,7 @@ public class SubscriberHttpANSHandler {
             if (performDigest == true)
             {
                 final byte [] digest = getRecordDigest();
-                if (!sub.notifyDigest(subsess, recInfo, digest))
+                if (!sub.notifyDigest(subsess, recInfo, digest, subscriber))
                 {
                     throw new IOException("Error in notifyDigest");
                 }

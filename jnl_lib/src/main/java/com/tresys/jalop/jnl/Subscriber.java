@@ -26,6 +26,8 @@ package com.tresys.jalop.jnl;
 
 import java.io.InputStream;
 
+import com.tresys.jalop.jnl.impl.http.SubscriberAndSession;
+
 /**
  * Users of this library should provide an <tt>Object</tt> that implements this
  * interface if they wish to act as a JALoP Subscriber. Their <tt>Object</tt>
@@ -37,15 +39,17 @@ import java.io.InputStream;
 public interface Subscriber {
 	/**
 	 * A {@link SubscriberSession} executes this method so it may generate a
-	 * "subscribe" or "journal-resume" message. If the {@link Subscriber}
+	 * new session instance for the publisher on an initialize message. If the {@link Subscriber}
 	 * returns <tt>null</tt>, or an otherwise invalid {@link SubscribeRequest},
 	 * then the {@link SubscriberSession} will shutdown.
 	 *
 	 * @param sess
 	 *            The {@link SubscriberSession}
-	 * @return Details to send in a "subscribe" or "journal-resume" message.
+     * @param createConfirmedFile
+     *            The {@link createConfirmedFile}
+	 * @return Details to resume a journal record in an initialize-ack response message to the publisher if applicable.
 	 */
-	SubscribeRequest getSubscribeRequest(SubscriberSession sess);
+	SubscribeRequest getSubscribeRequest(SubscriberSession sess, boolean createConfirmedFile);
 
 	/**
 	 * The {@link SubscriberSession} executes this method to deliver the system
@@ -66,11 +70,14 @@ public interface Subscriber {
 	 *            no need to call {@link InputStream#close()} on
 	 *            <tt>sysMetaData</tt>; the {@link SubscriberSession} handles
 	 *            that internally.
+     * @param subscriber
+     *            {@SubscriberImpl} for the current session.  This is passed in so if the session is removed
+     *            while this method is in progress, the current method call will still successfully complete.
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifySysMetadata(SubscriberSession sess,
-			final RecordInfo recordInfo, InputStream sysMetaData);
+			final RecordInfo recordInfo, InputStream sysMetaData, Subscriber subscriber);
 
 	/**
 	 * The {@link SubscriberSession} executes this method to deliver the
@@ -91,11 +98,14 @@ public interface Subscriber {
 	 *            no need to call {@link InputStream#close()} on
 	 *            <tt>appMetaData</tt>; the {@link SubscriberSession} handles
 	 *            that internally.
+     * @param subscriber
+     *            {@SubscriberImpl} for the current session.  This is passed in so if the session is removed
+     *            while this method is in progress, the current method call will still successfully complete.
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyAppMetadata(SubscriberSession sess,
-			final RecordInfo recordInfo, InputStream appMetaData);
+			final RecordInfo recordInfo, InputStream appMetaData, Subscriber subscriber);
 
 	/**
 	 * The {@link SubscriberSession} executes this method to deliver the payload
@@ -115,11 +125,14 @@ public interface Subscriber {
 	 *            An {@link InputStream} that is the payload. There is no need
 	 *            to call {@link InputStream#close()} on this <tt>payload</tt>;
 	 *            the {@link SubscriberSession} handles that internally.
+     * @param subscriber
+     *            {@SubscriberImpl} for the current session.  This is passed in so if the session is removed
+     *            while this method is in progress, the current method call will still successfully complete.
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyPayload(SubscriberSession sess, final RecordInfo recordInfo,
-			InputStream payload);
+			InputStream payload, Subscriber subscriber);
 
 	/**
 	 * The {@link SubscriberSession} executes this method to notify the
@@ -133,11 +146,14 @@ public interface Subscriber {
 	 *            to.
 	 * @param digest
 	 *            The digest value.
+     * @param subscriber
+     *            {@SubscriberImpl} for the current session.  This is passed in so if the session is removed
+     *            while this method is in progress, the current method call will still successfully complete.
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyDigest(SubscriberSession sess, final RecordInfo recordInfo,
-			final byte[] digest);
+			final byte[] digest, Subscriber subscriber);
 
     /**
      * The {@link SubscriberSession} executes this method to notify the
@@ -152,11 +168,14 @@ public interface Subscriber {
      *            to.
      * @param jalId
      *            The JAL Id of the record to be deleted from the output directory
+     * @param subscriber
+     *            {@SubscriberImpl} for the current session.  This is passed in so if the session is removed
+     *            while this method is in progress, the current method call will still successfully complete.
      * @return true successful deletion of jal record
      *         {@link SubscriberSession}, false otherwise.
      */
     boolean notifyJournalMissing(final SubscriberSession sess,
-            final String jalId);
+            final String jalId, Subscriber subscriber);
 
 	/**
 	 * The {@link SubscriberSession} executes this method to notify the
@@ -170,15 +189,18 @@ public interface Subscriber {
 	 *            {@link DigestStatus}, indicating if the
 	 *            remote JALoP Network Store agrees with the digest value
 	 *            calculated locally for the specified nonce.
-     * @param testMode
-     *            {boolean}, true if running in test mode, this will create an extra
+     * @param createConfirmedFile
+     *            {boolean}, if true, this will create an extra
      *            empty zero byte "confirmed" file in the confirm dir for the record
-     *            so sub-test.sh stress test script will know which records it can successfully purge.
+     *            so any record purge functionality will know which records are complete and can be purged.
+     * @param subscriber
+     *            {@SubscriberImpl} for the current session.  This is passed in so if the session is removed
+     *            while this method is in progress, the current method call will still successfully complete.
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyDigestResponse(SubscriberSession sess,
-			final String nonce, final DigestStatus status, boolean testMode);
+			final String nonce, final DigestStatus status, Subscriber subscriber);
 
 	/**
 	 * The {@link ContextImpl} executes this method to get the
@@ -189,11 +211,9 @@ public interface Subscriber {
 	Mode getMode();
 
     //Methods below are to support session management
-    Session getSessionBySessionId(String sessionId);
+	SubscriberAndSession getSessionAndSubscriberBySessionId(String sessionId);
 
     boolean removeSession(String sessionId);
 
-    void prepareForNewSession();
-
-    boolean getTestMode();
+    boolean getCreateConfirmedFile();
 }

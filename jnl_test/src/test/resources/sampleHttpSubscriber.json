@@ -8,7 +8,7 @@
     "configureTls": "on",
     "output": "./output",
     "mode": "archive",
-    "testMode" : "off",
+    "createConfirmedFile" : "on",
   }
   "ssl": {
     "Key Store Passphrase": "changeit",

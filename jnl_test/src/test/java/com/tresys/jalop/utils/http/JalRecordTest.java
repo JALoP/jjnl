@@ -188,6 +188,7 @@ public class JalRecordTest {
         //End config parameter parsing section
 
         server = TestResources.getWebServer();
+
         server.start();
     }
 
@@ -433,12 +434,10 @@ public class JalRecordTest {
         assertNull(errorHeader);
     }
 
-    private ArrayList<JalRecordTask> sendJalRecordsWithThreadPool(RecordType recType, String publisherId, String expectedDigest, boolean performDigest, ThreadPoolExecutor executor) throws ClientProtocolException, IOException
+    private void sendJalRecordsWithThreadPool(RecordType recType, String publisherId, String expectedDigest, boolean performDigest, ThreadPoolExecutor executor, ArrayList<JalRecordTask> jalRecordTaskList) throws ClientProtocolException, IOException
     {
         //Performs initialize for the record channel
         String sessionId = TestResources.sendValidInitialize(recType, performDigest, publisherId);
-
-        ArrayList<JalRecordTask> jalRecordTaskList = new ArrayList<JalRecordTask>();
 
         //Loops through all the generated records and sends each record on its own thread via thread pool
         File inputDir = new File(inputDirStr + "/" + recType.toString().toLowerCase());
@@ -465,8 +464,6 @@ public class JalRecordTest {
                 executor.execute(jalRecordTask);
             }
         }
-
-        return jalRecordTaskList;
     }
 
     private void sendJalRecordsConcurrent(RecordType recType, String publisherId, String expectedDigest, boolean performDigest) throws ClientProtocolException, IOException
@@ -577,7 +574,7 @@ public class JalRecordTest {
         HttpClient client = HttpClientBuilder.create().build();
 
         final HttpResponse response = client.execute(httpPost);
-        final String responseMessage = response.getFirstHeader(HttpUtils.HDRS_MESSAGE).getValue();
+        final Header responseMessageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
         final Header responseDigestHeader = response.getFirstHeader(HttpUtils.HDRS_DIGEST_VALUE);
         final Header errorMessage = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
         final int responseStatus = response.getStatusLine().getStatusCode();
@@ -589,11 +586,13 @@ public class JalRecordTest {
         {
             assertNotNull(responseDigestHeader);
             assertEquals(expectedDigest, responseDigestHeader.getValue());
-            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
+            assertNotNull(responseMessageHeader);
+            assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessageHeader.getValue());
         }
         else
         {
-            assertEquals(HttpUtils.MSG_SYNC, responseMessage);
+            assertNotNull(responseMessageHeader);
+            assertEquals(HttpUtils.MSG_SYNC, responseMessageHeader.getValue());
         }
 
         return jalId;
@@ -2794,6 +2793,7 @@ public class JalRecordTest {
          *
          * Example of payload size calculation: -DnumRecords=5 and -DrecordTypes=audit,journal = 5 x 2 record types x 100mb = 1 gig of payload data sent.
          */
+
         if (numRecords <= 0 )
         {
             return;
@@ -2849,7 +2849,7 @@ public class JalRecordTest {
             {
                 expectedDigest = "4b5880a00d4adbe43cddc06c500db6b85951debf7437d070c9044a399cf16bc9";
             }
-            jalRecordTaskList = sendJalRecordsWithThreadPool(recType, publisherId, expectedDigest, true, executor);
+            sendJalRecordsWithThreadPool(recType, publisherId, expectedDigest, true, executor, jalRecordTaskList);
         }
 
         //Shuts down threadpool and waits for all threads to finish
@@ -2964,7 +2964,7 @@ public class JalRecordTest {
             {
                 expectedDigest = "8dc8c3f7917b992cc4aafe5e70bea854ec6ee82034ada9ab3591f2f3a6510e1b";
             }
-            jalRecordTaskList = sendJalRecordsWithThreadPool(recType, publisherId, expectedDigest, true, executor);
+            sendJalRecordsWithThreadPool(recType, publisherId, expectedDigest, true, executor, jalRecordTaskList);
         }
 
         //Shuts down threadpool and waits for all threads to finish

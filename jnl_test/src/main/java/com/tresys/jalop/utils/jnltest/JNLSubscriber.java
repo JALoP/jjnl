@@ -3,6 +3,7 @@ package com.tresys.jalop.utils.jnltest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
 import com.tresys.jalop.jnl.impl.http.JNLWebServer;
+import com.tresys.jalop.jnl.impl.http.SubscriberAndSession;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
 import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
@@ -54,7 +56,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     /**
      * From Sessions to associated {@link SubscriberImpl}
      */
-    private final Map<Session, SubscriberImpl> sessMap = new HashMap<Session, SubscriberImpl>();
+    private final Map<Session, SubscriberImpl> sessMap = Collections.synchronizedMap(new HashMap<Session, SubscriberImpl>());
 
     /**
      * ConnectionHandler implementation
@@ -145,53 +147,15 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     }
 
     @Override
-    public SubscribeRequest getSubscribeRequest(final SubscriberSession sess) {
+    public SubscribeRequest getSubscribeRequest(final SubscriberSession sess, boolean createConfirmedFile) {
         // TODO: All the code here to manage the maps should really be happening in the
         // connection handler callbacks, but the library isn't generating those events
         // quite yet.
         SubscriberImpl sub;
         synchronized (this.sessMap) {
-            sub = this.sessMap.get(sess);
-            if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId());
-                this.sessMap.put(sess, sub);
-            }
-        }
 
-        return sub.getSubscribeRequest(sess);
-    }
-
-    @Override
-    public Session getSessionBySessionId(String sessionId)
-    {
-        Session foundSession = null;
-        synchronized (this.sessMap) {
-
-            for (Session currSession : this.sessMap.keySet())
-            {
-                if (((SubscriberHttpSessionImpl)currSession).getSessionId().equals(sessionId))
-                {
-                    foundSession = currSession;
-                    break;
-                }
-            }
-        }
-
-        return foundSession;
-    }
-
-    @Override
-    public boolean getTestMode()
-    {
-        return http_config.getTestMode();
-    }
-
-    @Override
-    public void prepareForNewSession()
-    {
-        synchronized (this.sessMap) {
-
-            if (this.sessMap.size() == http_config.getMaxSessionLimit())
+            //Handles removing the oldest session before new one is added if session limit has been reached.
+            if (this.sessMap.size() >= http_config.getMaxSessionLimit())
             {
                 String oldestSessionId = null;
                 LocalDateTime oldestLastTouchedTimestamp = null;
@@ -202,7 +166,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
                         SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)entry.getKey());
                         oldestSessionId = session.getSessionId();
                         oldestLastTouchedTimestamp = session.getLastTouchedTimestamp();
-                        continue;
                     }
 
                     SubscriberHttpSessionImpl session = ((SubscriberHttpSessionImpl)entry.getKey());
@@ -215,9 +178,47 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
                 }
 
                 removeSession(oldestSessionId);
+            }
 
+            sub = this.sessMap.get(sess);
+            if (sub == null) {
+                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile);
+                this.sessMap.put(sess, sub);
             }
         }
+
+        return sub.getSubscribeRequest(sess, createConfirmedFile);
+    }
+
+    @Override
+    public SubscriberAndSession getSessionAndSubscriberBySessionId(String sessionId)
+    {
+        Session foundSession = null;
+        SubscriberAndSession subscriberAndSession = null;
+        synchronized (this.sessMap) {
+
+            for (Session currSession : this.sessMap.keySet())
+            {
+                if (((SubscriberHttpSessionImpl)currSession).getSessionId().equals(sessionId))
+                {
+                    foundSession = currSession;
+                    break;
+                }
+            }
+
+            if (foundSession != null)
+            {
+                subscriberAndSession = new SubscriberAndSession(this.sessMap.get(foundSession), foundSession);
+            }
+        }
+
+        return subscriberAndSession;
+    }
+
+    @Override
+    public boolean getCreateConfirmedFile()
+    {
+        return http_config.getCreateConfirmedFile();
     }
 
     @Override
@@ -251,33 +252,39 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     }
 
     @Override
-    public boolean notifySysMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream sysMetaData) {
-        return this.sessMap.get(sess).notifySysMetadata(sess, recordInfo, sysMetaData);
+    public boolean notifySysMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream sysMetaData, Subscriber subscriber) {
+        SubscriberImpl currSubscriberImpl = (SubscriberImpl)subscriber;
+        return currSubscriberImpl.notifySysMetadata(sess, recordInfo, sysMetaData, subscriber);
     }
 
     @Override
-    public boolean notifyAppMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream appMetaData) {
-        return this.sessMap.get(sess).notifyAppMetadata(sess, recordInfo, appMetaData);
+    public boolean notifyAppMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream appMetaData, Subscriber subscriber) {
+        SubscriberImpl currSubscriberImpl = (SubscriberImpl)subscriber;
+        return currSubscriberImpl.notifyAppMetadata(sess, recordInfo, appMetaData, subscriber);
     }
 
     @Override
-    public boolean notifyPayload(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream payload) {
-        return this.sessMap.get(sess).notifyPayload(sess, recordInfo, payload);
+    public boolean notifyPayload(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream payload, Subscriber subscriber) {
+        SubscriberImpl currSubscriberImpl = (SubscriberImpl)subscriber;
+        return currSubscriberImpl.notifyPayload(sess, recordInfo, payload, subscriber);
     }
 
     @Override
-    public boolean notifyDigest(final SubscriberSession sess, final RecordInfo recordInfo, final byte[] digest) {
-        return this.sessMap.get(sess).notifyDigest(sess, recordInfo, digest);
+    public boolean notifyDigest(final SubscriberSession sess, final RecordInfo recordInfo, final byte[] digest, Subscriber subscriber) {
+        SubscriberImpl currSubscriberImpl = (SubscriberImpl)subscriber;
+        return currSubscriberImpl.notifyDigest(sess, recordInfo, digest, subscriber);
     }
 
     @Override
-    public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status, final boolean testMode) {
-        return this.sessMap.get(sess).notifyDigestResponse(sess, nonce, status, testMode);
+    public boolean notifyDigestResponse(final SubscriberSession sess, final String nonce, final DigestStatus status, Subscriber subscriber) {
+        SubscriberImpl currSubscriberImpl = (SubscriberImpl)subscriber;
+        return currSubscriberImpl.notifyDigestResponse(sess, nonce, status, subscriber);
     }
 
     @Override
-    public boolean notifyJournalMissing(final SubscriberSession sess, final String nonce) {
-        return this.sessMap.get(sess).notifyJournalMissing(sess, nonce);
+    public boolean notifyJournalMissing(final SubscriberSession sess, final String nonce, Subscriber subscriber) {
+        SubscriberImpl currSubscriberImpl = (SubscriberImpl)subscriber;
+        return currSubscriberImpl.notifyJournalMissing(sess, nonce, subscriber);
     }
 
     @Override

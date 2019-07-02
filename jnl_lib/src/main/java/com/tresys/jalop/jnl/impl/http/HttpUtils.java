@@ -18,8 +18,6 @@ import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
-import com.tresys.jalop.jnl.SubscriberSession;
-import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
@@ -280,7 +278,7 @@ public class HttpUtils {
     }
 
     // Validates Session ID, must be UUID
-    public static SubscriberHttpSessionImpl validateSessionId(String sessionId, List<String> errorResponseHeaders)
+    public static SubscriberAndSession validateSessionId(String sessionId, List<String> errorResponseHeaders)
     {
         String currSessionId = checkForEmptyString(sessionId);
 
@@ -300,16 +298,16 @@ public class HttpUtils {
 
         //Lookup the correct session based upon session id
         final Subscriber subscriber = getSubscriber();
-        SubscriberSession sess = (SubscriberSession)subscriber.getSessionBySessionId(currSessionId);
+        SubscriberAndSession subscriberAndSession = subscriber.getSessionAndSubscriberBySessionId(currSessionId);
 
         //If null then active session does not exist for this publisher, return error
-        if (sess == null)
+        if (subscriberAndSession == null)
         {
             errorResponseHeaders.add(HDRS_UNSUPPORTED_SESSION_ID);
             return null;
         }
 
-        return (SubscriberHttpSessionImpl)sess;
+        return subscriberAndSession;
     }
 
     //Validates mode, must be publish live or publish archive
