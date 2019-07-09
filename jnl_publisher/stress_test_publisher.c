@@ -32,6 +32,7 @@
 #include <vector>
 #include <unordered_map>
 #include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -46,6 +47,8 @@ CURL *curl;
 const std::string AUDIT = "audit";
 const std::string JOURNAL = "journal";
 const std::string LOG = "log";
+
+long recordSize = 0;
 
 std::string getSessionIdByRecordType(std::string recordType)
 {
@@ -342,9 +345,20 @@ bool sendJalRecords(std::string recordType)
     //Sending jal record after successful initialize
     fprintf(stdout, "Received initialize-ack, sending jal record\n");
     std::string jalId = "2ef4e71c-5971-4349-9169-d1e8a2e9450b_2013-11-22T16:09:46.43660-05:00_20705_3167946496";
-    struct curl_slist *rec1headers = getJALRecordHeaders(recordType, jalId, "3083", "1179", "1040");
 
-    if (!performHttpPost(rec1headers, true, recordType, "good_audit_input.txt"))
+    //If record size was passed in via command line, then a jal record named jal_record.txt was generated with that specific payload size
+    //If no record size was passed in, use the default 1kb jal record file
+    std::string recordFilename = "good_audit_input.txt";
+    std::string payloadSize = "1040";
+    if (recordSize > 0)
+    {
+        payloadSize = boost::lexical_cast<std::string>(recordSize);
+        recordFilename = "jal_record.txt";
+    }
+
+    struct curl_slist *rec1headers = getJALRecordHeaders(recordType, jalId, "3083", "1179", payloadSize);
+
+    if (!performHttpPost(rec1headers, true, recordType, recordFilename))
     {
         fprintf(stdout, "JAL-record post failed.\n");
         return false;
@@ -379,10 +393,21 @@ bool processInitializeResponse(std::string recordType)
     return true;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    //parse record size arg in bytes
+    if (argc > 1)
+    {
+
+        recordSize = atol(argv[1]);
+        if (recordSize != 0)
+        {
+            fprintf(stdout, "Using record size of %s bytes\n", argv[1]);
+        }
+    }
+
     curl = curl_easy_init();
-     std::string currRecordType = "journal";
+    std::string currRecordType = "journal";
 
     //Send initialize message to audit channel
     if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType, ""))
