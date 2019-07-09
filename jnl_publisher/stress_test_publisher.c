@@ -36,6 +36,12 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <vector>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+
 
 std::unordered_map<std::string, std::string> headerMap;
 
@@ -49,6 +55,59 @@ const std::string JOURNAL = "journal";
 const std::string LOG = "log";
 
 long recordSize = 0;
+
+bool executeCommand(const std::string& command, std::vector<char *>& cmdArgs, bool wait, bool isDebug)
+{
+    pid_t childpid;
+    int status = -1;
+    {
+        if ((childpid = fork()) == 0)
+        {
+            if (!isDebug)
+            {
+                 /* open /dev/null for writing, hides all stdout and stderr if not debug*/
+                int fd = open("/dev/null", O_WRONLY);
+
+                dup2(fd, 1);    /* make stdout a copy of fd (> /dev/null) */
+                dup2(fd, 2);    /* ...and same with stderr */
+                close(fd);      /* close fd */
+            }
+            execve(command.c_str(), &cmdArgs[0], environ);
+
+            exit(1);
+        }
+
+        if (wait)
+        {
+            waitpid(childpid, &status, 0);
+
+            if (status != 0)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return true;
+        }
+    }
+}
+
+bool generateJalRecord(std::string recordSize)
+{
+    std::vector<char *> cmdArgs;
+    std::string executablePath = "/bin/sh";
+    cmdArgs.push_back((char*)executablePath.c_str());
+    cmdArgs.push_back((char*)"generate_record.sh");
+    cmdArgs.push_back((char*)recordSize.c_str());
+    cmdArgs.push_back((char*)0);
+
+    return executeCommand(executablePath, cmdArgs, true, false);
+}
 
 std::string getSessionIdByRecordType(std::string recordType)
 {
@@ -398,11 +457,21 @@ int main(int argc, char *argv[])
     //parse record size arg in bytes
     if (argc > 1)
     {
-
-        recordSize = atol(argv[1]);
-        if (recordSize != 0)
+        std::string recordSizeKBStr = argv[1];
+        long recordSizeKB = atol(recordSizeKBStr.c_str());
+        if (recordSizeKB != 0)
         {
-            fprintf(stdout, "Using record size of %s bytes\n", argv[1]);
+            //Converts kb to bytes
+            recordSize = recordSizeKB * 1024;
+            std::string recordSizeBytes = boost::lexical_cast<std::string>(recordSize);
+            fprintf(stdout, "Using record size of %s bytes\n", recordSizeBytes.c_str());
+
+            //Generates record
+            if (!generateJalRecord(recordSizeKBStr))
+            {
+                fprintf(stdout, "Failed to generate JAL record with size of %s", recordSizeBytes.c_str());
+                exit(1);
+            }
         }
     }
 
