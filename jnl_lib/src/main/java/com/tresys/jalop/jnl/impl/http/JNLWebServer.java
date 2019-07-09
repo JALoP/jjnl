@@ -81,6 +81,7 @@ public class JNLWebServer
                 File keystoreFile = new File(keystorePath);
                 if (!keystoreFile.exists())
                 {
+                    logger.error("The keystore file specified in the 'Key Store' setting in the configuration file does not exist: " + keystoreFile.getAbsolutePath() + "\nThis file must exist and be a valid keystore for the subscriber to successfully start.");
                     throw new FileNotFoundException(keystoreFile.getAbsolutePath());
                 }
 
