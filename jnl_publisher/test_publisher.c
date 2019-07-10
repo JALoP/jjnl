@@ -50,11 +50,28 @@ std::string journalSessionId;
 std::string logSessionId;
 CURL *curl;
 
+bool sendLogRecords = false;
+bool sendAuditRecords = false;
+bool sendJournalRecords = false;
+bool performDigestResponse = true;
+bool performCloseSession = true;
+
+long recordCount = 0;
+
 const std::string AUDIT = "audit";
 const std::string JOURNAL = "journal";
 const std::string LOG = "log";
 
 long recordSize = 0;
+
+std::string subscriberUrl = "http://localhost:8080";
+
+void usage()
+{
+    std::cout << std::endl << "Usage: " << std::endl << std::endl <<
+              "test_publisher <record size to send in kb> <record types to send, a=audit, log=log, j=journal> (ex: a,l,j for all three record types) <number of records per record type to send, put 'i' for infinite record sending> <Send digest response 1=yes, 0=no> <Perform close session 1=yes, 0=no> <OPTIONAL: url of publisher> (default if left empty: http://localhost:8080)"
+                                                                                     << std::endl << std::endl;
+}
 
 bool executeCommand(const std::string& command, std::vector<char *>& cmdArgs, bool wait, bool isDebug)
 {
@@ -289,7 +306,7 @@ bool performHttpPost(struct curl_slist *headers, bool sendBinaryData, std::strin
     if(curl)
     {
         //URL to the servlet processing the post
-        std::string postUrl = "http://localhost:8080/" + recordType;
+        std::string postUrl = subscriberUrl + "/" + recordType;
         curl_easy_setopt(curl, CURLOPT_URL, postUrl.c_str());
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
@@ -388,7 +405,14 @@ bool processJALRecordResponse(std::string recordType, std::string jalId)
     {
         fprintf(stdout, "%s\n", headerMap["JAL-Message"].c_str());
 
-        return performHttpPost(getDigestResponseHeaders(jalId, recordType), false, recordType, "");
+        if (performDigestResponse)
+        {
+            return performHttpPost(getDigestResponseHeaders(jalId, recordType), false, recordType, "");
+        }
+        else
+        {
+            return true;
+        }
     }
     else
     {
@@ -455,7 +479,7 @@ bool processInitializeResponse(std::string recordType)
 int main(int argc, char *argv[])
 {
     //parse record size arg in bytes
-    if (argc > 1)
+    if (argc > 1 && argv[1] != NULL)
     {
         std::string recordSizeKBStr = argv[1];
         long recordSizeKB = atol(recordSizeKBStr.c_str());
@@ -474,51 +498,218 @@ int main(int argc, char *argv[])
             }
         }
     }
+    else
+    {
+        std::cout << "ERROR: missing record size parameter" << std::endl;
+        usage();
+        exit(1);
+    }
+
+    //gets record types
+    std::string recordTypes;
+    if (argc > 2 && argv[2] != NULL)
+    {
+        recordTypes = argv[2];
+
+        if (recordTypes.find("l") != std::string::npos)
+        {
+            sendLogRecords = true;
+        }
+
+        if (recordTypes.find("j") != std::string::npos)
+        {
+            sendJournalRecords = true;
+        }
+
+        if (recordTypes.find("a") != std::string::npos)
+        {
+            sendAuditRecords = true;
+        }
+
+        if (!sendLogRecords && !sendAuditRecords && sendJournalRecords)
+        {
+            std::cout << "ERROR: missing or incorrect record type parameter" << std::endl;
+            usage();
+            exit(1);
+        }
+
+    }
+    else
+    {
+        std::cout << "ERROR: missing record type parameter" << std::endl;
+        usage();
+        exit(1);
+    }
+
+    //gets record count
+    std::string recordCountStr;
+    if (argc > 3 && argv[3] != NULL)
+    {
+        recordCountStr = argv[3];
+
+        recordCount = atol(recordCountStr.c_str());
+    }
+    else
+    {
+        std::cout << "ERROR: missing record count parameter" << std::endl;
+        usage();
+        exit(1);
+    }
+
+    //gets perform digest response
+    std::string performDigestResponseStr;
+    if (argc > 4 && argv[4] != NULL)
+    {
+        performDigestResponseStr = argv[4];
+
+        if ("1" == performDigestResponseStr)
+        {
+            performDigestResponse = true;
+        }
+        else if ("0" == performDigestResponseStr)
+        {
+            performDigestResponse = false;
+        }
+        else
+        {
+            std::cout << "ERROR: missing or incorrect perform digest response parameter" << std::endl;
+            usage();
+            exit(1);
+        }
+    }
+    else
+    {
+        std::cout << "ERROR: missing perform digest response parameter" << std::endl;
+        usage();
+        exit(1);
+    }
+
+    std::string performCloseSessionStr;
+    if (argc > 5 && argv[5] != NULL)
+    {
+        performCloseSessionStr = argv[5];
+
+        if ("1" == performCloseSessionStr)
+        {
+            performCloseSession = true;
+        }
+        else if ("0" == performCloseSessionStr)
+        {
+            performCloseSession = false;
+        }
+        else
+        {
+            std::cout << "ERROR: missing or incorrect perform close session parameter" << std::endl;
+            usage();
+            exit(1);
+        }
+    }
+    else
+    {
+        std::cout << "ERROR: missing perform close session parameter" << std::endl;
+        usage();
+        exit(1);
+    }
+
+    //optional param for subscriber url
+    if (argc > 6 && argv[6] != NULL)
+    {
+        subscriberUrl = argv[6];
+    }
 
     curl = curl_easy_init();
     std::string currRecordType = "journal";
 
-    //Send initialize message to audit channel
-    if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType, ""))
+    if (sendJournalRecords)
     {
-        fprintf(stdout, "Initialize HTTP post failed.\n");
-        exit(1);
+        //Send initialize message to journal channel
+        if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType, ""))
+        {
+            fprintf(stdout, "Initialize HTTP post failed.\n");
+            exit(1);
+        }
+
+        std::string sessionId = headerMap["JAL-Session-Id"];
+        setSessionIdByRecordType(sessionId, currRecordType);
     }
 
-    std::string sessionId = headerMap["JAL-Session-Id"];
-    setSessionIdByRecordType(sessionId, currRecordType);
-
-    //Send initialize message to journal channel
-    currRecordType = "audit";
-    if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType, ""))
+    if (sendAuditRecords)
     {
-        fprintf(stdout, "Initialize HTTP post failed.\n");
-        exit(1);
+        //Send initialize message to audit channel
+        currRecordType = "audit";
+        if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType, ""))
+        {
+            fprintf(stdout, "Initialize HTTP post failed.\n");
+            exit(1);
+        }
+
+        std::string sessionId = headerMap["JAL-Session-Id"];
+        setSessionIdByRecordType(sessionId, currRecordType);
     }
 
-    sessionId = headerMap["JAL-Session-Id"];
-    setSessionIdByRecordType(sessionId, currRecordType);
-
-    //Send initialize message to log channel
-    currRecordType = "log";
-    if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType, ""))
+    if (sendLogRecords)
     {
-        fprintf(stdout, "Initialize HTTP post failed.\n");
-        exit(1);
+        //Send initialize message to log channel
+        currRecordType = "log";
+        if (!performHttpPost(getInitializeHeaders(currRecordType), false, currRecordType, ""))
+        {
+            fprintf(stdout, "Initialize HTTP post failed.\n");
+            exit(1);
+        }
+        std::string  sessionId = headerMap["JAL-Session-Id"];
+        setSessionIdByRecordType(sessionId, currRecordType);
     }
-    sessionId = headerMap["JAL-Session-Id"];
-    setSessionIdByRecordType(sessionId, currRecordType);
 
+    //Send record loop
+    long currRecordCount = 0;
     while(1)
     {
-        //If successful post, then proccess response
-        sendJalRecords(JOURNAL);
+        if (sendJournalRecords)
+        {
+            sendJalRecords(JOURNAL);
+        }
 
         //If successful post, then proccess response
-        sendJalRecords(AUDIT);
+        if (sendAuditRecords)
+        {
+            sendJalRecords(AUDIT);
+        }
 
         //If successful post, then proccess response
-        sendJalRecords(LOG);
+        if (sendLogRecords)
+        {
+            sendJalRecords(LOG);
+        }
+
+        currRecordCount ++;
+
+        //Checks if record count has been reached, if 0 then infinitely send records
+        if (recordCount != 0)
+        {
+            if (currRecordCount == recordCount)
+            {
+                break;
+            }
+        }
+    }
+
+    //Performs close session if configured
+    if (performCloseSession)
+    {
+        if (sendJournalRecords)
+        {
+            performHttpPost(getCloseSessionHeaders(JOURNAL), false, JOURNAL, "");
+        }
+
+        if (sendAuditRecords)
+        {
+            performHttpPost(getCloseSessionHeaders(AUDIT), false, AUDIT, "");
+        }
+
+        if (sendLogRecords)
+        {
+            performHttpPost(getCloseSessionHeaders(LOG), false, LOG, "");
+        }
     }
 
     return 0;
