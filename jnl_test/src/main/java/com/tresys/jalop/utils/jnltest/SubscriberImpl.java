@@ -787,12 +787,9 @@ public class SubscriberImpl implements Subscriber {
 
             //Update local record modified date and if it exists for future verification
             //before moving to confirmed location.
-            if (retVal == true)
-            {
-                File payloadFile = new File(lri.recordDir, PAYLOAD_FILENAME);
-                lri.payloadExists = payloadFile.exists();
-                lri.payloadLastModified = payloadFile.lastModified();
-            }
+            File payloadFile = new File(lri.recordDir, PAYLOAD_FILENAME);
+            lri.payloadExists = payloadFile.exists();
+            lri.payloadLastModified = payloadFile.lastModified();
 
             return retVal;
         }
