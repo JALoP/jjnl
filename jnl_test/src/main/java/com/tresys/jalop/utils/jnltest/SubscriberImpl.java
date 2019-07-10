@@ -95,8 +95,11 @@ public class SubscriberImpl implements Subscriber {
     /** Key in the status file for the expected size of the system meta-data. */
     private static final String SYS_META_SZ = "sys_meta_sz";
 
-    /** Key in the status file for the expected size of the payload. */
+    /** Key in the status file for the expected size of the current payload. */
     private static final String PAYLOAD_SZ = "payload_sz";
+
+    /** Key in the status file for the expected size of the original payload. */
+    private static final String ORIGINAL_PAYLOAD_SZ = "original_payload_sz";
 
     /**
      * Key in the status file for tracking how many bytes of the system
@@ -306,6 +309,12 @@ public class SubscriberImpl implements Subscriber {
             this.status.put(PAYLOAD_SZ, payloadLen);
             this.status.put(REMOTE_NONCE, remoteNonce);
 
+            //Stores the total expected payload size for the record, this is the payload size sent by the publisher added to the current record size
+            //to account for journal resume
+            File currPayloadFile = new File(this.recordDir.getAbsolutePath(), PAYLOAD_FILENAME);
+            long originalPayloadSize = payloadLen + currPayloadFile.length();
+            this.status.put(ORIGINAL_PAYLOAD_SZ, originalPayloadSize);
+
             //TODO might need changed for uuid for http subscriber, remoteIp stores the publisher id
             this.status.put(REMOTE_IP, SubscriberImpl.this.remoteIp);
         }
@@ -459,14 +468,14 @@ public class SubscriberImpl implements Subscriber {
                                                              STATUS_FILENAME)));
 
                 final Number progress = (Number) status.get(PAYLOAD_PROGRESS);
-                final Number expectedPayloadSize = (Number) status.get(PAYLOAD_SZ);
+                final Number originalPayloadSize = (Number) status.get(ORIGINAL_PAYLOAD_SZ);
 
                 //#548 - Special case for journal resume, if the record completely uploaded, but wasn't synced and the publisher sends the same record again.
                 //Only resume if the uploaded payload length is less than the expected length.  Delete the temp record and completely re-upload again if greater than or equal
                 //to expected payload length.
                 File payloadFile = new File(firstRecord, PAYLOAD_FILENAME);
 
-                if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null && payloadFile.length() < expectedPayloadSize.longValue()) {
+                if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null && originalPayloadSize != null && payloadFile.length() < originalPayloadSize.longValue()) {
                     // journal record can be resumed
                     this.lastNonceFromRemote =
                         (String) status.get(REMOTE_NONCE);
