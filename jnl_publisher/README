@@ -1,9 +1,0 @@
-This is a example c jnl publisher which uses libcurl to send JAL records over http to the subscriber.  This is for testing purposes only.  This publisher will send two JAL records (test.txt, test2.txt) which are present in the same directory as this publisher.
-
-To build:
-
-cd <path to jjnl repo>/jnl_publisher
-g++ jnl_publisher.c -lcurl -std=c++0x
-
-To run (after building above):
-./a.out
