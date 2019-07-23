@@ -347,8 +347,12 @@ public class MessageProcessor {
         DigestStatus digestStatus = HttpUtils.getDigestStatus(digestStatusStr);
         if (digestStatus.equals(DigestStatus.Unknown))
         {
-            logger.error("Digest response message failed due to invalid digest status value of: " + digestStatusStr);
+            logger.error("Digest response message failed due to invalid digest status value of: " + digestStatusStr + "  Forcing digest status of 'invalid' to delete temporary record with jalId of " + jalId );
             errorMessages.add(HttpUtils.HDRS_INVALID_DIGEST_STATUS);
+
+            //Ticket #612 - force a digest response of invalid to delete record if invalid status is received.
+            subscriber.notifyDigestResponse(sess, jalId, DigestStatus.Invalid, subscriberAndSession.getSubscriber());
+
             return false;
         }
 

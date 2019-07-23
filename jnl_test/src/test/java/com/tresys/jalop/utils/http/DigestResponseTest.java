@@ -1098,4 +1098,86 @@ public class DigestResponseTest {
 
         System.out.println("----testValidInvalidDigestResponseMessage success----\n");
     }
+
+    @Test
+    public void testRecordResendAfterInvalidDigestResponseMessage() throws ClientProtocolException, IOException
+    {
+        System.out.println("----testRecordResendAfterInvalidDigestResponseMessage---");
+        //This tests the issue described in Ticket #612, where the record with the same jal id failed to resend after an invalid digest response message
+        //The record should be able to be sent again after an invalid digest response message
+        String publisherId = UUID.randomUUID().toString();
+
+        //Ensures output dir is clean
+        TestResources.cleanOutputDirectory(outputDirStr);
+
+        for (RecordType recType : RecordType.values())
+        {
+            if (recType.equals(RecordType.Unset))
+            {
+                continue;
+            }
+
+            System.out.println("Testing record type of " + recType.toString());
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(recType, true, publisherId);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(recType, sessionId, "test_jal_id");
+
+            //Verify record exists
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
+            String recordDirStr = outputDirStr +  "/" + publisherId + "/" + recType.toString().toLowerCase() + "/" + autoNumberDir;
+            File recordDir = new File(recordDirStr);
+            assertTrue(recordDir.exists());
+
+            //Verifies the confirmed location is empty
+            String confirmDirStr = outputDirStr +  "/" + recType.toString().toLowerCase() + "/" + autoNumberDir;
+            File confirmDir = new File(confirmDirStr);
+            assertTrue(!confirmDir.exists());
+
+            //Sends digest response
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_RESP);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+            httpPost.setHeader(HttpUtils.HDRS_DIGEST_STATUS, "unknown");  //Sending invalid message
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            //Ensure record was deleted and not moved to confirmed directory (should have been deleted on invalid digest response message)
+            assertTrue(!recordDir.exists());
+            assertTrue(!confirmDir.exists());
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNotNull(errorHeader);
+            assertEquals(HttpUtils.HDRS_INVALID_DIGEST_STATUS, errorHeader.getValue());
+
+            //Sends record again and verifies successfully sent
+            jalId = TestResources.sendValidJalRecord(recType, sessionId, "test_jal_id");
+            assertEquals("test_jal_id", jalId);
+
+            //Ensure record was exists in temp location and not moved to confirmed directory
+            String autoNumberDir2 = TestResources.getAutoNumberDirectoryName(2);
+            String recordDirStr2 = outputDirStr +  "/" + publisherId + "/" + recType.toString().toLowerCase() + "/" + autoNumberDir2;
+            File recordDir2 = new File(recordDirStr2);
+            String confirmDirStr2 = outputDirStr +  "/" + recType.toString().toLowerCase() + "/" + autoNumberDir2;
+            File confirmDir2 = new File(confirmDirStr2);
+            assertTrue(recordDir2.exists());
+            assertTrue(!confirmDir2.exists());
+        }
+
+        System.out.println("----testRecordResendAfterInvalidDigestResponseMessage success----\n");
+    }
 }

@@ -2596,7 +2596,7 @@ public class JalRecordTest {
     }
 
     @Test
-    public void test1000EachRecTypeSingleThread() throws ClientProtocolException, IOException {
+    public void test100EachRecTypeSingleThread() throws ClientProtocolException, IOException {
 
         String publisherId = UUID.randomUUID().toString();
 
@@ -2608,7 +2608,7 @@ public class JalRecordTest {
                 {
                     continue;
                 }
-                boolean result = generateRecords(recType, 1000, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL );
+                boolean result = generateRecords(recType, 100, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL );
                 assertTrue(result);
 
                 sendJalRecords(recType, publisherId, "8dc8c3f7917b992cc4aafe5e70bea854ec6ee82034ada9ab3591f2f3a6510e1b", true);
@@ -2633,7 +2633,7 @@ public class JalRecordTest {
 
     //This test uses 3 separate threads to send records concurrent per record type.  Each record of the same type are sent sequentially however, but concurrent across the 3 types
     @Test
-    public void test1000EachRecTypeConcurrentPerRecType() throws ClientProtocolException, IOException {
+    public void test100EachRecTypeConcurrentPerRecType() throws ClientProtocolException, IOException {
 
         String publisherId = UUID.randomUUID().toString();
         ArrayList<Thread> arrThreads = new ArrayList<Thread>();
@@ -2645,7 +2645,7 @@ public class JalRecordTest {
                 continue;
             }
 
-            boolean result = generateRecords(recType, 1000, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL);
+            boolean result = generateRecords(recType, 100, SYS_METADATA_GOOD, APP_METADATA_GOOD, PAYLOAD_GOOD_SMALL);
             assertTrue(result);
         }
 
