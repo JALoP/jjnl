@@ -553,7 +553,7 @@ public class SubscriberImpl implements Subscriber {
 
         for (final File f: deleteDirs) {
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Removing directory for unsynced record: "
+                LOGGER.info("Removing directory for unsynced journal record: "
                             + f.getAbsolutePath());
             }
 
@@ -563,7 +563,7 @@ public class SubscriberImpl implements Subscriber {
             }
             catch (IOException e)
             {
-                LOGGER.fatal("Failed to delete temp record directory: " + f.getAbsolutePath());
+                LOGGER.fatal("Failed to delete temp journal record directory: " + f.getAbsolutePath());
                 LOGGER.fatal(e);
                 throw new RuntimeException(e);
             }
@@ -873,7 +873,7 @@ public class SubscriberImpl implements Subscriber {
 
         LOGGER.debug("notifyJournalMissing for jalId: " + jalId + " and local nonce: " + nonce);
 
-        //Resets journal resume
+        //Resets journal offset
         this.journalOffset = 0;
         sess.resetJournalOffset();
 
