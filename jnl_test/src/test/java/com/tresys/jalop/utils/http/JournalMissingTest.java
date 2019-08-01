@@ -365,7 +365,7 @@ public class JournalMissingTest {
     }
 
     @Test
-    public void testValidJournaMissingMessage() throws ClientProtocolException, IOException
+    public void testValidJournalMissingMessage() throws ClientProtocolException, IOException
     {
         System.out.println("----testValidJournaMissingMessage---");
         System.out.println("DR1.016.001.003 - journal-missing-response:  Missing Journal Acknowledged - Delete Partial Record");
@@ -427,7 +427,7 @@ public class JournalMissingTest {
     }
 
     @Test
-    public void testValidJournaResumeMessage() throws ClientProtocolException, IOException
+    public void testValidJournalResumeMessage() throws ClientProtocolException, IOException
     {
         System.out.println("----testValidJournaResumeMessage---");
         System.out.println("DR1.017.003.002 - Transfer Records:  archive - journal-resume");
@@ -558,7 +558,7 @@ public class JournalMissingTest {
     }
 
     @Test
-    public void testJournaResumeMessageDifferentJalIdOnResume() throws ClientProtocolException, IOException
+    public void testJournalResumeMessageDifferentJalIdOnResume() throws ClientProtocolException, IOException
     {
         System.out.println("----testJournaResumeMessageDifferentJalIdOnResume---");
         System.out.println("DR1.017.003.002 - Transfer Records:  archive - journal-resume");
@@ -799,90 +799,354 @@ public class JournalMissingTest {
     }
 
     @Test
-    public void testValidMultipleJournaMissingMessage() throws ClientProtocolException, IOException
+    public void testValidMultipleJournalMissingMessage() throws ClientProtocolException, IOException
     {
         String publisherId = UUID.randomUUID().toString();
 
         //Ensures output dir is clean before test
         TestResources.cleanOutputDirectory(outputDirStr);
 
-        //Valid initialize
-        String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId);
+        //Set archive mode on the subscriber
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        subscriber.getConfig().setMode(Mode.Archive);
 
-        //Adds 3 records, deletes the 2nd record on journal missing, ensures only 2nd record is deleted, while other two remain.
-        for (int i = 1; i <= 3; i ++)
+        try
         {
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId, HttpUtils.MSG_ARCHIVE);
+
+            //Adds 3 records, deletes the 2nd record on journal missing, ensures all 3 records are cleared out on journal missing
+            String secondRecordJalId = "";
+            for (int i = 1; i <= 3; i ++)
+            {
+                //Valid JAL record post
+                String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId);
+
+                //Verifies record is in output directory
+                String autoNumberDir = TestResources.getAutoNumberDirectoryName(i);
+                String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+                File recordDir = new File(recordDirStr);
+
+                assertTrue(recordDir.exists());
+
+                //More than one indicates record data is present
+                assertTrue(recordDir.list().length > 1);
+
+                //Verifies the confirmed location is empty
+                String confirmDirStr = outputDirStr +  "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+                File confirmDir = new File(confirmDirStr);
+                assertTrue(!confirmDir.exists());
+
+                //Record should exist
+                assertTrue(recordDir.exists());
+
+                //Saves jal id of second record to call journal missing later on this record
+                if (i == 2)
+                {
+                    secondRecordJalId = jalId;
+                }
+            }
+
+            //Calls journal missing on second record
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, secondRecordJalId);
+
+            HttpClient client = HttpClientBuilder.create().build();
+            final HttpResponse response = client.execute(httpPost);
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(secondRecordJalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE, messageHeader.getValue());
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
+
+            //One final check to verify contents of output dir, it should be completely empty
+            for (int i = 1; i <= 3; i ++)
+            {
+                String autoNumberDir = TestResources.getAutoNumberDirectoryName(i);
+                String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+                File recordDir = new File(recordDirStr);
+
+                assertTrue(!recordDir.exists());
+            }
+        }
+        finally
+        {
+            //Resets subscriber back to live
+            subscriber.getConfig().setMode(Mode.Live);
+        }
+    }
+
+    @Test
+    public void testJalRecordSendAfterJournalMissing() throws ClientProtocolException, IOException
+    {
+        System.out.println("----testJalRecordSendAfterJournalMissing---");
+
+        System.out.println("\nThis unit test verifies defect ticket #614\n");
+
+        //Set archive mode on the subscriber
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        subscriber.getConfig().setMode(Mode.Archive);
+        try
+        {
+            String publisherId = UUID.randomUUID().toString();
+
+            //Ensures output dir is clean before test
+            TestResources.cleanOutputDirectory(outputDirStr);
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId, HttpUtils.MSG_ARCHIVE);
+
             //Valid JAL record post
-            String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId);
+            String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId, "deef71ca-16b8-4c9e-b9a4-f2b08f8b9a12");
 
             //Verifies record is in output directory
-            String autoNumberDir = TestResources.getAutoNumberDirectoryName(i);
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
             String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
             File recordDir = new File(recordDirStr);
 
             assertTrue(recordDir.exists());
 
+            String payloadFileStr = recordDirStr + "/payload";
+            String statusFileStr = recordDirStr + "/status.js";
+            String sysMetadataFileStr = recordDirStr + "/sys_metadata.xml";
+            String appMetadataFileStr = recordDirStr + "/app_metadata.xml";
+            File payloadFile = new File(payloadFileStr);
+            File statusFile = new File(statusFileStr);
+            File sysMetadataFile = new File(sysMetadataFileStr);
+            File appMetadataFile = new File(appMetadataFileStr);
+
             //More than one indicates record data is present
             assertTrue(recordDir.list().length > 1);
+
+            //Verify size of file to be expected size
+            assertEquals(19, payloadFile.length());
+
+            //Now force copy of partial record to simulate a record that needs to be resumed
+            payloadFile.delete();
+            File simulatedPartialRecord = new File(resourcesDirectory.getAbsolutePath() + "/partial_jal_record1_payload.txt");
+            FileUtils.copyFile(simulatedPartialRecord, payloadFile);
+
+            //Verify size of file to be expected size
+            assertEquals(13, payloadFile.length());
+
+            //Verify the existence of app and sys metadata files
+            assertTrue(sysMetadataFile.exists());
+            assertTrue(appMetadataFile.exists());
+
+            //Force copy of status.js file with 13 partial bytes
+            statusFile.delete();
+            File simulatedStatusFile = new File(resourcesDirectory.getAbsolutePath() + "/partial_status.js");
+            FileUtils.copyFile(simulatedStatusFile, statusFile);
 
             //Verifies the confirmed location is empty
             String confirmDirStr = outputDirStr +  "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
             File confirmDir = new File(confirmDirStr);
             assertTrue(!confirmDir.exists());
 
-            //Only calls journal missing on 2nd record
-            if (i == 2)
+            //Send initialize again, should get journal resume, since record exists already in output directory
+            HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+            httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+            httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_ON);
+
+            HttpClient client = HttpClientBuilder.create().build();
+
+            HttpResponse response = client.execute(httpPost);
+            sessionId = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
+
+            Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header offsetHeader = response.getFirstHeader(HttpUtils.HDRS_JOURNAL_OFFSET);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_INIT_ACK, messageHeader.getValue());
+
+            //Checks that offset is correctly returned
+            assertNotNull(offsetHeader);
+            assertEquals("13", offsetHeader.getValue());
+
+            Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
+
+            //Verify size of file to be the partial length before the resume
+            assertEquals(13, payloadFile.length());
+
+            //Verify that the previous sys and app metadata files were deleted
+            assertTrue(!sysMetadataFile.exists());
+            assertTrue(!appMetadataFile.exists());
+
+            //Call journal missing with wrong jal-id to trigger case in #614 and ensure when sending the next record, it is not appended.
+            jalId = UUID.randomUUID().toString();
+
+            httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING);
+            httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
+            httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+
+            client = HttpClientBuilder.create().build();
+            response = client.execute(httpPost);
+
+            jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+
+            assertNotNull(jalIdHeader);
+            assertEquals(jalId, jalIdHeader.getValue());
+
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE, messageHeader.getValue());
+
+            errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
+
+            //One final check to verify contents of output dir, it should be completely empty
+            for (int i = 1; i <= 3; i ++)
             {
-                final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
-                httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
-                httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING);
-                httpPost.setHeader(HttpUtils.HDRS_SESSION_ID, sessionId);
-                httpPost.setHeader(HttpUtils.HDRS_NONCE, jalId);
+                autoNumberDir = TestResources.getAutoNumberDirectoryName(i);
+                recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+                recordDir = new File(recordDirStr);
 
-                HttpClient client = HttpClientBuilder.create().build();
-                final HttpResponse response = client.execute(httpPost);
-
-                //Record should not exist
                 assertTrue(!recordDir.exists());
-
-                final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
-                final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
-
-                assertNotNull(jalIdHeader);
-                assertEquals(jalId, jalIdHeader.getValue());
-
-                assertNotNull(messageHeader);
-                assertEquals(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE, messageHeader.getValue());
-
-                final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
-                assertNull(errorHeader);
-            }
-            else
-            {
-                //Record should exist
-                assertTrue(recordDir.exists());
             }
 
-            //Verify confirmed location is empty
-            assertTrue(!confirmDir.exists());
+            //Resend partial record, data should not be appended as the temp record no longer exists after journal missing, even if journal missing is called with the wrong jal id
+            String currJalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId, jalId, "6", "resume_jal_record1.txt", "c4917368e984b051577ce3191d84362626d77019a3517ae36a065c64f9fdc7c5");
+
+            //Verify size of file to be expected size, it should only be 6 in this case instead of 19 due to journal missing being called
+            assertEquals(6, payloadFile.length());
+            assertEquals(jalId, currJalId);
+
+            //Verify that the metadata files were written again
+            assertTrue(sysMetadataFile.exists());
+            assertTrue(appMetadataFile.exists());
+
+            System.out.println("----testJalRecordSendAfterJournalMissing success---");
         }
-
-        //One final check to verify contents of output dir
-        for (int i = 1; i <= 3; i ++)
+        finally
         {
-            String autoNumberDir = TestResources.getAutoNumberDirectoryName(i);
+            //Resets subscriber back to live
+            subscriber.getConfig().setMode(Mode.Live);
+        }
+    }
+
+    @Test
+    public void testJournalResumeMessageWithMissingPayloadFile() throws ClientProtocolException, IOException
+    {
+        System.out.println("----testJournalResumeMessageWithMissingPayloadFile---");
+
+        System.out.println("\nThis unit test verifies that if the journal record is deleted on initialize due to missing status.js file, then journal resume does not occur.\n");
+
+        //Set archive mode on the subscriber
+        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        subscriber.getConfig().setMode(Mode.Archive);
+        try
+        {
+            String publisherId = UUID.randomUUID().toString();
+
+            //Ensures output dir is clean before test
+            TestResources.cleanOutputDirectory(outputDirStr);
+
+            //Valid initialize
+            String sessionId = TestResources.sendValidInitialize(RecordType.Journal, true, publisherId, HttpUtils.MSG_ARCHIVE);
+
+            //Valid JAL record post
+            String jalId = TestResources.sendValidJalRecord(RecordType.Journal, sessionId, "deef71ca-16b8-4c9e-b9a4-f2b08f8b9a12");
+
+            //Verifies record is in output directory
+            String autoNumberDir = TestResources.getAutoNumberDirectoryName(1);
             String recordDirStr = outputDirStr +  "/" + publisherId + "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
             File recordDir = new File(recordDirStr);
 
-            //2nd record should not exist, while 1st and 3rd records still exist
-            if (i == 2)
-            {
-               assertTrue(!recordDir.exists());
-            }
-            else
-            {
-                assertTrue(recordDir.exists());
-            }
+            assertTrue(recordDir.exists());
+
+            String payloadFileStr = recordDirStr + "/payload";
+            String statusFileStr = recordDirStr + "/status.js";
+            String sysMetadataFileStr = recordDirStr + "/sys_metadata.xml";
+            String appMetadataFileStr = recordDirStr + "/app_metadata.xml";
+            File payloadFile = new File(payloadFileStr);
+            File statusFile = new File(statusFileStr);
+            File sysMetadataFile = new File(sysMetadataFileStr);
+            File appMetadataFile = new File(appMetadataFileStr);
+
+            //More than one indicates record data is present
+            assertTrue(recordDir.list().length > 1);
+
+            //Verify size of file to be expected size
+            assertEquals(19, payloadFile.length());
+
+            //Verify the existence of app and sys metadata files
+            assertTrue(sysMetadataFile.exists());
+            assertTrue(appMetadataFile.exists());
+
+            //Force deletion of payload file, so journal resume should not occur on next initialize
+            payloadFile.delete();
+            assertTrue(!payloadFile.exists());
+
+            //Verifies the confirmed location is empty
+            String confirmDirStr = outputDirStr +  "/" + RecordType.Journal.toString().toLowerCase() + "/" + autoNumberDir;
+            File confirmDir = new File(confirmDirStr);
+            assertTrue(!confirmDir.exists());
+
+            //Send initialize again, should get initialize-ack, and no journal resume since temp record was deleted due to no status.js file
+            final HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+            httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
+            httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
+            httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
+            httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
+            httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE, HttpUtils.MSG_ON);
+
+            HttpClient client = HttpClientBuilder.create().build();
+
+            final HttpResponse response = client.execute(httpPost);
+            sessionId = response.getFirstHeader(HttpUtils.HDRS_SESSION_ID).getValue();
+
+            final Header jalIdHeader = response.getFirstHeader(HttpUtils.HDRS_NONCE);
+            final Header messageHeader = response.getFirstHeader(HttpUtils.HDRS_MESSAGE);
+            final Header offsetHeader = response.getFirstHeader(HttpUtils.HDRS_JOURNAL_OFFSET);
+
+            //Verify no journal resume
+            assertNull(jalIdHeader);
+            assertNotNull(messageHeader);
+            assertEquals(HttpUtils.MSG_INIT_ACK, messageHeader.getValue());
+            assertNull(offsetHeader);
+
+            final Header errorHeader = response.getFirstHeader(HttpUtils.HDRS_ERROR_MESSAGE);
+            assertNull(errorHeader);
+
+            //Verify record does not exist in temp storage
+            assertTrue(!payloadFile.exists());
+            assertTrue(!sysMetadataFile.exists());
+            assertTrue(!appMetadataFile.exists());
+
+            System.out.println("----testJournalResumeMessageWithMissingPayloadFile success---");
+        }
+        finally
+        {
+            //Resets subscriber back to live
+            subscriber.getConfig().setMode(Mode.Live);
         }
     }
 }
