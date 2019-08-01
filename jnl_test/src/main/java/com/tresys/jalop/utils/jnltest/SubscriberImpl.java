@@ -486,8 +486,20 @@ public class SubscriberImpl implements Subscriber {
                     status.remove(SYS_META_PROGRESS);
                     this.nonce =
                         NONCE_FORMATER.parse(firstRecord.getName()).longValue();
-                    this.journalInputStream = new FileInputStream(
+
+                    try
+                    {
+                        this.journalInputStream = new FileInputStream(
                                        new File(firstRecord, PAYLOAD_FILENAME));
+                    }
+                    catch (final FileNotFoundException e) {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Deleting " + firstRecord + ", because it is missing the '" + PAYLOAD_FILENAME + "' file");
+                        }
+                        //Resets offset back to 0 due to record being deleted
+                        this.journalOffset = 0;
+                        deleteDirs.add(firstRecord);
+                    }
                 } else {
                     deleteDirs.add(firstRecord);
                 }
@@ -496,11 +508,15 @@ public class SubscriberImpl implements Subscriber {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Deleting " + firstRecord + ", because it is missing the '" + STATUS_FILENAME + "' file");
                 }
+                //Resets offset back to 0 due to record being deleted
+                this.journalOffset = 0;
                 deleteDirs.add(firstRecord);
             } catch (final ParseException e ) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Deleting " + firstRecord + ", because failed to parse '" + STATUS_FILENAME + "' file");
                 }
+                //Resets offset back to 0 due to record being deleted
+                this.journalOffset = 0;
                 deleteDirs.add(firstRecord);
             }
 
@@ -518,12 +534,20 @@ public class SubscriberImpl implements Subscriber {
         }
     }
 
-    private void deleteAllTempRecords()
+    private void deleteAllJournalTempRecords()
     {
         final Set<File> deleteDirs = new HashSet<File>();
 
         final File[] recordDirs =
                 this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
+
+        //Ensures this deletion only occurs on journal records in temp storage
+        String dirName = this.outputIpRoot.getName();
+        if (dirName!= null && !dirName.equalsIgnoreCase("journal"))
+        {
+            LOGGER.error("Directory: " + this.outputIpRoot.getAbsolutePath() + " is not a journal record directory and cannot be deleted on journal resume/missing.");
+            return;
+        }
 
         deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
 
@@ -689,7 +713,7 @@ public class SubscriberImpl implements Subscriber {
                 this.journalOffset = 0;
                 sess.resetJournalOffset();
 
-                deleteAllTempRecords();
+                deleteAllJournalTempRecords();
 
                 lri.recordDir.mkdir();
             }
@@ -856,7 +880,7 @@ public class SubscriberImpl implements Subscriber {
         //Clears out all temp records to allow for fresh jal record uploads
         try
         {
-            deleteAllTempRecords();
+            deleteAllJournalTempRecords();
         }
         catch (RuntimeException re)
         {
