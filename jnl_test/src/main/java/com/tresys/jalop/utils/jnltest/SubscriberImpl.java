@@ -518,6 +518,34 @@ public class SubscriberImpl implements Subscriber {
         }
     }
 
+    private void deleteAllTempRecords()
+    {
+        final Set<File> deleteDirs = new HashSet<File>();
+
+        final File[] recordDirs =
+                this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
+
+        deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
+
+        for (final File f: deleteDirs) {
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Removing directory for unsynced record: "
+                            + f.getAbsolutePath());
+            }
+
+            try
+            {
+                FileUtils.forceDelete(f);
+            }
+            catch (IOException e)
+            {
+                LOGGER.fatal("Failed to delete temp record directory: " + f.getAbsolutePath());
+                LOGGER.fatal(e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     @Override
     public final SubscribeRequest
                     getSubscribeRequest(final SubscriberSession sess, boolean createConfirmedFile) {
@@ -661,30 +689,7 @@ public class SubscriberImpl implements Subscriber {
                 this.journalOffset = 0;
                 sess.resetJournalOffset();
 
-                final Set<File> deleteDirs = new HashSet<File>();
-
-                final File[] recordDirs =
-                        this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
-
-                deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
-
-                for (final File f: deleteDirs) {
-                    if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info("Removing directory for unsynced record: "
-                                    + f.getAbsolutePath());
-                    }
-
-                    try
-                    {
-                        FileUtils.forceDelete(f);
-                    }
-                    catch (IOException e)
-                    {
-                        LOGGER.fatal("Failed to clean existing directories on an invalid journal resume record: ");
-                        LOGGER.fatal(e);
-                        throw new RuntimeException(e);
-                    }
-                }
+                deleteAllTempRecords();
 
                 lri.recordDir.mkdir();
             }
@@ -841,20 +846,21 @@ public class SubscriberImpl implements Subscriber {
             final String jalId, Subscriber subscriber)
     {
         boolean ret = true;
-        LocalRecordInfo lri;
 
-        LOGGER.debug("notifyJournalMissing for nonce: " + nonce);
-        // try to locate the provided nonce in the map of received digests
-        synchronized (this.nonceMap) {
-            lri = this.nonceMap.get(jalId);
-        }
-        if (lri == null) {
-            LOGGER.error("Can't find local status for: " + nonce);
-            ret = true;
-        }
-        else
+        LOGGER.debug("notifyJournalMissing for jalId: " + jalId + " and local nonce: " + nonce);
+
+        //Resets journal resume
+        this.journalOffset = 0;
+        sess.resetJournalOffset();
+
+        //Clears out all temp records to allow for fresh jal record uploads
+        try
         {
-            ret = deleteRecord(lri);
+            deleteAllTempRecords();
+        }
+        catch (RuntimeException re)
+        {
+            ret = false;
         }
 
         return ret;
