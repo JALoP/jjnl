@@ -817,16 +817,18 @@ public class SubscriberImpl implements Subscriber {
                 return false;
             }
 
+            //Set exists flag to true since payload is being uploaded.
+            lri.payloadExists = true;
+
             final boolean retVal = handleRecordData(lri, recordInfo.getPayloadLength(),
                                     PAYLOAD_FILENAME, PAYLOAD_PROGRESS,
                                     payload, sess);
             // resetting journalOffset to 0 since only the first payload can ever have an offset
             this.journalOffset = 0;
 
-            //Update local record modified date and if it exists for future verification
+            //Update local record modified date for future verification
             //before moving to confirmed location.
             File payloadFile = new File(lri.recordDir, PAYLOAD_FILENAME);
-            lri.payloadExists = payloadFile.exists();
             lri.payloadLastModified = payloadFile.lastModified();
 
             return retVal;
