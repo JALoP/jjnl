@@ -2,6 +2,7 @@ package com.tresys.jalop.jnl.impl.http;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,6 +11,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
@@ -104,7 +106,7 @@ public class HttpUtils {
     public static final String[] SUPPORTED_VERSIONS = new String[] {"2.0.0.0"};
 
     public static final String DEFAULT_CONTENT_TYPE =
-            "application/octet-stream";
+            "application/http+jalop";
 
     /**
      * The default <code>DataStream</code> content transfer encoding
@@ -205,6 +207,16 @@ public class HttpUtils {
         }
 
         return currHeaders;
+    }
+
+    public static void parseHttpResponseHeaders(HttpServletResponse response)
+    {
+        Collection<String> headerNames = response.getHeaderNames();
+
+        for (String headerName : headerNames) {
+            String headerValue = response.getHeader(headerName);
+            logger.debug("Response Header: " + headerName + " Value: " + headerValue);
+        }
     }
 
     /**

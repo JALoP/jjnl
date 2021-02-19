@@ -704,6 +704,9 @@ public class MessageProcessor {
 
     public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
     {
+	// Set the Content-Type header in response message.
+	response.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+
         //Used to capture all error messages that occur during the processing of this message
         List<String> errorMessages = new ArrayList<>();
         try
@@ -882,5 +885,6 @@ public class MessageProcessor {
             logger.error("A general excpetion occurred: ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
+	HttpUtils.parseHttpResponseHeaders(response);
     }
 }
