@@ -101,7 +101,7 @@ public class JalRecordTest {
         resourcesDirectory = new File("src/test/resources/unit_test");
         jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../../..";
         inputDirStr = jjnlDirPath + "/input";
-        jalopTestDataDir = jjnlDirPath + "/../jalop/test-input";
+        jalopTestDataDir = resourcesDirectory.getAbsolutePath(); 
         outputDirStr = jjnlDirPath + "/jnl_test/output";
         jalopTestDataRepoDir = jjnlDirPath + "/../jalop-test-data";
 
