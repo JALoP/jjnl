@@ -227,6 +227,12 @@ public class SubscriberImpl implements Subscriber {
     /** The offset to send in a journal subscribe message. */
     long journalOffset = -1;
 
+    /** Flag that indicates journal resume is in progress, so if normal records are sent concurrently, they are not processed as journal resume records. */
+    boolean journalResumeInProgress = false;
+
+    /** Stores the local journal resume record that is in progress **/
+    LocalRecordInfo journalResumeRecord = null;
+
     /** The input stream to use for a journal resume. */
     InputStream journalInputStream = null;
 
@@ -623,9 +629,18 @@ public class SubscriberImpl implements Subscriber {
         if (!dumpStatus(lri.statusFile, lri.status)) {
             return false;
         }
+
+        //Sets the first record with a journal resume offset as the journal resume record.
+        //Once this record completes, then this is cleared out to indicate journal resume is complete.
+        if (this.journalOffset > 0 && this.journalResumeInProgress == false)
+        {
+            this.journalResumeRecord = lri;
+            this.journalResumeInProgress = true;
+        }
+
         final boolean retVal = handleRecordData(lri, recordInfo.getSysMetaLength(),
                                 SYS_META_FILENAME, SYS_META_PROGRESS,
-                               sysMetaData, sess);
+                               sysMetaData, sess, this.journalResumeRecord);
 
         //Update local record modified date and if it exists for future verification
         //Before moving to confirmed location.
@@ -635,8 +650,20 @@ public class SubscriberImpl implements Subscriber {
             lri.sysMetadataExists = sysMetadataFile.exists();
             lri.sysMetadataLastModified = sysMetadataFile.lastModified();
         }
+        else if (journalResumeRecord == lri)
+        {
+            //reset journal resume since an error occurred on the journal resume record.
+            resetJournalResume();
+        }
 
         return retVal;
+    }
+
+    private void resetJournalResume()
+    {
+        this.journalOffset = 0;
+        this.journalResumeInProgress = false;
+        this.journalResumeRecord = null;
     }
 
     /**
@@ -690,17 +717,24 @@ public class SubscriberImpl implements Subscriber {
                                    final String outputFilename,
                                    final String statusKey,
                                    final InputStream incomingData,
-                                   SubscriberSession sess) {
+                                   SubscriberSession sess, final LocalRecordInfo journal_resume_record) {
         final byte[] buffer = new byte[this.bufferSize];
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
         long total = 0;
         long totalDataSize = dataSize;
+        boolean isValidJournalResume = false;
         boolean isJournalResume = false;
+
+        //Checks if this is a valid journal resume
+        if (this.journalOffset > 0 && journal_resume_record != null && lri == journal_resume_record)
+        {
+            isValidJournalResume = true;
+        }
 
         //#580 - need one additional check to ensure the record being sent has the exact same jalId of the record that was partially uploaded and being resumed
         //if jal ids do not match the same destination dir, then delete the current record, and reset journal resume so record being uploaded is treated as a new record.
-        if (this.journalOffset > 0)
+        if (isValidJournalResume == true)
         {
             LocalRecordInfo checkLri = null;
             synchronized (this.nonceMap) {
@@ -719,7 +753,7 @@ public class SubscriberImpl implements Subscriber {
             }
         }
 
-        if(this.journalOffset > 0 && PAYLOAD_FILENAME.equals(outputFilename)) {
+        if(isValidJournalResume && PAYLOAD_FILENAME.equals(outputFilename)) {
 
             isJournalResume = true;
             total = this.journalOffset;
@@ -785,7 +819,7 @@ public class SubscriberImpl implements Subscriber {
 
             final boolean result =  handleRecordData(lri, recordInfo.getAppMetaLength(),
                                     APP_META_FILENAME, APP_META_PROGRESS,
-                                    appMetaData, sess);
+                                    appMetaData, sess, null);
 
             //Update local record modified date and if it exists for future verification
             //before moving to confirmed location.
@@ -794,6 +828,11 @@ public class SubscriberImpl implements Subscriber {
                 File appMetadataFile = new File(lri.recordDir, APP_META_FILENAME);
                 lri.appMetadataExists = appMetadataFile.exists();
                 lri.appMetadataLastModified = appMetadataFile.lastModified();
+            }
+            else if (journalResumeRecord == lri)
+            {
+                //reset journal resume since an error occurred on the journal resume record.
+                resetJournalResume();
             }
 
             return result;
@@ -822,9 +861,13 @@ public class SubscriberImpl implements Subscriber {
 
             final boolean retVal = handleRecordData(lri, recordInfo.getPayloadLength(),
                                     PAYLOAD_FILENAME, PAYLOAD_PROGRESS,
-                                    payload, sess);
-            // resetting journalOffset to 0 since only the first payload can ever have an offset
-            this.journalOffset = 0;
+                                    payload, sess, journalResumeRecord);
+
+            //This journal resume record completed, reset journal resume to continue with normal record processing.
+            if (journalResumeRecord == lri)
+            {
+                resetJournalResume();
+            }
 
             //Update local record modified date for future verification
             //before moving to confirmed location.

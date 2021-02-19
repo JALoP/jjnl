@@ -149,16 +149,18 @@ public class SubscriberHttpANSHandler {
               //NOTE, the old code performed this calculation, but it appears to result in a negative number causing a failure later, so removing for http implementation.
               //  payloadSizeToRead -= subsess.getJournalResumeOffset();
             }
-            js = new JalopHttpDataStream(payloadSizeToRead, is);
-            if (!sub.notifyPayload(subsess, recInfo, js, subscriber)) {
-                throw new IOException("Error in notifyPayload");
-            }
-            js.flush();
+
             // only the first record is a journal resume, subsequent records are normal
             //TODO - need to determine if this is correct, this is how the java code worked before, however this only handles resuming one record.
             //if multiple recored resumes are required then this will not work.
             subsess.setJournalResumeOffset(0);
             subsess.setJournalResumeIS(null);
+
+            js = new JalopHttpDataStream(payloadSizeToRead, is);
+            if (!sub.notifyPayload(subsess, recInfo, js, subscriber)) {
+                throw new IOException("Error in notifyPayload");
+            }
+            js.flush();
 
             int remainingBytes = is.available();
             if (remainingBytes> 1)
