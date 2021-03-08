@@ -7,31 +7,31 @@ import os
 import shutil
 
 if (len(sys.argv) != 7):
-	print "Usage: "+sys.argv[0]+" [type] [target directory] [count] [sysmeta] [appmeta] [payload]" 
+	print("Usage: "+sys.argv[0]+" [type] [target directory] [count] [sysmeta] [appmeta] [payload]")
 	exit(0)
 
 count = int(sys.argv[3])
 
 if (count <=0):
-	print "count must be greater than 0"
+	print("count must be greater than 0")
 	exit(0)
 
 if (not os.path.exists(sys.argv[2])):
-	print "target dir must exist"
+	print("target dir must exist")
 	exit(0)
 
 if (sys.argv[1] != "log" and sys.argv[1] != "audit" and sys.argv[1] != "journal"):
-	print "Not a valid type"
+	print("Not a valid type")
 	exit(0)
 
 if (not os.path.exists(sys.argv[4])):
-	print "Sys meta does not exist"
+	print("Sys meta does not exist")
 	exit(0)
 if (not os.path.exists(sys.argv[5])):
-	print "App meta does not exist"
+	print("App meta does not exist")
 	exit(0)
 if (not os.path.exists(sys.argv[6])):
-	print "Payload does not exist"
+	print("Payload does not exist")
 	exit(0)
 
 def serialIdToString(serialId):
@@ -58,4 +58,4 @@ while (count > 0):
 	shutil.copy(sys.argv[6],os.path.join(path,"payload"))
 
 	count-=1
-	serialId+=1	
+	serialId+=1
