@@ -192,7 +192,7 @@ public final class ContextImpl implements Context {
 		// force mutual authentication
 			this.sslProperties.setProperty(LISTENER_ANONYMOUS, Boolean.FALSE.toString());
 			this.sslProperties.setProperty(INITIATOR_AUTHENTICATION_REQUIRED, Boolean.TRUE.toString());
-			this.sslProperties.setProperty(SSL_ALGORITHMS, "TLSv1");
+			this.sslProperties.setProperty(SSL_ALGORITHMS, "TLSv1.2");
 			this.sslProfile = TLSProfile.getDefaultInstance();
 			this.sslListener = this.sslProfile.init(TLSProfile.URI, this.sslProperties);
 
