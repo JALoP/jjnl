@@ -35,8 +35,23 @@
           <target>1.7</target>
           <compilerArguments>
             <Xlint/>
-            <Werror/>
           </compilerArguments>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>**/Log4j2Plugins.dat</exclude>
+              </excludes>
+            </filter>
+          </filters>
         </configuration>
       </plugin>
     </plugins>
@@ -65,10 +80,23 @@
       <artifactId>commons-logging</artifactId>
       <version>1.1.1</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-1.2-api -->
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-1.2-api</artifactId>
+        <version>2.14.1</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
+    <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>2.14.1</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+    <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>2.14.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
