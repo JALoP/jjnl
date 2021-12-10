@@ -1,0 +1,13 @@
+Summary of release 2.0.0.1 changes (Fri Dec 10 2021) -
+    - Upgraded to log4j-2.15.0 to mitigate CVE-2021-44228.
+    - Added support for log4j2 via log4j v1.2 compatibility packages.
+
+Summary of release 2.0.0.0-final changes (Sat Jul 10 2021) -
+    - Added parentheses to each print statement to be compatible with python 3.
+    - Copied data files from "jalop" repository to "jjnl" repository for the unit tests. Updated the test data directory in unit test code.
+    - Set Content-Type HTTP header to "application/http+jalop" on response messages.
+    - Wrote a new method to print HttpServletResponse headers.
+    - Subscriber temp record storage is cleared out when a journal resume record is being sent and another journal record is sent. Changed so that only the initial journal resume record is treated as a journal resume record. So if another separate journal record is sent while journal resume record is in progress it is now correctly treated as a normal journal record.
+
+Summary of release 2.0.0.0-beta changes (Sat Aug 16 2019) -
+    - Initial release of JALoP over HTTP Java Subscriber.
