@@ -9,5 +9,5 @@ Summary of release 2.0.0.0-final changes (Sat Jul 10 2021) -
     - Wrote a new method to print HttpServletResponse headers.
     - Subscriber temp record storage is cleared out when a journal resume record is being sent and another journal record is sent. Changed so that only the initial journal resume record is treated as a journal resume record. So if another separate journal record is sent while journal resume record is in progress it is now correctly treated as a normal journal record.
 
-Summary of release 2.0.0.0-beta changes (Sat Aug 16 2019) -
+Summary of release 2.0.0.0-beta changes (Fri Aug 16 2019) -
     - Initial release of JALoP over HTTP Java Subscriber.
