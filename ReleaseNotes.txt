@@ -1,0 +1,12 @@
+Summary of release 1.0.0.2 changes (Fri Dec 10 2021) -
+    - Upgraded to log4j-2.15.0 to mitigate CVE-2021-44228.
+    - Added support for log4j2 via log4j v1.2 compatibility packages.
+    - Updated TLS version from 1.0 to 1.2. Added instructions file.
+
+Summary of release 1.0.0.1 changes (Thu Jun 13 2019) -
+    - Initial release in the second reincarnation.
+    - Added RHEL7 support.
+    - Added Java 8 support.
+    - Upgrade jnl unit tests to use java 1.8
+    - Added @Mocked attributes to params in jnl_test unit testa.
+    - Fixes for jnl_lib unit tests with new version of jmockit and java 1.8
