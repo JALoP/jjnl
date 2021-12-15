@@ -1,3 +1,6 @@
+Summary of release 1.0.0.3 changes (Wed Dec 15 2021) -
+    - Upgraded to log4j-2.16.0 to mitigate CVE-2021-45046.
+
 Summary of release 1.0.0.2 changes (Fri Dec 10 2021) -
     - Upgraded to log4j-2.15.0 to mitigate CVE-2021-44228.
     - Added support for log4j2 via log4j v1.2 compatibility packages.
