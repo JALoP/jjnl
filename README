@@ -1,8 +1,11 @@
-This is an implementation of a library that supports sending and receiving of
-JAL Records over a network using the Journaling, Auditing, and Logging Protocol
-over HTTP.
+This is Java JALoP Network Library (JJNL) v2.x.
 
-Building and Installing
+JJNL v2.x implements a subscriber that receives JAL Records over a network
+using the Journaling, Auditing, and Logging Protocol over HTTP (i.e.
+JALoP v2.x). Simply put, JJNL v2.x is a JALoP v2.x Subscriber.
+
+Building and Installing:
+
 This project uses the maven (maven.apache.org) build tool, and 
 is tested using the OpenJDK Runtime Environment (build 1.8.0_X).
 
@@ -17,30 +20,16 @@ directory. The various modules are:
  - jnl_lib - This module contains the code for the JJNL.
 
  - jnl_test - This module contains a utility program that acts as a JALoP Network
-      Store. It uses the JNL to either listen for incoming connections. It's
-      behaviour is governed by a configuration file.  The path to the configuration
+      Store. It uses the JNL to listen for incoming connections. It's behavior 
+      is governed by a configuration file.  The path to the configuration
       file is passed as a command line argument.
 
 Installation Instructions:
 
-1. Download and install maven:
-	(Follow instructions at http://maven.apache.org/download.html)
+1. Install maven:
+    % yum install maven
 
-# TODO remove this when we remove BEEP
-2. Install the target beepcore library
-    # Go to the root jjnl directory and run the following commands to determine the required beepcore version:
-        ver=$(gawk 'BEGIN{RS="<[^>]+>"}{if (RT=="</beepcore.version>"){print $1}}' jnl_parent/pom.xml)
-        echo $ver
-
-    # Install beepcore from the jjnl 3rd-party distribution directory
-        cd 3rd-party/beepcore-java/${ver}
-	gunzip beepcore-${ver}.tgz
-        tar xvf beepcore-${ver}.tar
-        cd beepcore-${ver}/lib
-        chmod 744 ./install_jars.sh
-        ./install_jars.sh
-     
-3. Package JALoP JNL project
+2. Package JALoP JNL project
 	# Go to the root directory for the jjnl repository. 
 	# Go into the jnl_parent subdirectory:
         cd {path_to}/jnl_parent
