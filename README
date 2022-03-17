@@ -1,7 +1,11 @@
-This is an implementation of a library that supports sending and receiving of
-JALoP Records over a network using the JALoP/BEEP protocol.
+This is Java JALoP Network Library (JJNL) v1.x.
 
-Building and Installing
+JJNL v1.x implements a library that supports sending and receiving of
+JALoP Records over a network using the JALoP over BEEP protocol. Simply put,
+JJNL v1.x is a JALoP v1.x (JALoP over BEEP) Publisher and Subscriber.
+
+Building and Installing:
+
 This project uses the maven (maven.apache.org) build tool version 3.2.1, and 
 is tested using the Oracle Java SE Development Kit 7u51. Other versions of
 the JDK/JVM and maven should work, but have not been tested.
@@ -23,8 +27,8 @@ running maven commands in the jnl_parent directory. The various modules are:
 
 Installation Instructions:
 
-1. Download and install maven:
-	(Follow instructions at http://maven.apache.org/download.html)
+1. Install maven:
+    % yum install maven
 
 2. Install the target beepcore library
     # Go to the root jjnl directory and run the following commands to determine the required beepcore version:
@@ -71,8 +75,6 @@ To generate Javadoc documentation, run:
 The generated documents will appear in the directory target/site.
 
 This project is built and tested in the following environments:
-  RedHat Enterprise Linux (RHEL) 5 on x86_64
   RHEL 6 on x86_64
-  RHEL 6 on i386
-  Solaris 10 TX 09/10 on i386
+  RHEL 7 on x86_64
 
