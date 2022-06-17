@@ -84,7 +84,7 @@ public final class ContextImpl implements Context {
 	private final Publisher publisher;
 	private final Subscriber subscriber;
 	private final ConnectionHandler connectionHandler;
-	private final List<Session> jalSessions;
+	private final List<TCPSession> jalSessions;
 	private final List<String> allowedMessageDigests;
 	private final List<String> allowedXmlEncodings;
 	private final int defaultDigestTimeout;
@@ -165,7 +165,7 @@ public final class ContextImpl implements Context {
 		}
 
 		this.connectionState = ConnectionState.DISCONNECTED;
-		this.jalSessions = Collections.synchronizedList(new ArrayList<Session>());
+		this.jalSessions = Collections.synchronizedList(new ArrayList<TCPSession>());
 
 		if (allowedMessageDigests != null && !allowedMessageDigests.isEmpty()) {
 			this.allowedMessageDigests = allowedMessageDigests;
@@ -235,6 +235,7 @@ public final class ContextImpl implements Context {
 
 		while(true) {
 			TCPSession session = TCPSessionCreator.listen(addr, port, profileRegistry);
+			jalSessions.add(session);
 			if (this.sslProperties != null)
 				session.requiresTLS(true);
 		}
@@ -272,6 +273,7 @@ public final class ContextImpl implements Context {
 		profileRegistry.addStartChannelListener(URI, new JNLStartChannelListener(), null);
 
 		TCPSession session = TCPSessionCreator.initiate(addr, port, profileRegistry);
+		jalSessions.add(session);
 
 		if (this.sslProfile != null) {
 		    session = this.sslProfile.startTLS(session);
@@ -324,6 +326,7 @@ public final class ContextImpl implements Context {
 		profileRegistry.addStartChannelListener(URI, new JNLStartChannelListener(), null);
 
 		TCPSession session = TCPSessionCreator.initiate(addr, port, profileRegistry);
+		jalSessions.add(session);
 
         if (this.sslProfile != null) {
 		    session = this.sslProfile.startTLS(session);
@@ -522,14 +525,20 @@ public final class ContextImpl implements Context {
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-
+		for(TCPSession sess : jalSessions) {
+			sess.terminate("Close called on JJNL context");
+		}
 	}
 
 	@Override
 	public void shutdown() {
-		// TODO Auto-generated method stub
-
+		for(TCPSession sess : jalSessions) {
+			try {
+				sess.close();
+			} catch(BEEPException e) {
+				sess.terminate("Graceful shutdown failed");
+			}
+		}
 	}
 
 	/**
