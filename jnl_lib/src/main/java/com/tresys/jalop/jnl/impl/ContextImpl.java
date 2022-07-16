@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
@@ -43,6 +44,9 @@ import org.beepcore.beep.core.OutputDataStream;
 import org.beepcore.beep.core.ProfileRegistry;
 import org.beepcore.beep.core.ReplyListener;
 import org.beepcore.beep.core.StartChannelListener;
+import org.beepcore.beep.core.event.SessionEvent;
+import org.beepcore.beep.core.event.SessionListener;
+import org.beepcore.beep.core.event.SessionResetEvent;
 import org.beepcore.beep.profile.Profile;
 import org.beepcore.beep.profile.ProfileConfiguration;
 import org.beepcore.beep.profile.tls.TLSProfile;
@@ -99,6 +103,12 @@ public final class ContextImpl implements Context {
     private final TLSProfile sslProfile;
 
     private final StartChannelListener sslListener;
+
+    private final AtomicBoolean reconnect;
+
+    private final AtomicBoolean closing;
+
+    private long retryInterval = 5000;
 
 	/**
 	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
@@ -201,6 +211,8 @@ public final class ContextImpl implements Context {
 			this.sslListener = null;
 		}
 		this.agent = agent;
+		this.reconnect = new AtomicBoolean(true);
+		this.closing = new AtomicBoolean(false);
 	}
 
 	@Override
@@ -246,11 +258,6 @@ public final class ContextImpl implements Context {
 	public void publish(final InetAddress addr, final int port, Mode mode,
 			final RecordType... types) throws IllegalArgumentException,
 			JNLException, BEEPException {
-
-		if (addr == null) {
-			throw new IllegalArgumentException("addr must be a valid InetAddress");
-		}
-
 		synchronized (this.connectionState) {
 			if (this.connectionState == ConnectionState.DISCONNECTED) {
 				this.connectionState = ConnectionState.CONNECTED;
@@ -259,76 +266,107 @@ public final class ContextImpl implements Context {
 			}
 		}
 
-		if (this.publisher == null) {
+		connect(Role.Publisher, addr, port, mode, types);
+
+	}
+
+	@Override
+	public void subscribe(final InetAddress addr, final int port, Mode mode,
+			final RecordType... types) throws JNLException, BEEPException {
+		synchronized (this.connectionState) {
+			if (this.connectionState == ConnectionState.DISCONNECTED) {
+				this.connectionState = ConnectionState.CONNECTED;
+			} else {
+				throw new ConnectionException();
+			}
+		}
+
+		connect(Role.Subscriber, addr, port, mode, types);
+	}
+
+	private void connect(final Role role, final InetAddress addr, final int port,
+			final Mode mode, final RecordType... types)
+			throws JNLException, BEEPException {
+
+		if (addr == null) {
+			throw new IllegalArgumentException("addr must be a valid InetAddress");
+		}
+
+
+		if (role == Role.Subscriber && this.subscriber == null) {
+			throw new JNLException("A subscriber must be set on ContextImpl if calling subscribe.");
+		}
+
+		if (role == Role.Publisher && this.publisher == null) {
 			throw new JNLException("A publisher must be set on ContextImpl if calling publish.");
 		}
 
 		final Set<RecordType> recordTypeSet = new HashSet<RecordType>(
 				Arrays.asList(types));
 		if (recordTypeSet.contains(RecordType.Unset)) {
-			throw new JNLException("Cannot publish with a RecordType of 'Unset'");
+			throw new JNLException("Cannot connect with a RecordType of 'Unset'");
 		}
 
 		final ProfileRegistry profileRegistry = new ProfileRegistry();
 		profileRegistry.addStartChannelListener(URI, new JNLStartChannelListener(), null);
 
-		TCPSession session = TCPSessionCreator.initiate(addr, port, profileRegistry);
+		TCPSession session = null;
+		while(true) {
+			try {
+				session = TCPSessionCreator.initiate(addr, port, profileRegistry);
+				break;
+			} catch(BEEPException e) {
+				if (!reconnect.get()) {
+					throw e;
+				} else if (log.isDebugEnabled()) {
+					log.debug("Unable to create BEEP session with " + addr.toString() + ":" + port + ": " + e.toString());
+				}
+			}
+
+			if (log.isDebugEnabled()) {
+				log.debug("Retrying connection to " + addr.toString() + ":" + port + " in " + String.valueOf(retryInterval) + "ms");
+			}
+			try {
+				Thread.sleep(retryInterval);
+			} catch(InterruptedException e) {
+				Thread.currentThread().interrupt();
+				if (log.isWarnEnabled()) {
+				  log.warn("Interrupted: " + e.toString());
+				}
+				return;
+			}
+		}
+
 		jalSessions.add(session);
+
+		// Add a callback function to reconnect if the session closes/terminates
+		session.addSessionListener(new SessionListener() {
+			@Override
+			public void greetingReceived(SessionEvent event) { /*noop */ }
+			@Override
+			public void sessionClosed(SessionEvent event) {
+				if (closing.get()) {
+					// close or shutdown is being used to close all connections
+					// those methods will handle cleanup to avoid concurrent modification
+					return;
+				}
+
+				jalSessions.remove((TCPSession) event.getSource());
+				if (reconnect.get()) {
+					try {
+						connect(role, addr, port, mode, types);
+					} catch(Exception e) {
+						if (log.isWarnEnabled()) {
+							log.warn("Failed to reconnect to " + addr.toString() + ":" + port + ": " + e.toString());
+						}
+					}
+				}
+			}
+			@Override
+			public void sessionReset(SessionResetEvent event) { /*noop*/ }
+		});
 
 		if (this.sslProfile != null) {
-		    session = this.sslProfile.startTLS(session);
-		}
-
-		for (final RecordType rt : recordTypeSet) {
-
-			final Channel channel = session.startChannel(URI, new PublisherRequestHandler(rt, this));
-
-			if (channel.getState() == Channel.STATE_ACTIVE) {
-
-				final ReplyListener listener = new InitListener(addr, Role.Publisher, rt, this);
-
-				final OutputDataStream ods = Utils.createInitMessage(
-						Role.Publisher, mode, rt, this.allowedXmlEncodings,
-						this.allowedMessageDigests, this.agent);
-
-				channel.sendMSG(ods, listener);
-			}
-		}
-	}
-
-	@Override
-	public void subscribe(final InetAddress addr, final int port, Mode mode,
-			final RecordType... types) throws JNLException, BEEPException {
-
-		if (addr == null) {
-			throw new IllegalArgumentException("addr must be a valid InetAddress");
-		}
-
-		synchronized (this.connectionState) {
-			if (this.connectionState == ConnectionState.DISCONNECTED) {
-				this.connectionState = ConnectionState.CONNECTED;
-			} else {
-				throw new ConnectionException();
-			}
-		}
-
-		if (this.subscriber == null) {
-			throw new JNLException("A subscriber must be set on ContextImpl if calling subscribe.");
-		}
-
-		final Set<RecordType> recordTypeSet = new HashSet<RecordType>(
-				Arrays.asList(types));
-		if (recordTypeSet.contains(RecordType.Unset)) {
-			throw new JNLException("Cannot subscribe with a RecordType of 'Unset'");
-		}
-
-		final ProfileRegistry profileRegistry = new ProfileRegistry();
-		profileRegistry.addStartChannelListener(URI, new JNLStartChannelListener(), null);
-
-		TCPSession session = TCPSessionCreator.initiate(addr, port, profileRegistry);
-		jalSessions.add(session);
-
-        if (this.sslProfile != null) {
 		    session = this.sslProfile.startTLS(session);
 		}
 
@@ -338,10 +376,10 @@ public final class ContextImpl implements Context {
 
 			if (channel.getState() == Channel.STATE_ACTIVE) {
 
-				final ReplyListener listener = new InitListener(addr, Role.Subscriber, rt, this);
+				final ReplyListener listener = new InitListener(addr, role, rt, this);
 
 				final OutputDataStream ods = Utils.createInitMessage(
-						Role.Subscriber, mode, rt, this.allowedXmlEncodings,
+						role, mode, rt, this.allowedXmlEncodings,
 						this.allowedMessageDigests, this.agent);
 
 				channel.sendMSG(ods, listener);
@@ -525,13 +563,18 @@ public final class ContextImpl implements Context {
 
 	@Override
 	public void close() {
+		reconnect.set(false);
+		closing.set(true);
 		for(TCPSession sess : jalSessions) {
 			sess.terminate("Close called on JJNL context");
 		}
+		jalSessions.clear();
 	}
 
 	@Override
 	public void shutdown() {
+		reconnect.set(false);
+		closing.set(true);
 		for(TCPSession sess : jalSessions) {
 			try {
 				sess.close();
@@ -539,6 +582,7 @@ public final class ContextImpl implements Context {
 				sess.terminate("Graceful shutdown failed");
 			}
 		}
+		jalSessions.clear();
 	}
 
 	/**
@@ -614,4 +658,25 @@ public final class ContextImpl implements Context {
 		DISCONNECTED
 	}
 
+	/**
+	 * @return connection retry interval in milliseconds
+	 */
+	public long getRetryInterval() {
+		return retryInterval;
+	}
+
+	/**
+	 * @param ms connection retry interval in milliseconds
+	 */
+	public void setRetryInterval(long ms) {
+		retryInterval = ms;
+	}
+
+	/**
+	 * Disable or re-enable automatic reconnections.
+	 * @param enabled boolean indicating whether automatic reconnections should be attempted
+	 */
+	public void enableRetries(boolean enabled) {
+		reconnect.set(enabled);
+	}
 }
