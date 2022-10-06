@@ -103,7 +103,7 @@ public class ConnectionHandlerImplTest {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				connRequest.getAddress(); result = InetAddress.getByName("localhost");
 				connRequest.getRecordType(); result = RecordType.Audit;
@@ -121,7 +121,7 @@ public class ConnectionHandlerImplTest {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				connRequest.getAddress(); result = address;
 			}
@@ -137,7 +137,7 @@ public class ConnectionHandlerImplTest {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				connRequest.getAddress(); result = InetAddress.getByName("localhost");
 				connRequest.getRole(); result = Role.Subscriber;
@@ -154,7 +154,7 @@ public class ConnectionHandlerImplTest {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(subPeerConfigs);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				connRequest.getAddress(); result = InetAddress.getByName("localhost");
 				connRequest.getRole(); result = Role.Publisher;
@@ -171,7 +171,7 @@ public class ConnectionHandlerImplTest {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				connRequest.getAddress(); result = InetAddress.getByName("localhost");
 				connRequest.getRecordType(); result = RecordType.Log;
@@ -189,7 +189,7 @@ public class ConnectionHandlerImplTest {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(subPeerConfigs);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				connRequest.getAddress(); result = InetAddress.getByName("localhost");
 				connRequest.getRecordType(); result = RecordType.Log;
