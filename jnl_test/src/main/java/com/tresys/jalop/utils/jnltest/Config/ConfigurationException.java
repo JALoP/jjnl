@@ -26,7 +26,7 @@ package com.tresys.jalop.utils.jnltest.Config;
 /**
  * A {@link ConfigurationException} is an exception that describes a problem in
  * a JNLTest configuration file.
- * 
+ *
  */
 public class ConfigurationException extends Exception {
 
@@ -37,7 +37,7 @@ public class ConfigurationException extends Exception {
 
 	/**
 	 * Create a new {@link ConfigurationException}.
-	 * 
+	 *
 	 * @param fileName
 	 *            An identifier for the configuration file.
 	 * @param msg

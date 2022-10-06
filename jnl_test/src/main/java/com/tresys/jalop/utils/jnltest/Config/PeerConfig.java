@@ -32,7 +32,6 @@ import com.tresys.jalop.jnl.RecordType;
  * A {@link PeerConfig} is part of the JNLTest configuration file. Each
  * {@link PeerConfig} indicates the types of operations a remote JALoP Network
  * Store may perform.
- * 
  */
 public class PeerConfig {
 	/** The types of records the remote may publish. */

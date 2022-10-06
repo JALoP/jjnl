@@ -736,14 +736,14 @@ public class Config {
 	 * @param mode
 	 *            The mode.
 	 */
-	public void setMode(final String mode) 
+	public void setMode(final String mode)
 			throws ConfigurationException {
 		if (mode.equalsIgnoreCase(MODE_LIVE)) {
 			this.mode = Mode.Live;
 		} else if (mode.equalsIgnoreCase(MODE_ARCHIVE)) {
 			this.mode = Mode.Archive;
 		} else {
-			throw new ConfigurationException(this.source, 
+			throw new ConfigurationException(this.source,
 				"Expected '" + MODE_LIVE + " or " + MODE_ARCHIVE);
 		}
 	}
@@ -792,11 +792,11 @@ public class Config {
 	/**
 	 * Build a structure suitable to pass into the beepcore framework for SSL.
 	 * @param ssl The JSON object that contains all the keys to configure SSL.
-	 * 
+	 *
 	 * These keys are passed directly to the
 	 * {@link TLSProfileJSSE#init(String, ProfileConfiguration)}, so any keys
 	 * recognized by that class are valid here.
-	 * 
+	 *
 	 * @see TLSProfileJSSE#init(String, ProfileConfiguration)
 	 */
     @SuppressWarnings("rawtypes") // because the JSON map doesn't use generics

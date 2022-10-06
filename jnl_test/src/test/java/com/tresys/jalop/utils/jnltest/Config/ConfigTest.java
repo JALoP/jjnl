@@ -73,7 +73,7 @@ public class ConfigTest {
         sub.put("output", "./output");
         sub.put("sessionTimeout", "00:00:00");
         sub.put("mode", "Live");
-        
+
 	    pub = new JSONObject();
         pub.put("dataClass", dataClassArray);
 	    pub.put("input", "./input");
