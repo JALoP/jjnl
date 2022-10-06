@@ -1,3 +1,8 @@
+Summary of release 1.1.0.0 changes (Fri Oct 07 2022) -
+    - Added RHEL 8 support.
+    - Added Java 11 support.
+    - Enable jnl_test Subscriber (when acting as JALoP Initiator) periodically try to connect with JALoP Publisher when the later is not running or disconnected for any reason.
+
 Summary of release 1.0.0.5 changes (Sat Jan 08 2022) -
     - Upgraded to log4j-2.17.1 to mitigate CVE-2021-44832.
 
