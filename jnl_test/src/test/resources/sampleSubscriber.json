@@ -2,7 +2,7 @@
   "address": "192.168.65.10",
   "port": 1234,
   "subscriber": {
-  	"sessionTimeout": "00:20:00",
+  	"sessionTimeout": "00:00:00",
   	"dataClass": [ "log", "log" ],
   	"pendingDigestMax": 1,
   	"pendingDigestTimeout": 120,
