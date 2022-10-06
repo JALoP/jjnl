@@ -35,8 +35,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.xml.soap.MimeHeader;
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeader;
+import jakarta.xml.soap.MimeHeaders;
 
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
@@ -822,7 +822,7 @@ public class Utils {
 	 * @param is
 	 *            The BEEP {@link InputDataStreamAdapter} that holds the
 	 *            message.
-	 * @param messagePayload 
+	 * @param messagePayload
 	 *            Holds the combined payload string for segmented
 	 *            messages.
 	 * @return an {@link DigestResponse}
@@ -835,7 +835,7 @@ public class Utils {
 	 *             header.
 	 */
 	static public DigestResponse processDigestResponse(
-			final InputDataStreamAdapter is, String messagePayload) 
+			final InputDataStreamAdapter is, String messagePayload)
 				throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
 
 		final MimeHeaders[] headers = processMessageCommon(is,
@@ -851,7 +851,7 @@ public class Utils {
 	}
 
 	private static Map<String, DigestStatus> getDigestStatuses(
-			final InputDataStreamAdapter is, final int count, String messagePayload) 
+			final InputDataStreamAdapter is, final int count, String messagePayload)
 				throws BEEPException {
 		final Map<String, DigestStatus> ret = new HashMap<String, DigestStatus>();
 		ret.clear();

@@ -23,7 +23,7 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 /**
  * This represents an 'initialize-ack' message.
@@ -38,7 +38,7 @@ public class InitAckMessage extends Message {
 	/**
 	 * Create a new InitAckMessage for the given XML encoding and message
 	 * digest.
-	 * 
+	 *
 	 * @param encoding
 	 *            The XML encoding.
 	 * @param digest
@@ -55,7 +55,7 @@ public class InitAckMessage extends Message {
 
 	/**
 	 * Get the selected message digest.
-	 * 
+	 *
 	 * @return the digest
 	 */
 	public String getDigest() {
@@ -64,7 +64,7 @@ public class InitAckMessage extends Message {
 
 	/**
 	 * Get the selected XML encoding.
-	 * 
+	 *
 	 * @return the encoding
 	 */
 	public String getEncoding() {

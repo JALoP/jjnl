@@ -25,7 +25,7 @@ package com.tresys.jalop.jnl.impl.messages;
 
 import java.util.Map;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 /**
  * This represents a digest message.
@@ -38,7 +38,7 @@ public class DigestMessage extends Message {
 
 	/**
 	 * Create a new {@link DigestMessage}
-	 * 
+	 *
 	 * @param nonce
 	 *            The map of nonces and digests sent in the message.
 	 * @param otherHeaders
@@ -51,7 +51,7 @@ public class DigestMessage extends Message {
 
 	/**
 	 * Get the map of nonces and digests in this message.
-	 * 
+	 *
 	 * @return the map
 	 */
 	public Map<String, String> getMap() {

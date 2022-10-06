@@ -23,7 +23,7 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 /**
  * This represents a 'journal-resume' message. A 'journal-resume' message
@@ -37,7 +37,7 @@ public class JournalResumeMessage extends Message {
 
 	/**
 	 * Create a {@link JournalResumeMessage}
-	 * 
+	 *
 	 * @param nonce
 	 *            The nonce for the journal record to resume.
 	 * @param offset
@@ -55,7 +55,7 @@ public class JournalResumeMessage extends Message {
 
 	/**
 	 * Get the nonce indicated in this message.
-	 * 
+	 *
 	 * @return the nonce
 	 */
 	public String getNonce() {
@@ -65,7 +65,7 @@ public class JournalResumeMessage extends Message {
 	/**
 	 * Obtain the offset for the journal-resume message, i.e. the number of
 	 * bytes that have already been transferred.
-	 * 
+	 *
 	 * @return the offset
 	 */
 	public long getOffset() {

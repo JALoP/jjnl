@@ -25,7 +25,7 @@ package com.tresys.jalop.jnl.impl.messages;
 
 import java.util.Map;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import com.tresys.jalop.jnl.DigestStatus;
 

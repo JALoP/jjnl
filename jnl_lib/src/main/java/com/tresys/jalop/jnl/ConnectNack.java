@@ -27,18 +27,18 @@ package com.tresys.jalop.jnl;
 import java.net.InetAddress;
 import java.util.Set;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 /**
  * This represents a 'connect-nack' message from the remote JALoP Network Store.
- * 
+ *
  * @see ConnectionHandler#connectNack(Session, ConnectNack)
  */
 public interface ConnectNack {
 	/**
 	 * Retrieve the {@link InetAddress} of the remote JALoP Network Store that
 	 * rejected the connection.
-	 * 
+	 *
 	 * @return the {@link InetAddress} address of the remote JALoP Network
 	 *         Store.
 	 */
@@ -47,7 +47,7 @@ public interface ConnectNack {
 	/**
 	 * Retrieve the set of errors that were indicated in the 'connect-ack'
 	 * message.
-	 * 
+	 *
 	 * @return A set of errors.
 	 */
 	Set<String> getErrors();
@@ -55,7 +55,7 @@ public interface ConnectNack {
 	/**
 	 * Retrieve all the MIME headers that were sent as part of the connect-nack
 	 * message.
-	 * 
+	 *
 	 * @return The MIME headers.
 	 */
 	MimeHeaders getHeaders();

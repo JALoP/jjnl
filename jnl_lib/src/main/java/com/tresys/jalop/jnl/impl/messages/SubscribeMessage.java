@@ -23,7 +23,7 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 /**
  * This represents a subscribe message.
@@ -33,7 +33,7 @@ public class SubscribeMessage extends Message {
 
 	/**
 	 * Create a new {@link SubscribeMessage}
-	 * 
+	 *
 	 * @param nonce
 	 *            The nonce sent in the message.
 	 * @param otherHeaders
@@ -46,7 +46,7 @@ public class SubscribeMessage extends Message {
 
 	/**
 	 * Get the nonce indicated in this message.
-	 * 
+	 *
 	 * @return the nonce
 	 */
 	public String getNonce() {

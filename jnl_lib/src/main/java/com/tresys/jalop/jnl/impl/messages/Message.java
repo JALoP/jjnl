@@ -23,7 +23,7 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 /**
  * Generic base class for JALoP Messages.
@@ -37,7 +37,7 @@ public class Message {
 
 	/**
 	 * Create a JALoP Message.
-	 * 
+	 *
 	 * @param otherHeaders
 	 *            Any additional (unrecognized) headers;
 	 */

@@ -26,7 +26,7 @@ package com.tresys.jalop.jnl;
 
 import java.util.Map;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import com.tresys.jalop.jnl.Mode;
 
@@ -35,14 +35,14 @@ import com.tresys.jalop.jnl.Mode;
  * interface if they wish to act as a JALoP Publisher. Their object must be
  * registered with a {@link Context} prior to initiating, or listening for,
  * connections.
- * 
+ *
  * @see Context#registerPublisher(Publisher)
  */
 public interface Publisher {
 	/**
 	 * The library executes this method when the remote JALoP Network Store
 	 * attempts to resume a journal record.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link PublisherSession} that received the
 	 *            "journal-resume" message.
@@ -67,7 +67,7 @@ public interface Publisher {
 	 * sends a "subscribe" message. If this function returns <tt>false</tt> then
 	 * the library will start the process to close down this
 	 * {@link PublisherSession}.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link PublisherSession} that received the "subscribe"
 	 *            message.
@@ -87,7 +87,7 @@ public interface Publisher {
 	/**
 	 * The library executes this method when it finishes transferring a JAL
 	 * record to a remote JALoP Network Store.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link PublisherSession} that sent the JAL record.
 	 * @param serailId
@@ -106,7 +106,7 @@ public interface Publisher {
 	/**
 	 * The library executes this method when it receives a "sync" message from
 	 * the remote JALoP Network Store.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link PublisherSession} that received the "sync" message.
 	 * @param nonce
@@ -122,7 +122,7 @@ public interface Publisher {
 	/**
 	 * The library executes this method once it calculates the digest for a
 	 * particular record.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link PublisherSession} that calculated the digest.
 	 * @param nonce
@@ -136,7 +136,7 @@ public interface Publisher {
 	/**
 	 * The library executes this method after it receives a "digest" message
 	 * from the remote JALoP Network Store.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link PublisherSession} that calculated the digest.
 	 * @param digestPairs

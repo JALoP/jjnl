@@ -23,7 +23,7 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 /**
  * This represents a subscribe message.

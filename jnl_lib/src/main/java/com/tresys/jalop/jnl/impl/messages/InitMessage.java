@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
@@ -69,7 +69,7 @@ public class InitMessage extends Message {
 
 	/**
 	 * Create an {@link InitMessage} object.
-	 * 
+	 *
 	 * @param recordType
 	 *            The type of record to transfer over this connection
 	 * @param role
@@ -119,7 +119,7 @@ public class InitMessage extends Message {
 
 	/**
 	 * Get the ordered list of proposed digest algorithms.
-	 * 
+	 *
 	 * @return The list of proposed digest algorithms
 	 */
 	public List<String> getAcceptDigests() {
@@ -128,7 +128,7 @@ public class InitMessage extends Message {
 
 	/**
 	 * Get the ordered list of proposed digest encodings.
-	 * 
+	 *
 	 * @return The list of proposed encodings.
 	 */
 	public List<String> getAcceptEncodings() {
@@ -137,7 +137,7 @@ public class InitMessage extends Message {
 
 	/**
 	 * Retrieve the JAL-Agent string (if any).
-	 * 
+	 *
 	 * @return The JAL-Agent string indicated in the message
 	 */
 	public String getAgentString() {
@@ -147,7 +147,7 @@ public class InitMessage extends Message {
 	/**
 	 * Retrieve the {@link RecordType} that the should be transferred over this
 	 * channel.
-	 * 
+	 *
 	 * @return The RecordType indicated in the message.
 	 */
 	public RecordType getRecordType() {
@@ -156,7 +156,7 @@ public class InitMessage extends Message {
 
 	/**
 	 * Retrieve the {@link Role} that should be adopoted.
-	 * 
+	 *
 	 * @return The Role indicated in the message.
 	 */
 	public Role getRole() {
@@ -165,7 +165,7 @@ public class InitMessage extends Message {
 
 	/**
 	 * Retrieve the {@link Mode} that should be adopted.
-	 * 
+	 *
 	 * @return The Mode indicated in the message.
 	 */
 	public Mode getMode() {

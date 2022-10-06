@@ -25,7 +25,7 @@ package com.tresys.jalop.jnl.impl.messages;
 
 import java.util.List;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 
@@ -39,7 +39,7 @@ public class InitNackMessage extends Message {
 
 	/**
 	 * Create an InitNackMessage with the provided errors.
-	 * 
+	 *
 	 * @param errors
 	 *            The list of errors.
 	 * @param unknownHeaders
@@ -53,7 +53,7 @@ public class InitNackMessage extends Message {
 
 	/**
 	 * Get the list of errors.
-	 * 
+	 *
 	 * @return The list of {@link ConnectError}s.
 	 */
 	public List<ConnectError> getErrorList() {
