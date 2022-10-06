@@ -34,7 +34,7 @@ import com.tresys.jalop.jnl.Mode;
  * interface if they wish to act as a JALoP Subscriber. Their <tt>Object</tt>
  * must be registered with a {@link Context} prior to initiating, or listening
  * for, connections.
- * 
+ *
  * @see Context#registerSubscriber(Subscriber)
  */
 public interface Subscriber {
@@ -43,7 +43,7 @@ public interface Subscriber {
 	 * "subscribe" or "journal-resume" message. If the {@link Subscriber}
 	 * returns <tt>null</tt>, or an otherwise invalid {@link SubscribeRequest},
 	 * then the {@link SubscriberSession} will shutdown.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link SubscriberSession}
 	 * @return Details to send in a "subscribe" or "journal-resume" message.
@@ -58,7 +58,7 @@ public interface Subscriber {
 	 * returning from this function. Once control is returned to the library,
 	 * the {@link SubscriberSession} will drain <tt>sysMetaData</tt>, and the
 	 * contents will no longer be available.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link SubscriberSession} that received the data.
 	 * @param recordInfo
@@ -83,7 +83,7 @@ public interface Subscriber {
 	 * from <tt>appMetaData</tt> before returning from this function. Once
 	 * control is returned to the library, the {@link SubscriberSession} will
 	 * drain <tt>appMetaData</tt>, and the contents will no longer be available.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link SubscriberSession} that received the data.
 	 * @param recordInfo
@@ -108,7 +108,7 @@ public interface Subscriber {
 	 * from <tt>payload</tt> before returning from this function. Once control
 	 * is returned to the library, the {@link SubscriberSession} will drain
 	 * <tt>payload</tt>, and the contents will no longer be available.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link SubscriberSession} that received the data.
 	 * @param recordInfo
@@ -127,7 +127,7 @@ public interface Subscriber {
 	/**
 	 * The {@link SubscriberSession} executes this method to notify the
 	 * application of the digest value it calculated for a specific JAL record.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link SubscriberSession} that calculated the digest
 	 *            value.
@@ -145,7 +145,7 @@ public interface Subscriber {
 	/**
 	 * The {@link SubscriberSession} executes this method to notify the
 	 * application when it receives a digest.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link SubscriberSession} that received the message.
 	 * @param nonce
@@ -153,7 +153,7 @@ public interface Subscriber {
 	 * @param status
 	 *            {@link DigestStatus}, indicating if the
 	 *            remote JALoP Network Store agrees with the digest value
-	 *            calculated locally for the specified nonce. 
+	 *            calculated locally for the specified nonce.
 	 * @return true to continue receiving JAL records on this
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
@@ -163,7 +163,7 @@ public interface Subscriber {
 	/**
 	 * The {@link ContextImpl} executes this method to get the
 	 * {@link Mode} to create the {@link SubscribeRequest}.
-	 * 
+	 *
 	 * @return {@link Mode}, either Archive or Live
 	 */
 	Mode getMode();

@@ -28,13 +28,13 @@ package com.tresys.jalop.jnl;
  * Represents a specific JALoP session. A {@link Session} the connection between
  * two JALoP Network Stores used to transfer JAL records from the Publisher the
  * Subscriber.
- * 
+ *
  */
 public interface Session {
 	/**
 	 * Retrieve the type of record that is being transferred using this
 	 * {@link Session}.
-	 * 
+	 *
 	 * @return The type of JAL records this {@link Session} transfers.
 	 */
 	RecordType getRecordType();
@@ -46,7 +46,7 @@ public interface Session {
 	 * then this {@link Session} may be safely cast to {@link SubscriberSession}
 	 * . If {@link Role#Unset} is returned, it means negotiation with the remote
 	 * JALoP Network Store has failed, or is not complete yet.
-	 * 
+	 *
 	 * @return The {@link Role} of this {@link Session}
 	 */
 	Role getRole();
@@ -68,7 +68,7 @@ public interface Session {
 
 	/**
 	 * Checks the {@link Session} to determine if it is still active.
-	 * 
+	 *
 	 * @return <tt>true</tt> if the {@link Session} is still connected and
 	 *         active, <tt>false</tt> otherwise.
 	 */
@@ -76,7 +76,7 @@ public interface Session {
 
 	/**
 	 * Get the digest method that is being used on this {@link Session}.
-	 * 
+	 *
 	 * @return The digest method, or null if the digest method is not set, or
 	 *         session negotiation has failed.
 	 * @see Context#setAllowedMessageDigests(Iterable)
@@ -85,7 +85,7 @@ public interface Session {
 
 	/**
 	 * Get the XML encoding that is being used on this {@link Session}.
-	 * 
+	 *
 	 * @return The XML encoding, or null if no XML encoding is set, or session
 	 *         negotiation has failed.
 	 * @see Context#setAllowedXmlEncodings(Iterable)

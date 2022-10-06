@@ -95,7 +95,7 @@ public class DigestListener implements ReplyListener {
 
 			if (this.messagePayload.containsKey(key)) {
 				// Append payload to any previous partially received payloads and save
-				final String previousPayload = this.messagePayload.get(key); 
+				final String previousPayload = this.messagePayload.get(key);
 				this.messagePayload.put(key, previousPayload + newPayload);
 			} else {
 				// Otherwise save the new payload
@@ -103,7 +103,7 @@ public class DigestListener implements ReplyListener {
 			}
 
 			if (data.isComplete() == true) {
-				final DigestResponse msg = Utils.processDigestResponse(data, this.messagePayload.get(key)); 
+				final DigestResponse msg = Utils.processDigestResponse(data, this.messagePayload.get(key));
 				final Map<String, DigestStatus> statusMap = msg.getMap();
 
 				final Set<String> nonces = statusMap.keySet();
@@ -113,7 +113,7 @@ public class DigestListener implements ReplyListener {
 					if(this.digestsSent.containsKey(nonce)) {
 						// Execute the notify digest callback which will take care of moving the record from temp to perm
 						if (this.subscriberSession.getSubscriber().notifyDigestResponse(this.subscriberSession, nonce, statusMap.get(nonce))) {
-							// For a confirmed digest, send a sync message and remove the nonce from the sent queue 																  
+							// For a confirmed digest, send a sync message and remove the nonce from the sent queue 																
 							if(statusMap.get(nonce) == DigestStatus.Confirmed) {
 								final OutputDataStream ods = Utils.createSyncMessage(nonce);
 								message.getChannel().sendMSG(ods, this);

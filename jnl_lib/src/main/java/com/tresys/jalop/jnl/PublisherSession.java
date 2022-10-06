@@ -39,7 +39,7 @@ public interface PublisherSession extends Session {
 	void sendRecord(final SourceRecord rec);
 
 	/**
-	 * Called by the publishing network store to indicate it is done sending records 
+	 * Called by the publishing network store to indicate it is done sending records
 	 */
 	void complete();
 }

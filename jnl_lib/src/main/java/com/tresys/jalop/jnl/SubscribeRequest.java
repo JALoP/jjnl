@@ -43,7 +43,7 @@ public interface SubscribeRequest {
 	/**
 	 * The library will call this method to determine the nonce to send as
 	 * part of of a "subscribe" or "journal-resume" message.
-	 * 
+	 *
 	 * @return the nonce to send.
 	 */
 	String getNonce();
@@ -54,7 +54,7 @@ public interface SubscribeRequest {
 	 * records. If the value returned by this function is <= 0, or <tt>null</tt>
 	 * is returned by {@link SubscribeRequest#getResumeInputStream()}, no resume
 	 * is attempted, and a "subscribe" request is generated.
-	 * 
+	 *
 	 * @return the number of bytes that were previously transfered.
 	 */
 	long getResumeOffset();
@@ -67,7 +67,7 @@ public interface SubscribeRequest {
 	 * is <tt>null</tt>, or 0 is returned by
 	 * {@link SubscribeRequest#getResumeOffset()}, no resume is attempted, and a
 	 * "subscribe" request is generated.
-	 * 
+	 *
 	 * @return an {@link InputStream} for the previously transferred data.
 	 */
 	InputStream getResumeInputStream();

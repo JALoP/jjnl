@@ -82,7 +82,7 @@ public interface ConnectionHandler {
 	 * <p>
 	 * If the library cannot find a suitable match for either the message
 	 * digest, or the XML encoding, <tt>rejecting</tt> is set to true.
-	 * 
+	 *
 	 * @param rejecting
 	 *            Set to <tt>true</tt> if the library is planning on rejecting
 	 *            this connection.
@@ -99,7 +99,7 @@ public interface ConnectionHandler {
 	/**
 	 * This notification is called any time a {@link Session} is closed (whether
 	 * gracefully or not).
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link Session} that was closed.
 	 */
@@ -108,7 +108,7 @@ public interface ConnectionHandler {
 	/**
 	 * This notification is called any time the underlying {@link Connection} is
 	 * closed (whether gracefully or not).
-	 * 
+	 *
 	 * @param conn
 	 *            The {@link Connection} that was closed.
 	 */
@@ -118,7 +118,7 @@ public interface ConnectionHandler {
 	 * This notification is called after the library receives a "connect-ack"
 	 * message that signals a JALoP session was successfully created.
 	 * <tt>ack</tt> contains all the details of the negotiated session.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link Session}
 	 * @param ack
@@ -131,7 +131,7 @@ public interface ConnectionHandler {
 	 * message that signals the remote JALoP Network Store rejected the creation
 	 * of the JALoP session. <tt>nack</tt> contains all the details of the
 	 * negotiated session.
-	 * 
+	 *
 	 * @param sess
 	 *            The {@link Session} where the channel was reject
 	 * @param nack

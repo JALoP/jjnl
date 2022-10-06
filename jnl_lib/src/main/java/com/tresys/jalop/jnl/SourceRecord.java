@@ -29,7 +29,7 @@ import java.io.InputStream;
 /**
  * {@link Publisher}s are responsible for creating an object that implements
  * this interface in order to send JAL records to a remote JALoP Network Store.
- * 
+ *
  * @see Publisher#getNextRecord(PublisherSession, String)
  * @see Publisher#onJournalResume(PublisherSession, String, long, MimeHeaders)
  */
@@ -41,7 +41,7 @@ public interface SourceRecord extends RecordInfo {
 	 * {@link Publisher} do this when the library calls
 	 * {@link Publisher#onRecordComplete(PublisherSession, String, SourceRecord)}
 	 * .
-	 * 
+	 *
 	 * @return an {@link InputStream} for the system meta-data.
 	 */
 	InputStream getSysMetadata();
@@ -53,7 +53,7 @@ public interface SourceRecord extends RecordInfo {
 	 * {@link Publisher} do this when the library calls
 	 * {@link Publisher#onRecordComplete(PublisherSession, String, SourceRecord)}
 	 * .
-	 * 
+	 *
 	 * @return an {@link InputStream} for the application meta-data.
 	 */
 	InputStream getAppMetadata();
@@ -65,7 +65,7 @@ public interface SourceRecord extends RecordInfo {
 	 * {@link Publisher} do this when the library calls
 	 * {@link Publisher#onRecordComplete(PublisherSession, String, SourceRecord)}
 	 * .
-	 * 
+	 *
 	 * @return an {@link InputStream} for the payload.
 	 */
 	InputStream getPayload();

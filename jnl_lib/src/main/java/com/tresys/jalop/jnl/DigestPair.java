@@ -28,12 +28,12 @@ package com.tresys.jalop.jnl;
  * A {@link DigestPair} represents both the locally and remotely calculated
  * digest for a single JAL record. The {@link Context} delivers
  * {@link DigestPair}s to a {@link Publisher}.
- * 
+ *
  */
 public interface DigestPair {
 	/**
 	 * Retrieve the nonce for the record.
-	 * 
+	 *
 	 * @return the nonce
 	 */
 	String getNonce();
@@ -42,7 +42,7 @@ public interface DigestPair {
 	 * Retrieve the digest value that the {@link Context} calculated for this
 	 * particular record. If {@link DigestPair#getDigestStatus()} reports
 	 * {@link DigestStatus#Unknown}, this method returns null.
-	 * 
+	 *
 	 * @return A byte array that is the message digest.
 	 */
 	byte[] getLocalDigest();
@@ -50,14 +50,14 @@ public interface DigestPair {
 	/**
 	 * Retrieve the digest value that the remote JALoP Network Store calculated
 	 * for this particular record.
-	 * 
+	 *
 	 * @return A byte array that is the message digest.
 	 */
 	byte[] getPeerDigest();
 
 	/**
 	 * Retrieve the status that was reported to the remote JALoP Network Store.
-	 * 
+	 *
 	 * @return The {@link DigestStatus}.
 	 */
 	DigestStatus getDigestStatus();

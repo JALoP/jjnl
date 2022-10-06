@@ -26,7 +26,7 @@ package com.tresys.jalop.jnl;
 
 /**
  * Enum to distinguish between the different roles of JALoP.
- * 
+ *
  */
 public enum Role {
 	/**

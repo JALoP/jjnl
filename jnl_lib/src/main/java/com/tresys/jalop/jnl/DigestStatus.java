@@ -27,7 +27,7 @@ package com.tresys.jalop.jnl;
 /**
  * The {@link DigestStatus} indicates whether or not two JALoP Network Stores
  * calculated the same message digest for a particular JAL record.
- * 
+ *
  */
 public enum DigestStatus {
 	/**

@@ -31,42 +31,42 @@ public interface RecordInfo {
 	/**
 	 * Get the nonce of the record. Nonces are always determined by the
 	 * publisher.
-	 * 
+	 *
 	 * @return the nonce of the record.
 	 */
 	String getNonce();
 
 	/**
-	 * Get the offset of the journal record. 
-	 * 
+	 * Get the offset of the journal record.
+	 *
 	 * @return the offset of the journal record.
 	 */
 	long getOffset();
 
 	/**
 	 * Get the type of JAL record.
-	 * 
+	 *
 	 * @return The type of record.
 	 */
 	RecordType getRecordType();
 
 	/**
 	 * Get the size of the system meta-data.
-	 * 
+	 *
 	 * @return the size (in bytes) of the system meta-data.
 	 */
 	long getSysMetaLength();
 
 	/**
 	 * Get the size of the application meta-data.
-	 * 
+	 *
 	 * @return the size (in bytes) of the application meta-data.
 	 */
 	long getAppMetaLength();
 
 	/**
 	 * Get the size of the payload.
-	 * 
+	 *
 	 * @return the size (in bytes) of the payload.
 	 */
 	long getPayloadLength();

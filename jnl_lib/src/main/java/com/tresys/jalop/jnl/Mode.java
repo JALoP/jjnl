@@ -26,7 +26,7 @@ package com.tresys.jalop.jnl;
 
 /**
  * Enum to distinguish between the different publish modes of JALoP.
- * 
+ *
  */
 public enum Mode {
 	/**

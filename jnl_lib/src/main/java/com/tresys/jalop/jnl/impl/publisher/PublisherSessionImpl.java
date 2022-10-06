@@ -311,10 +311,10 @@ public class PublisherSessionImpl extends SessionImpl implements
 						}
 						// Add BufferSegment to linked list for sending
 						ods.add(b);
-						buffer = new byte[BUFFER_SIZE]; 
+						buffer = new byte[BUFFER_SIZE];
 					}
 					else {
-						log.debug("Zero bytes read. Skipping segement add."); 
+						log.debug("Zero bytes read. Skipping segement add.");
 					}
 				}
 				inStream.close();
@@ -353,7 +353,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 			sendERR(msg);
 		}
 
-	} 
+	}
 	public void sendERR(final MessageMSG message) {
 		try {
 			message.sendERR(new BEEPError(BEEPError.CODE_REQUESTED_ACTION_ABORTED));

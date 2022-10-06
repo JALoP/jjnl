@@ -32,13 +32,13 @@ import java.util.List;
  * Network Store to create a new JALoP session. The {@link Context} delivers
  * this to the registered {@link ConnectionHandler} when it receives a request
  * from a remote JALoP Network Store to create a new JALoP Session.
- * 
+ *
  * @see ConnectionHandler#handleConnectionRequest(boolean, ConnectionRequest)
  */
 public interface ConnectionRequest {
 	/**
 	 * Retrieve the {@link InetAddress} of the remote JALoP Network Store.
-	 * 
+	 *
 	 * @return an {@link InetAddress}.
 	 */
 	InetAddress getAddress();
@@ -46,7 +46,7 @@ public interface ConnectionRequest {
 	/**
 	 * Retrieve the record type that the remote JALoP Network Store wishes to
 	 * transfer over this session.
-	 * 
+	 *
 	 * @return the {@link RecordType}
 	 */
 	RecordType getRecordType();
@@ -54,14 +54,14 @@ public interface ConnectionRequest {
 	/**
 	 * Retrieve the version of JALoP the remote JALoP Network Store wishes to
 	 * speak.
-	 * 
+	 *
 	 * @return The requested JALoP version.
 	 */
 	int getJalopVersion();
 
 	/**
 	 * Retrieve the ordered list of XML encodings the remote JALoP Network Store
-	 * 
+	 *
 	 * @return the list of XML encodings.
 	 * @see Context#setAllowedXmlEncodings(Iterable)
 	 */
@@ -70,7 +70,7 @@ public interface ConnectionRequest {
 	/**
 	 * Retrieve the ordered list of message digests proposed by the remote JALoP
 	 * Network Store.
-	 * 
+	 *
 	 * @return The list of message digests.
 	 * @see Context#setAllowedMessageDigests(Iterable)
 	 */
@@ -82,14 +82,14 @@ public interface ConnectionRequest {
 	 * to act as a publisher. Conversely, when the {@link Role} is set to
 	 * {@link Role#Subscriber}, this indicates the remote JALoP Network Store
 	 * wishes to act as a subscriber.
-	 * 
+	 *
 	 * @return The desired role as indicated by the remote JALoP Network Store.
 	 */
 	Role getRole();
 
 	/**
 	 * Retrieve the jalop-agent (if any) for the remote JALoP Network Store.
-	 * 
+	 *
 	 * @return the JALoP agent string.
 	 */
 	String getAgent();
@@ -100,7 +100,7 @@ public interface ConnectionRequest {
 	 * {@link ConnectionRequest#getXmlEncodings()}. The encoding may be set any
 	 * number of times. Each subsequent call will replace any previously
 	 * selected encodings..
-	 * 
+	 *
 	 * @param encoding
 	 *            The XML encoding to use.
 	 */
@@ -112,7 +112,7 @@ public interface ConnectionRequest {
 	 * {@link ConnectionRequest#getMessageDigests()}. The message digest may be
 	 * set any number of times. Each subsequent call will replace any previously
 	 * selected encodings.
-	 * 
+	 *
 	 * @param messageDigest
 	 *            the message digest to use.
 	 */
@@ -120,14 +120,14 @@ public interface ConnectionRequest {
 
 	/**
 	 * Retrieve the currently selected XML encoding.
-	 * 
+	 *
 	 * @return The currently selected XML encoding.
 	 */
 	String getSelectedXmlEncoding();
 
 	/**
 	 * Retrieve the currently selected message digest.
-	 * 
+	 *
 	 * @return The currently selected message digest.
 	 */
 	String getSelectedXmlDigest();
