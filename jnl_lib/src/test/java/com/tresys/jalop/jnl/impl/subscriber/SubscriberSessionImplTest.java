@@ -424,7 +424,7 @@ public class SubscriberSessionImplTest {
 				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
 				2, 0, sess);
 
-		new NonStrictExpectations(s) {
+		new Expectations(s) {
 			{
 				s.isOk();
 				result = false;
@@ -449,10 +449,8 @@ public class SubscriberSessionImplTest {
 				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
 				2, 0, sess);
 
-		new NonStrictExpectations(s) {
+		new Expectations(s) {
 			{
-				s.isOk();
-				result = true;
 				sess.startChannel(anyString, false, anyString);
 				result = new BEEPException("");
 			}

@@ -26,7 +26,7 @@ package com.tresys.jalop.jnl.impl.messages;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import org.junit.Test;
 

@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.crypto.dsig.DigestMethod;
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import mockit.*;
 
@@ -135,7 +135,7 @@ public class ListenerProfileTest {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				sess.getTuningProperties(); result = tuning;
 				tuning.getEncrypted(); result = true;
@@ -151,7 +151,7 @@ public class ListenerProfileTest {
 
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				sess.getTuningProperties(); result = tuning;
 				tuning.getEncrypted(); result = false;
@@ -199,7 +199,7 @@ public class ListenerProfileTest {
             }
         };
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				contextImpl.findSubscriberSession((Session) any, anyInt); result = subSess;
 			}
@@ -223,7 +223,7 @@ public class ListenerProfileTest {
 		final ListenerProfile profile = new ListenerProfile(contextImpl, address);
 		roleField.set(profile, Role.Publisher);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				contextImpl.findPublisherSession((Session) any, anyInt); result = pubSess;
 			}
@@ -263,7 +263,7 @@ public class ListenerProfileTest {
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -281,7 +281,6 @@ public class ListenerProfileTest {
                 contextImpl.getDefaultPendingDigestMax(); result = 1;
                 channel.getNumber(); result = 5;
                 subscriber.getSubscribeRequest((SubscriberSession) any); result = request;
-                request.getNonce(); result = "1";
                 Utils.createInitAckMessage(anyString, anyString); result = ods;
 			}
 		};
@@ -312,7 +311,7 @@ public class ListenerProfileTest {
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -363,7 +362,7 @@ public class ListenerProfileTest {
 				digests, "agent", otherHeaders);
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -407,7 +406,7 @@ public class ListenerProfileTest {
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 		connectErrors.add(ConnectError.UnauthorizedMode);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -449,7 +448,7 @@ public class ListenerProfileTest {
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 		connectErrors.add(ConnectError.UnauthorizedMode);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -462,7 +461,6 @@ public class ListenerProfileTest {
                 connectionHandler.handleConnectionRequest(false, (ConnectionRequest) any); result = connectErrors;
                 contextImpl.getAllowedXmlEncodings(); result = Arrays.asList(otherEncodings);
                 contextImpl.getAllowedMessageDigests(); result = Arrays.asList(digests);
-                Utils.createInitNackMessage(new ArrayList<ConnectError>(connectErrors)); result = ods;
 			}
 		};
 
@@ -491,7 +489,7 @@ public class ListenerProfileTest {
 		final Set<ConnectError> connectErrors = new HashSet<ConnectError>();
 		connectErrors.add(ConnectError.UnauthorizedMode);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -504,7 +502,6 @@ public class ListenerProfileTest {
                 connectionHandler.handleConnectionRequest(false, (ConnectionRequest) any); result = connectErrors;
                 contextImpl.getAllowedXmlEncodings(); result = Arrays.asList(encodings);
                 contextImpl.getAllowedMessageDigests(); result = Arrays.asList(otherDigests);
-                Utils.createInitNackMessage(new ArrayList<ConnectError>(connectErrors)); result = ods;
 			}
 		};
 

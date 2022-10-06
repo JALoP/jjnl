@@ -23,14 +23,14 @@
  */
 package com.tresys.jalop.jnl.impl.messages;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class SyncMessageTest {
-    @Test 
+    @Test
     public void testSyncMessage() {
         SyncMessage syncMessage = new SyncMessage("1234", new MimeHeaders());
         assertEquals("1234", syncMessage.getNonce());

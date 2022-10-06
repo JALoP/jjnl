@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.xml.soap.MimeHeader;
+import jakarta.xml.soap.MimeHeader;
 
 import mockit.*;
 
@@ -145,7 +145,7 @@ public class SubscriberANSHandlerTest {
 		sh.receiveANS(msg);
 	}
 
-/*	@Test
+	@Test
 	public void testDispatcherRunLogWorks(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
@@ -166,10 +166,8 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				msg.getDataStream();
-				result = ds;
 				ds.getInputStream();
 				result = dsa;
 				dsa.getHeaderValue("JAL-System-Metadata-Length");
@@ -205,11 +203,11 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).run();
-	} */
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.run();
+	}
 
-/*	@Test
+	@Test
 	public void testDispatcherRunLogRecordWorksNoPayload(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
@@ -220,10 +218,8 @@ public class SubscriberANSHandlerTest {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				msg.getDataStream();
-				result = ds;
 				ds.getInputStream();
 				result = dsa;
 				dsa.getHeaderValue("JAL-System-Metadata-Length");
@@ -268,11 +264,11 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).run();
-	} */
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.run();
+	}
 
-/*	@Test
+	@Test
 	public void testDispatcherRunAuditRecordWorks(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
@@ -290,10 +286,8 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				msg.getDataStream();
-				result = ds;
 				ds.getInputStream();
 				result = dsa;
 				dsa.getHeaderValue("JAL-System-Metadata-Length");
@@ -332,11 +326,11 @@ public class SubscriberANSHandlerTest {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).run();
-	} */
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.run();
+	}
 
-	/*@Test
+	@Test
 	public void testDispatcherRunJournalRecordWorks(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa)
@@ -354,10 +348,8 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				msg.getDataStream();
-				result = ds;
 				ds.getInputStream();
 				result = dsa;
 				dsa.getHeaderValue("JAL-System-Metadata-Length");
@@ -396,11 +388,11 @@ public class SubscriberANSHandlerTest {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).run();
-	} */
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.run();
+	}
 
-	/*@Test
+	@Test
 	public void testDispatcherRunJournalWithResumeWorks(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final Message msg, @Mocked final InputDataStreamAdapter dsa, @Mocked final InputStream is)
@@ -418,9 +410,8 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				msg.getDataStream(); result = ds;
 				ds.getInputStream(); result = dsa;
 				dsa.getHeaderValue(Utils.HDRS_SYS_META_LEN); result = "1";
 				dsa.getHeaderValue(Utils.HDRS_APP_META_LEN); result = "1";
@@ -429,8 +420,6 @@ public class SubscriberANSHandlerTest {
 				subsess.getSubscriber(); result = sub;
 				dsa.getHeaderValue(Utils.HDRS_NONCE); result = "1";
 				ds.getInputStream(); result = dsa;
-				subsess.getJournalResumeOffset(); result = (long) 5;
-				subsess.getJournalResumeIS(); result = is;
 			}
 		};
 
@@ -440,8 +429,6 @@ public class SubscriberANSHandlerTest {
 				dsa.read(new byte[5], 0, 5);
 				dsa.read(); result = 1;
 				dsa.read(new byte[5], 0, 5);
-				is.read((byte[])any); result = 5;
-				is.read((byte[])any); result = -1;
 				dsa.read(); result = 1;
 				dsa.read(new byte[5], 0, 5);
 				dsa.read(); result = -1;
@@ -451,11 +438,11 @@ public class SubscriberANSHandlerTest {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).run();
-	}*/
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.run();
+	}
 
-	/*@Test
+	@Test
 	public void testDispatcherRunLogRecordThrowsErrorWithDataAfterLastBreak(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
 			@Mocked final InputDataStream ds, @Mocked final Message msg,
@@ -476,10 +463,8 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				msg.getDataStream();
-				result = ds;
 				ds.getInputStream();
 				result = dsa;
 				dsa.getHeaderValue("JAL-System-Metadata-Length");
@@ -515,15 +500,15 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).run();
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.run();
 
 		new Verifications() {
 			{
 				new IOException(anyString);
 			}
 		};
-	} */
+	}
 
 	@Test
 	public void testDispatcherRunThrowsExceptionOnUnknownType(@Mocked final MessageDigest md,
@@ -533,25 +518,18 @@ public class SubscriberANSHandlerTest {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 		assertNotNull(sh);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				msg.getDataStream();
-				result = ds;
-				ds.getInputStream();
-				result = dsa;
-				dsa.getHeaderValue("JAL-System-Metadata-Length");
-				result = "1234";
-				dsa.getHeaderValue("JAL-Application-Metadata-Length");
-				result = "1234";
-				dsa.getHeaderValue("JAL-Message");
-				result = "fake-record";
+				dsa.getHeaderValue("JAL-System-Metadata-Length"); result = "1234";
+				dsa.getHeaderValue("JAL-Application-Metadata-Length"); result = "1234";
+				dsa.getHeaderValue("JAL-Message"); result = "fake-record";
 			}
 		};
 
 
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).run();
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.run();
 
 		new Verifications() {
 			{
@@ -566,8 +544,8 @@ public class SubscriberANSHandlerTest {
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).getRecordDigest(md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.getRecordDigest(md);
 	}
 
 	@Test(expected = IncompleteRecordException.class)
@@ -576,7 +554,7 @@ public class SubscriberANSHandlerTest {
 			throws Exception {
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
 
 		final Field payloadComplete = dispatcher.getClass().getDeclaredField(
 				"payloadComplete");
@@ -588,7 +566,7 @@ public class SubscriberANSHandlerTest {
 		payloadCorrect.setAccessible(true);
 		payloadCorrect.setBoolean(dispatcher, false);
 
-		((Dispatcher) dispatcher).getRecordDigest(md);
+		dispatcher.getRecordDigest(md);
 	}
 
 	@Test
@@ -604,7 +582,7 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
 
 		final Field payloadComplete = dispatcher.getClass().getDeclaredField(
 				"payloadComplete");
@@ -616,7 +594,7 @@ public class SubscriberANSHandlerTest {
 		payloadCorrect.setAccessible(true);
 		payloadCorrect.setBoolean(dispatcher, true);
 
-		final byte[] digest = ((Dispatcher) dispatcher).getRecordDigest(md);
+		final byte[] digest = dispatcher.getRecordDigest(md);
 		assertEquals("DIGEST", new String(digest));
 	}
 
@@ -651,12 +629,12 @@ public class SubscriberANSHandlerTest {
 	public void testJalopDataStreamWorks(@Mocked final MessageDigest md, @Mocked final InputDataStream ds,
 			@Mocked final SubscriberSessionImpl subsess) throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(1234, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(1234, ds, md);
 		assertNotNull(jds);
 	}
 
-/*	@Test
+	@Test
 	public void testJalopDataStreamReadWorks(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final InputDataStreamAdapter is) throws Exception {
@@ -690,8 +668,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 
 		int b = jds.read();
 		assertEquals(1, b);
@@ -714,7 +692,7 @@ public class SubscriberANSHandlerTest {
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
 		assertTrue((Boolean) frf.get(jds));
-	} */
+	}
 
 	@Test
 	public void testJalopDataStreamReadReturnsNegativeWhenFinished(
@@ -732,8 +710,8 @@ public class SubscriberANSHandlerTest {
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
 
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
@@ -745,7 +723,7 @@ public class SubscriberANSHandlerTest {
 		assertTrue((Boolean) frf.get(jds));
 	}
 
-	/*@Test(expected = IOException.class)
+	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadPayloadNotCorrectWhenBREA(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
 			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
@@ -780,8 +758,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 		int b = jds.read();
 		assertEquals(1, b);
 		b = jds.read();
@@ -803,9 +781,9 @@ public class SubscriberANSHandlerTest {
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
 		assertTrue((Boolean) frf.get(jds));
-	} */
+	}
 
-	/*@Test(expected = IOException.class)
+	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadThrowsIOExceptionUponFailure(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
 			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
@@ -828,12 +806,12 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 		jds.read();
-	} */
+	}
 
-/*	@Test
+	@Test
 	public void testJalopDataStreamReadByteArrayOffsetWorks(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final InputDataStreamAdapter is) throws Exception {
@@ -870,9 +848,9 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler sh = new SubscriberANSHandler (md, subsess);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 
 		final byte b[] = new byte[5];
 		final int read = jds.read(b, 0, 5);
@@ -887,9 +865,9 @@ public class SubscriberANSHandlerTest {
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
 		assertTrue((Boolean) frf.get(jds));
-	} */
+	}
 
-	/*@Test
+	@Test
 	public void testJalopDataStreamReadByteArrayOffsetWorksLengthLargerThanPayload(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
 			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
@@ -928,8 +906,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 
 		final byte b[] = new byte[5];
 		final int read = jds.read(b, 0, 10);
@@ -944,9 +922,9 @@ public class SubscriberANSHandlerTest {
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
 		assertTrue((Boolean) frf.get(jds));
-	} */
+	}
 
-	/*@Test(expected = IOException.class)
+	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadByteArrayPayloadIncorrectWhenRcvBREA(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
 			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
@@ -985,8 +963,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 
 		final byte b[] = new byte[5];
 		final int read = jds.read(b, 0, 5);
@@ -1001,9 +979,9 @@ public class SubscriberANSHandlerTest {
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
 		assertTrue((Boolean) frf.get(jds));
-	} */
+	}
 
-	/*@Test(expected = IOException.class)
+	@Test(expected = IOException.class)
 	public void testJalopDataStreamReadByteArrayThrowsIOExceptionUponFailure(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
 			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
@@ -1027,12 +1005,12 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 		jds.read(new byte[5], 0, 5);
-	} */
+	}
 
-/*	@Test
+	@Test
 	public void testJalopDataStreamReadByteArrayOffsetWorksWithDataSizeLargerThanBuffer(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess,
 			@Mocked final InputDataStream ds, @Mocked final InputDataStreamAdapter is)
@@ -1077,8 +1055,8 @@ public class SubscriberANSHandlerTest {
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(6, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(6, ds, md);
 
 		final byte b[] = new byte[3];
 		int read = jds.read(b, 0, 3);
@@ -1098,9 +1076,9 @@ public class SubscriberANSHandlerTest {
 		final Field frf = jds.getClass().getDeclaredField("finishedReading");
 		frf.setAccessible(true);
 		assertTrue((Boolean) frf.get(jds));
-	} */
+	}
 
-	/*@Test
+	@Test
 	public void testJalopDataStreamFlushWorks(@Mocked final MessageDigest md,
 			@Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds,
 			@Mocked final InputDataStreamAdapter is) throws Exception {
@@ -1119,18 +1097,18 @@ public class SubscriberANSHandlerTest {
 			}
 		};
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				ds.getInputStream();
 				result = is;
 				is.read();
-				result = 1;
+				result = any;
 			}
 		};
 
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		final InputStream jds = ((Dispatcher) dispatcher).getJalopDataStreamInstance(5, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		final InputStream jds = dispatcher.getJalopDataStreamInstance(5, ds, md);
 
 		final Method flush = jds.getClass().getDeclaredMethod("flush");
 		flush.invoke(jds);
@@ -1139,15 +1117,15 @@ public class SubscriberANSHandlerTest {
 		frf.setAccessible(true);
 		assertTrue((Boolean) frf.get(jds));
 		flush.invoke(jds);
-	} */
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testJalopDataStreamThrowsExceptionWithDataSizeLessThanZero(
 			@Mocked final MessageDigest md, @Mocked final SubscriberSessionImpl subsess, @Mocked final InputDataStream ds)
 			throws Exception {
 		final SubscriberANSHandler sh = new SubscriberANSHandler(md, subsess);
-		final Object dispatcher = Deencapsulation.newInnerInstance("Dispatcher", sh, ds, md);
-		((Dispatcher) dispatcher).getJalopDataStreamInstance(-1, ds, md);
+		SubscriberANSHandler.Dispatcher dispatcher = sh.new Dispatcher(ds, md);
+		dispatcher.getJalopDataStreamInstance(-1, ds, md);
 	}
 
 	@Test
@@ -1159,7 +1137,7 @@ public class SubscriberANSHandlerTest {
 		v.add("JAL-Application-Metadata-Length");
 		v.add("asdf");
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				ds.getInputStream();
 				result = dsa;
@@ -1190,7 +1168,7 @@ public class SubscriberANSHandlerTest {
 		final Vector<String> v = new Vector<String>();
 		v.add("asdf");
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				ds.getInputStream();
 				result = dsa;
@@ -1219,7 +1197,7 @@ public class SubscriberANSHandlerTest {
 		final Vector<String> v = new Vector<String>();
 		v.add("");
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				ds.getInputStream();
 				result = dsa;

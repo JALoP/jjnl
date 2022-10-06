@@ -31,7 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import mockit.*;
 
@@ -94,14 +94,12 @@ public class DigestRequestHandlerTest {
 		final Map<String, String> map = new HashMap<String, String>();
 		map.put("nonce", "313233343536");
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
                 isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST;
                 Utils.processDigestMessage(isa); result = dm;
-				msg.getChannel(); result = channel;
-                channel.getSession(); result = sess;
                 dm.getMap(); result = map;
                 publisherSessionImpl.fetchAndRemoveDigest(anyString); result = "123456".getBytes();
                 contextImpl.getPublisher(); result = publisher;
@@ -124,7 +122,7 @@ public class DigestRequestHandlerTest {
 	public void testReceiveMSGSetsInvalid(@Mocked final ContextImpl contextImpl, @Mocked final MessageMSG msg,
 			@Mocked final Publisher publisher, @Mocked final DigestMessage digestMessage,
 			@Mocked final PublisherSessionImpl publisherSessionImpl, @Mocked final Session sess,
-			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final byte[] any, @Mocked final String anyString, @Mocked final Map<String, DigestPair> anymap )
+			@Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Channel channel, @Mocked final byte[] any, @Mocked final String anyString )
 			throws JNLException, SecurityException, NoSuchMethodException, InstantiationException,
 			IllegalAccessException, InvocationTargetException, BEEPException {
 
@@ -134,15 +132,14 @@ public class DigestRequestHandlerTest {
 		final DigestMessage dm = constructor.newInstance(new HashMap<String, String>(), new MimeHeaders());
 		final Map<String, String> map = new HashMap<String, String>();
 		map.put("nonce1", "9876543210");
+		final Map<String, DigestPair> anymap = new HashMap<String, DigestPair>();
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
                 isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST;
                 Utils.processDigestMessage(isa); result = dm;
-				msg.getChannel(); result = channel;
-                channel.getSession(); result = sess;
                 dm.getMap(); result = map;
              //This fails due to mocking java hashmap in this method which jmockit does not support
              //   publisherSessionImpl.fetchAndRemoveDigest(anyString); result = "123456".getBytes();
@@ -168,7 +165,7 @@ public class DigestRequestHandlerTest {
 		constructor.setAccessible(true);
 		final SyncMessage sm = constructor.newInstance("nonce", new MimeHeaders());
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;

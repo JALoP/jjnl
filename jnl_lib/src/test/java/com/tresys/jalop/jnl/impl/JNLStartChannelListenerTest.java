@@ -62,7 +62,7 @@ public class JNLStartChannelListenerTest {
 	public void testAdvertiseProfileTrueWhenEncrypted(@Mocked final Session sess, @Mocked final SessionTuningProperties tuning) throws BEEPException {
 		final JNLStartChannelListener jscl = new JNLStartChannelListener();
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				sess.getTuningProperties(); result = tuning;
 				tuning.getEncrypted(); result = true;
@@ -76,7 +76,7 @@ public class JNLStartChannelListenerTest {
 	public void testAdvertiseProfileFalseWhenNotEncrypted(@Mocked final Session sess, @Mocked final SessionTuningProperties tuning) throws BEEPException {
 		final JNLStartChannelListener jscl = new JNLStartChannelListener();
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				sess.getTuningProperties(); result = tuning;
 				tuning.getEncrypted(); result = false;

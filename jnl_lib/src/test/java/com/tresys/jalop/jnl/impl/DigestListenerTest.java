@@ -33,7 +33,7 @@ import java.util.Map;
 import java.io.IOException;
 
 import javax.xml.crypto.dsig.DigestMethod;
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import mockit.*;
 
@@ -122,7 +122,7 @@ public class DigestListenerTest {
 		final int digestChannel = 7;
 		final int msgno = 3045;
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				message.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;
@@ -176,7 +176,7 @@ public class DigestListenerTest {
 			new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
 				"barfoo", 1, 2, 0, sess);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				message.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;

@@ -78,7 +78,7 @@ public class SessionImplTest {
 				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
 				2, 0, sess);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				sess.getState();
 				result = Session.SESSION_STATE_ACTIVE;
@@ -99,7 +99,7 @@ public class SessionImplTest {
 				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
 				2, 0, sess);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				sess.getState();
 				result = Session.SESSION_STATE_ACTIVE;
@@ -177,7 +177,7 @@ public class SessionImplTest {
 
 		assertNull(s.getDigestChannel());
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				sess.startChannel(anyString, false, anyString); result = channel;
 			}

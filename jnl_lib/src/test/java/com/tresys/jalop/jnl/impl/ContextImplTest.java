@@ -513,7 +513,7 @@ public class ContextImplTest {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				TCPSessionCreator.listen(anyInt, (ProfileRegistry) any); result = session;
 			}
@@ -568,7 +568,7 @@ public class ContextImplTest {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
 				session.startChannel(anyString); result = channel;
@@ -621,11 +621,8 @@ public class ContextImplTest {
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 150, "agent", digests, encodings, null);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
-				session.startChannel(anyString); result = channel;
-				channel.getState(); result = Channel.STATE_ACTIVE;
 			}
 		};
 
@@ -641,10 +638,9 @@ public class ContextImplTest {
 
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
-				session.startChannel(anyString, (RequestHandler) any); result = channel;
 				channel.getState(); result = Channel.STATE_ACTIVE;
 				Utils.createInitMessage((Role)any,
 						(Mode)any,
@@ -694,11 +690,8 @@ public class ContextImplTest {
 			throws IllegalAccessException, JNLException, BEEPException, UnknownHostException {
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 150, "agent", digests, encodings, null);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
-				TCPSessionCreator.initiate((InetAddress) any, anyInt, (ProfileRegistry) any); result = session;
-				session.startChannel(anyString); result = channel;
-				channel.getState(); result = Channel.STATE_ACTIVE;
 			}
 		};
 

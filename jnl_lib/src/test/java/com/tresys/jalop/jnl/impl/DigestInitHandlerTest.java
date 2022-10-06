@@ -81,7 +81,7 @@ public class DigestInitHandlerTest {
 
 		final DigestInitHandler dih = new DigestInitHandler(sess, contextImpl);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				message.getMsgno(); result = Message.PIGGYBACKED_MSGNO;
 				message.getChannel(); result = channel;
@@ -104,7 +104,7 @@ public class DigestInitHandlerTest {
 
 		final DigestInitHandler dih = new DigestInitHandler(sess, contextImpl);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				message.getMsgno(); result = 1;
 			}
@@ -125,7 +125,7 @@ public class DigestInitHandlerTest {
 
 		final DigestInitHandler dih = new DigestInitHandler(sess, contextImpl);
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				message.getMsgno(); result = Message.PIGGYBACKED_MSGNO;
 				message.getChannel(); result = channel;

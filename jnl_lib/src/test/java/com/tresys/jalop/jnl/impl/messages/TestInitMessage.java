@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class TestInitMessage {
 		String[] digests = new String[]{Utils.DGST_SHA256};
 		MimeHeaders otherHeaders = new MimeHeaders();
 
-		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, Mode.Live, 
+		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, Mode.Live,
 					encodings, digests, "agent", otherHeaders);
 
 		assertEquals(init.getAcceptDigests(), Arrays.asList(digests));

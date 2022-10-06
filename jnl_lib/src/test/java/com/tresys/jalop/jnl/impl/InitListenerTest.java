@@ -28,7 +28,7 @@ import java.net.InetAddress;
 import java.util.LinkedList;
 
 import javax.xml.crypto.dsig.DigestMethod;
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import mockit.*;
 
@@ -84,7 +84,7 @@ public class InitListenerTest {
         initListener.receiveANS(message);
     }
 
-    @Test (expected = AbortChannelException.class)
+    @Test  (expected = AbortChannelException.class)
     public void testInitListenerThrowsExceptionForInitAckWithIllegalDigest(@Mocked final InetAddress address, @Mocked final ContextImpl contextImpl, @Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa, @Mocked final Message msg) throws MissingMimeHeaderException, UnexpectedMimeValueException, BEEPException {
         final InitAckMessage iam = new InitAckMessage("foo", "bar", new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
@@ -93,13 +93,13 @@ public class InitListenerTest {
         allowedEncs.add("other");
         allowedEncs.add("foo");
 
-        new NonStrictExpectations() {
+        new Expectations() {
             {
                 msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
                 Utils.processInitAck(isa); result = iam;
                 contextImpl.getAllowedMessageDigests(); result = allowedDigests;
-                contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
+                contextImpl.getAllowedXmlEncodings(); result = allowedEncs; minTimes=0; maxTimes=2;
 
             }
         };
@@ -116,7 +116,7 @@ public class InitListenerTest {
         allowedDigests.add("bar");
         final LinkedList<String> allowedEncs = new LinkedList<String>();
         allowedEncs.add("other");
-        new NonStrictExpectations() {
+        new Expectations() {
             {
                 msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -130,7 +130,7 @@ public class InitListenerTest {
         initListener.receiveRPY(msg);
     }
 
-    @Test
+   @Test
     public void testInitListenerSendsSubscribeRequest(@Mocked final ContextImpl contextImpl,
             @Mocked final InputDataStream ids, @Mocked final InputDataStreamAdapter isa,
             @Mocked final Message msg, @Mocked final Subscriber subscriber,
@@ -152,7 +152,7 @@ public class InitListenerTest {
             }
         };
 
-        new NonStrictExpectations() {
+        new Expectations() {
             {
                 msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -161,7 +161,6 @@ public class InitListenerTest {
                 contextImpl.getAllowedXmlEncodings(); result = allowedEncs;
                 contextImpl.getSubscriber(); result = subscriber;
                 subscriber.getSubscribeRequest((SubscriberSession) any); result = subRequest;
-                subRequest.getNonce(); result = "12345";
                 subRequest.getResumeOffset(); result = (long) 0;
                 msg.getChannel(); result = channel;
                 contextImpl.getDefaultPendingDigestMax(); result = 1;
@@ -189,9 +188,9 @@ public class InitListenerTest {
             @Mocked final Channel channel, @Mocked final Session sess,
             @Mocked final ReplyListener rpyListener, @Mocked final InetAddress address) throws BEEPException, JNLException, InterruptedException {
 
-		final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
+	final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
         final LinkedList<String> allowedDigests = new LinkedList<String>();
-        allowedDigests.add(DigestMethod.SHA256);
+	allowedDigests.add(DigestMethod.SHA256);
         final LinkedList<String> allowedEncs = new LinkedList<String>();
         allowedEncs.add("foo");
 
@@ -204,7 +203,7 @@ public class InitListenerTest {
             }
         };
 
-        new NonStrictExpectations() {
+        new Expectations() {
             {
                 msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -238,7 +237,7 @@ public class InitListenerTest {
         final LinkedList<ConnectError> errors = new LinkedList<ConnectError>();
         errors.add(ConnectError.UnauthorizedMode);
         final InitNackMessage inm = new InitNackMessage(errors, new MimeHeaders());
-        new NonStrictExpectations() {
+        new Expectations() {
             {
                 msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
@@ -265,9 +264,9 @@ public class InitListenerTest {
 			@Mocked final ReplyListener rpyListener, @Mocked final InetAddress address)
 			throws BEEPException, JNLException {
 
-		final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
+                final InitAckMessage iam = new InitAckMessage("foo", DigestMethod.SHA256, new MimeHeaders());
 		final LinkedList<String> allowedDigests = new LinkedList<String>();
-		allowedDigests.add(DigestMethod.SHA256);
+                allowedDigests.add(DigestMethod.SHA256);
 		final LinkedList<String> allowedEncs = new LinkedList<String>();
 		allowedEncs.add("foo");
 
@@ -280,7 +279,7 @@ public class InitListenerTest {
             }
         };
 
-		new NonStrictExpectations() {
+		new Expectations() {
 			{
 				msg.getDataStream(); result = ids;
 				ids.getInputStream(); result = isa;
