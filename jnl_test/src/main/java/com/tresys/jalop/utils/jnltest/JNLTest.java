@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.soap.MimeHeaders;
+import jakarta.xml.soap.MimeHeaders;
 
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.BEEPException;
