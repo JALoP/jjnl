@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
@@ -53,6 +54,7 @@ import org.beepcore.beep.profile.tls.TLSProfile;
 import org.beepcore.beep.transport.tcp.TCPSession;
 import org.beepcore.beep.transport.tcp.TCPSessionCreator;
 
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.Context;
 import com.tresys.jalop.jnl.Mode;
@@ -83,7 +85,7 @@ public final class ContextImpl implements Context {
 
     public static final String URI = "http://www.dod.mil/logging/jalop-1.0";
 
-	static Logger log = Logger.getLogger(Context.class);
+	private JNLLog log = null;
 
 	private final Publisher publisher;
 	private final Subscriber subscriber;
@@ -108,7 +110,7 @@ public final class ContextImpl implements Context {
 
     private final AtomicBoolean closing;
 
-    private long retryInterval = 5000;
+    private final AtomicLong retryInterval;
 
 	/**
 	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
@@ -156,6 +158,62 @@ public final class ContextImpl implements Context {
 			final List<String> allowedMessageDigests,
 			final List<String> allowedXmlEncodings,
             final ProfileConfiguration sslProperties) throws BEEPException {
+        this( publisher, subscriber, connectionHandler, defaultDigestTimeout,
+        	    defaultPendingDigestMax, agent, allowedMessageDigests, allowedXmlEncodings,
+              sslProperties, null);
+    }
+
+	/**
+	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
+	 * {@link ConnectionState#DISCONNECTED} state. If none are provided, the
+	 * context will be configured to use the default required options for
+	 * message digests (i.e. sha256) and for XML Encoding (i.e. none).
+	 *
+	 * @param publisher
+	 *            The Publisher to register. Can be null. At least one of
+	 *            publisher and subscriber must be provided.
+	 * @param subscriber
+	 *            The Subscriber to register. Can be null. At least one of
+	 *            publisher and subscriber must be provided.
+	 * @param connectionHandler
+	 *            The ConnectionHandler to register.
+	 * @param defaultDigestTimeout
+	 *            The default number of seconds to wait in between the sending
+	 *            of digest messages.
+	 * @param defaultPendingDigestMax
+	 *            The maximum number of records to receive before sending a
+	 *            'digest-message'.
+	 * @param agent The agent string to send to the remote, this may be
+	 *             <code>null</code>.
+	 * @param allowedMessageDigests
+	 *            A List of digest algorithms to allow. The order of this list
+	 *            is important; The first element in the list is considered to
+	 *            have the highest priority, and the last element in the list is
+	 *            considered to have the lowest priority.
+	 * @param allowedXmlEncodings
+     *            A List of xml encodings to allow. The order of this list is important;
+     *            The first element in the list is considered to have the highest priority,
+     *            and the last element in the list is considered to have the lowest priority.
+     * @param sslProperties
+     *            A map containing the properties for tuning TLS connections. If
+     *            This object is <code>null</code> then TLS negotiations will
+     *            not occur. If this is <code>non-null</code> then all
+     *            connections made with this {@link ContextImpl} will require
+     *            TSL negotiations before any data is sent over the network.
+     * @param logger
+     *            A logging implementation optionally provided by the calling application. If
+     *            This object is <code>null</code> then this class will instantiate its own logging
+     *            instance. If this is <code>non-null</code> then this implmentation is
+     *            used for logging in this class.
+     * @throws BEEPException
+     */
+	public ContextImpl(final Publisher publisher, final Subscriber subscriber,
+			final ConnectionHandler connectionHandler,
+			final int defaultDigestTimeout, final int defaultPendingDigestMax,
+			final String agent,
+			final List<String> allowedMessageDigests,
+			final List<String> allowedXmlEncodings,
+            final ProfileConfiguration sslProperties, JNLLog logger) throws BEEPException {
 
 		if (publisher == null && subscriber == null) {
 			throw new IllegalArgumentException(
@@ -172,6 +230,16 @@ public final class ContextImpl implements Context {
 				throw new IllegalArgumentException(
 						"defaultPendingDigestMax must be a positive integer.");
 			}
+		}
+
+		//Intantiates logger if not provided from parent application
+		if (logger == null)
+		{
+		    log = new JNLLogger(Logger.getLogger(Context.class));
+		}
+		else
+		{
+		    log = logger;
 		}
 
 		this.connectionState = ConnectionState.DISCONNECTED;
@@ -213,6 +281,7 @@ public final class ContextImpl implements Context {
 		this.agent = agent;
 		this.reconnect = new AtomicBoolean(true);
 		this.closing = new AtomicBoolean(false);
+		this.retryInterval = new AtomicLong(5000);
 	}
 
 	@Override
@@ -242,7 +311,7 @@ public final class ContextImpl implements Context {
 		profileRegistry.addStartChannelListener(TLSProfile.URI, this.sslListener, null);
 
 		if(log.isDebugEnabled()) {
-			log.debug("Listening on " + addr.toString() + ":" + port);
+			log.debug("Listening on " + addr.getHostAddress() + ":" + port);
 		}
 
 		while(true) {
@@ -314,20 +383,27 @@ public final class ContextImpl implements Context {
 		while(true) {
 			try {
 				session = TCPSessionCreator.initiate(addr, port, profileRegistry);
+
+				if (log.isInfoEnabled())
+				{
+				  log.info("Sucessfully connected to " + addr.getHostAddress() + ":" + port);
+				}
 				break;
 			} catch(BEEPException e) {
 				if (!reconnect.get()) {
 					throw e;
 				} else if (log.isDebugEnabled()) {
-					log.debug("Unable to create BEEP session with " + addr.toString() + ":" + port + ": " + e.toString());
+					log.debug("Unable to create BEEP session with " + addr.getHostAddress() + ":" + port + ": " + e.toString());
 				}
 			}
 
-			if (log.isDebugEnabled()) {
-				log.debug("Retrying connection to " + addr.toString() + ":" + port + " in " + String.valueOf(retryInterval) + "ms");
+			if (log.isInfoEnabled())
+			{
+				log.info("Retrying connection to " + addr.getHostAddress() + ":" + port + " in " + retryInterval.toString() + "ms");
 			}
+
 			try {
-				Thread.sleep(retryInterval);
+				Thread.sleep(retryInterval.get());
 			} catch(InterruptedException e) {
 				Thread.currentThread().interrupt();
 				if (log.isWarnEnabled()) {
@@ -339,7 +415,21 @@ public final class ContextImpl implements Context {
 
 		jalSessions.add(session);
 
+		if (this.sslProfile != null) {
+			try {
+				session = this.sslProfile.startTLS(session);
+			} catch (Exception e) {
+				if (log.isWarnEnabled()) {
+					log.warn("Failed to start TLS with " + addr.getHostAddress() + ":" + port + ": " + e.toString());
+				}
+				session.terminate("Unable to start TLS");
+				throw e;
+			}
+		}
+
 		// Add a callback function to reconnect if the session closes/terminates
+		// This is done after TLS is started to prevent certificate issues from causing infinite retries.
+		// Additionally, registered listeners are not copied to the new session created by calling startTLS.
 		session.addSessionListener(new SessionListener() {
 			@Override
 			public void greetingReceived(SessionEvent event) { /*noop */ }
@@ -352,12 +442,28 @@ public final class ContextImpl implements Context {
 				}
 
 				jalSessions.remove((TCPSession) event.getSource());
-				if (reconnect.get()) {
+				while (reconnect.get()) {
 					try {
 						connect(role, addr, port, mode, types);
+						return;
 					} catch(Exception e) {
 						if (log.isWarnEnabled()) {
-							log.warn("Failed to reconnect to " + addr.toString() + ":" + port + ": " + e.toString());
+							log.warn("Failed to reconnect to " + addr.getHostAddress() + ":" + port + ": " + e.toString());
+						}
+
+						if (log.isInfoEnabled())
+						{
+						  log.info("Retrying connection to " + addr.getHostAddress() + ":" + port + " in " + retryInterval.toString() + "ms");
+						}
+
+						try {
+							Thread.sleep(retryInterval.get());
+						} catch(InterruptedException ie) {
+							Thread.currentThread().interrupt();
+							if (log.isWarnEnabled()) {
+								log.warn("Interrupted: " + ie.toString());
+							}
+							return;
 						}
 					}
 				}
@@ -365,10 +471,6 @@ public final class ContextImpl implements Context {
 			@Override
 			public void sessionReset(SessionResetEvent event) { /*noop*/ }
 		});
-
-		if (this.sslProfile != null) {
-		    session = this.sslProfile.startTLS(session);
-		}
 
 		for(final RecordType rt : recordTypeSet) {
 
@@ -662,14 +764,14 @@ public final class ContextImpl implements Context {
 	 * @return connection retry interval in milliseconds
 	 */
 	public long getRetryInterval() {
-		return retryInterval;
+		return retryInterval.get();
 	}
 
 	/**
 	 * @param ms connection retry interval in milliseconds
 	 */
 	public void setRetryInterval(long ms) {
-		retryInterval = ms;
+		retryInterval.set(ms);
 	}
 
 	/**

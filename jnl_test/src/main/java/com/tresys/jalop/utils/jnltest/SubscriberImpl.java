@@ -34,7 +34,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -43,7 +42,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -54,6 +52,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.ExceptionMessages;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
@@ -604,7 +603,38 @@ public class SubscriberImpl implements Subscriber {
                 total += cnt;
                 lri.status.put(statusKey, total);
                 ret = dumpStatus(lri.statusFile, lri.status);
-                cnt = incomingData.read(buffer);
+
+                try
+                {
+                    cnt = incomingData.read(buffer);
+                }
+                catch (IOException ioe)
+                {
+                    //#705 - Special case to gracefully handle issue where incomplete payloads are written and
+                    //the inputstream fails to read all of the data due to a race condition.
+                    //This fix below will force an invalid digest to be sent
+                    //back to jald resulting in the record to be successfully resent when this error occurs.
+                    //This issue is due to a race condition, and a 1ms delay per read in this loop mitigates but does not
+                    //completely eliminate the issue.  This fix below gracefully handles the issue for now to prevent lost
+                    //records when this error occurs.
+                    String errMsg = ioe.getMessage();
+                    if (errMsg != null && errMsg.equals(ExceptionMessages.READ_DATA_ERROR))
+                    {
+                        LOGGER.warn("Input stream interrupted while reading data for '"
+                                + outputFile.getAbsolutePath() + "'.  Record will be resent.");
+                        w.close();
+                        incomingData.close();
+                        return true;
+                    }
+                    else
+                    {
+                        LOGGER.error("Error while trying to read data for '"
+                                + outputFile.getAbsolutePath() + "': "
+                                + ioe.getMessage());
+                        w.close();
+                        return false;
+                    }
+                }
             }
             w.close();
         } catch (final FileNotFoundException e) {
@@ -713,7 +743,7 @@ public class SubscriberImpl implements Subscriber {
                                     final String nonce, final DigestStatus status) {
         boolean ret = true;
         LocalRecordInfo lri;
-        
+
         LOGGER.debug("notifyDigestResponse for nonce: " + nonce + ", status: " + status);
         // try to locate the provided nonce in the map of received digests
         synchronized (this.nonceMap) {
@@ -737,18 +767,18 @@ public class SubscriberImpl implements Subscriber {
                 LOGGER.error("Undefined confirmation status for nonce: " + nonce);
                 return false;
             }
-            
+
             // Store off the status for the record - still in temp
             if (!dumpStatus(lri.statusFile, lri.status)) {
                 ret = false;
             }
-            
+
             // If the digest is confirmed, go ahead and move the record from temp directory
             // Otherwise record stays in temp
             if(DigestStatus.Confirmed.equals(status)) {
                 if(!moveConfirmedRecord(lri)) {
                     ret = false;
-		}
+                }
             }
         }
 

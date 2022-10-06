@@ -25,14 +25,13 @@ package com.tresys.jalop.jnl.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
-import javax.xml.soap.MimeHeader;
+import jakarta.xml.soap.MimeHeader;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -43,6 +42,7 @@ import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
 import org.beepcore.beep.core.ReplyListener;
 
+import com.tresys.jalop.jnl.ExceptionMessages;
 import com.tresys.jalop.jnl.IncompleteRecordException;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
@@ -193,19 +193,19 @@ public class SubscriberANSHandler implements ReplyListener {
 			final RecordType recType;
 			// Get the segment lengths from the header
 			try {
-				sysMetadataSize = new Long(dsa
-						.getHeaderValue(Utils.HDRS_SYS_META_LEN)).longValue();
-				appMetadataSize = new Long(dsa.getHeaderValue(Utils.HDRS_APP_META_LEN)).longValue();
+				sysMetadataSize = Long.valueOf(dsa
+						.getHeaderValue(Utils.HDRS_SYS_META_LEN));
+				appMetadataSize = Long.valueOf(dsa.getHeaderValue(Utils.HDRS_APP_META_LEN));
 
 				payloadType = dsa.getHeaderValue(Utils.HDRS_MESSAGE);
 				if (payloadType.equalsIgnoreCase("log-record")) {
-					payloadSize = new Long(dsa.getHeaderValue(Utils.HDRS_LOG_LEN)).longValue();
+					payloadSize = Long.valueOf(dsa.getHeaderValue(Utils.HDRS_LOG_LEN));
 					recType = RecordType.Log;
 				} else if (payloadType.equalsIgnoreCase("audit-record")) {
-					payloadSize = new Long(dsa.getHeaderValue(Utils.HDRS_AUDIT_LEN)).longValue();
+					payloadSize = Long.valueOf(dsa.getHeaderValue(Utils.HDRS_AUDIT_LEN));
 					recType = RecordType.Audit;
 				} else if (payloadType.equalsIgnoreCase("journal-record")) {
-					payloadSize = new Long(dsa.getHeaderValue(Utils.HDRS_JOURNAL_LEN)).longValue();
+					payloadSize = Long.valueOf(dsa.getHeaderValue(Utils.HDRS_JOURNAL_LEN));
 					recType = RecordType.Journal;
 				} else {
 					throw new AbortChannelException(
@@ -367,6 +367,13 @@ public class SubscriberANSHandler implements ReplyListener {
 			}
 
 			@Override
+			public void close() throws IOException
+			{
+				this.finishedReading = true;
+				super.close();
+			}
+
+			@Override
 			public int read() throws IOException {
 				if (this.finishedReading == true)
 					return -1;
@@ -427,7 +434,7 @@ public class SubscriberANSHandler implements ReplyListener {
 					} else if (this.ds.isComplete()) {
 						// Shouldn't get to state where expecting more data
 						// but the DataStream has been completed (processed last BEEP Frame)
-						throw new IOException("Could not read data of requested length");
+						throw new IOException(ExceptionMessages.READ_DATA_ERROR);
 					} else {
 						// continue waiting for bytes from DataStreamAdapter
 						log.error("DataStreamAdapter return -1 on read from SubscriberANSHandler");
