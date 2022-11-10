@@ -46,6 +46,7 @@ import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Publisher;
 import com.tresys.jalop.jnl.PublisherSession;
+import com.tresys.jalop.jnl.ReadDataException;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -254,17 +255,17 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
     }
 
     @Override
-    public boolean notifySysMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream sysMetaData) {
+    public boolean notifySysMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream sysMetaData) throws ReadDataException {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifySysMetadata(sess, recordInfo, sysMetaData);
     }
 
     @Override
-    public boolean notifyAppMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream appMetaData) {
+    public boolean notifyAppMetadata(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream appMetaData) throws ReadDataException {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifyAppMetadata(sess, recordInfo, appMetaData);
     }
 
     @Override
-    public boolean notifyPayload(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream payload) {
+    public boolean notifyPayload(final SubscriberSession sess, final RecordInfo recordInfo, final InputStream payload) throws ReadDataException {
         return this.sessMap.get(sess).get(sess.getRecordType()).notifyPayload(sess, recordInfo, payload);
     }
 

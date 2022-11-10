@@ -54,6 +54,7 @@ import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.ExceptionMessages;
 import com.tresys.jalop.jnl.Mode;
+import com.tresys.jalop.jnl.ReadDataException;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
@@ -511,7 +512,7 @@ public class SubscriberImpl implements Subscriber {
     @Override
     public final boolean notifySysMetadata(final SubscriberSession sess,
                                            final RecordInfo recordInfo,
-                                           final InputStream sysMetaData) {
+                                           final InputStream sysMetaData) throws ReadDataException {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Got sysmetadata for " + recordInfo.getNonce());
         }
@@ -578,6 +579,7 @@ public class SubscriberImpl implements Subscriber {
      *            of bytes written.
      * @return <code>true</code> if the data was successfully written to disk,
      *         <code>false</code> otherwise.
+     * @throws ReadDataException
      */
     // suppress warnings about raw types for the JSON map
     @SuppressWarnings("unchecked")
@@ -585,7 +587,7 @@ public class SubscriberImpl implements Subscriber {
                                    final long dataSize,
                                    final String outputFilename,
                                    final String statusKey,
-                                   final InputStream incomingData) {
+                                   final InputStream incomingData) throws ReadDataException {
         final byte[] buffer = new byte[this.bufferSize];
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
@@ -624,7 +626,8 @@ public class SubscriberImpl implements Subscriber {
                                 + outputFile.getAbsolutePath() + "'.  Record will be resent.");
                         w.close();
                         incomingData.close();
-                        return true;
+
+                        throw new ReadDataException();
                     }
                     else
                     {
@@ -662,14 +665,14 @@ public class SubscriberImpl implements Subscriber {
     @Override
     public final boolean notifyAppMetadata(final SubscriberSession sess,
                     final RecordInfo recordInfo,
-                    final InputStream appMetaData) {
+                    final InputStream appMetaData) throws ReadDataException {
         if (recordInfo.getAppMetaLength() != 0) {
             LocalRecordInfo lri;
             synchronized (this.nonceMap) {
                 lri = this.nonceMap.get(recordInfo.getNonce());
             }
             if (lri == null) {
-                LOGGER.error("Can't find local status for: "
+                LOGGER.error("notifyAppMetadata: Can't find local status for: "
                              + recordInfo.getNonce());
                 return false;
             }
@@ -685,14 +688,14 @@ public class SubscriberImpl implements Subscriber {
     @Override
     public final boolean notifyPayload(final SubscriberSession sess,
                                        final RecordInfo recordInfo,
-                                       final InputStream payload) {
+                                       final InputStream payload) throws ReadDataException {
         if (recordInfo.getPayloadLength() != 0) {
             LocalRecordInfo lri;
             synchronized (this.nonceMap) {
                 lri = this.nonceMap.get(recordInfo.getNonce());
             }
             if (lri == null) {
-                LOGGER.error("Can't find local status for: "
+                LOGGER.error("notifyPayload: Can't find local status for: "
                                   + recordInfo.getNonce());
                 return false;
             }
@@ -727,7 +730,7 @@ public class SubscriberImpl implements Subscriber {
             lri = this.nonceMap.get(recordInfo.getNonce());
         }
         if (lri == null) {
-            LOGGER.error("Can't find local status for: "
+            LOGGER.error("notifyDigest: Can't find local status for: "
                          + recordInfo.getNonce());
             return false;
         }
@@ -750,7 +753,7 @@ public class SubscriberImpl implements Subscriber {
             lri = this.nonceMap.remove(nonce);
         }
         if (lri == null) {
-            LOGGER.error("Can't find local status for: " + nonce);
+            LOGGER.warn("notifyDigestResponse: Can't find local status for: " + nonce);
             ret = true;
         } else {
             switch (status) {

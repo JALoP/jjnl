@@ -42,8 +42,10 @@ import org.beepcore.beep.core.InputDataStreamAdapter;
 import org.beepcore.beep.core.Message;
 import org.beepcore.beep.core.ReplyListener;
 
+import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.ExceptionMessages;
 import com.tresys.jalop.jnl.IncompleteRecordException;
+import com.tresys.jalop.jnl.ReadDataException;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
@@ -256,15 +258,37 @@ public class SubscriberANSHandler implements ReplyListener {
 					}
 				};
 
+				boolean forceDigestResponseDueToErr = false;
+
 				this.js = new JalopDataStream(sysMetadataSize, this.ds);
-				if (!sub.notifySysMetadata(subsess, recInfo, js)) {
-					throw new AbortChannelException("Error in notifySysMetadata");
+
+				try
+				{
+				    if (!sub.notifySysMetadata(subsess, recInfo, js)) {
+					    throw new AbortChannelException("Error in notifySysMetadata");
+				    }
 				}
+				catch (ReadDataException rde)
+				{
+					//#708 - When this special exception occurs, this results in an invalid digest which must be handled immediately instead
+					//of waiting for the digest response from jald to prevent concurrency issues with a pending digest max greater than 1
+					forceDigestResponseDueToErr = true;
+				}
+
 				this.js.flush();
 
 				this.js = new JalopDataStream(appMetadataSize, this.ds);
-				if (!sub.notifyAppMetadata(subsess, recInfo, js)) {
-					throw new AbortChannelException("Error in notifyAppMetadata");
+				try
+				{
+				    if (!sub.notifyAppMetadata(subsess, recInfo, js)) {
+					    throw new AbortChannelException("Error in notifyAppMetadata");
+				    }
+				}
+				catch (ReadDataException rde)
+				{
+					//#708 - When this special exception occurs, this results in an invalid digest which must be handled immediately instead
+					//of waiting for the digest response from jald to prevent concurrency issues with a pending digest max greater than 1
+					forceDigestResponseDueToErr = true;
 				}
 				this.js.flush();
 
@@ -286,8 +310,18 @@ public class SubscriberANSHandler implements ReplyListener {
 					payloadSizeToRead -= subsess.getJournalResumeOffset();
 				}
 				this.js = new JalopDataStream(payloadSizeToRead, this.ds);
-				if (!sub.notifyPayload(subsess, recInfo, js)) {
-					throw new AbortChannelException("Error in notifyPayload");
+
+				try
+				{
+				    if (!sub.notifyPayload(subsess, recInfo, js)) {
+					    throw new AbortChannelException("Error in notifyPayload");
+				    }
+				}
+				catch (ReadDataException rde)
+				{
+					//#708 - When this special exception occurs, this results in an invalid digest which must be handled immediately instead
+					//of waiting for the digest response from jald to prevent concurrency issues with a pending digest max greater than 1
+					forceDigestResponseDueToErr = true;
 				}
 				this.js.flush();
 				// only the first record is a journal resume, subsequent records are normal
@@ -308,6 +342,25 @@ public class SubscriberANSHandler implements ReplyListener {
 				String hexDgst = "";
 				for (byte b : digest) {
 				    hexDgst = hexDgst + String.format("%02x",b);
+				}
+
+				//#708 Force an immediate manual digest response to remove the invalid record before
+				//waiting for digest response from jald to prevent concurrency issues with a
+				//pending digest max greater than 1
+				if (forceDigestResponseDueToErr == true)
+				{
+					try
+					{
+						Thread.sleep(1000);
+					}
+					catch (Exception e)
+					{
+
+					}
+					if (!sub.notifyDigestResponse(subsess, recInfo.getNonce(), DigestStatus.Invalid))
+					{
+						throw new AbortChannelException("Error in notifyDigestResponse");
+					}
 				}
 
 				subsess.addDigest(recInfo.getNonce(), hexDgst);

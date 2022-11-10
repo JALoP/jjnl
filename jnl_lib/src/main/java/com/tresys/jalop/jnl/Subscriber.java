@@ -73,7 +73,7 @@ public interface Subscriber {
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifySysMetadata(SubscriberSession sess,
-			final RecordInfo recordInfo, InputStream sysMetaData);
+			final RecordInfo recordInfo, InputStream sysMetaData) throws ReadDataException;
 
 	/**
 	 * The {@link SubscriberSession} executes this method to deliver the
@@ -98,7 +98,7 @@ public interface Subscriber {
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyAppMetadata(SubscriberSession sess,
-			final RecordInfo recordInfo, InputStream appMetaData);
+			final RecordInfo recordInfo, InputStream appMetaData) throws ReadDataException;
 
 	/**
 	 * The {@link SubscriberSession} executes this method to deliver the payload
@@ -122,7 +122,7 @@ public interface Subscriber {
 	 *         {@link SubscriberSession}, false otherwise.
 	 */
 	boolean notifyPayload(SubscriberSession sess, final RecordInfo recordInfo,
-			InputStream payload);
+			InputStream payload) throws ReadDataException;
 
 	/**
 	 * The {@link SubscriberSession} executes this method to notify the
