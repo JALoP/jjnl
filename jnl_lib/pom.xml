@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.tresys.jalop.jnl</groupId>
-    <version>1.1.0.0</version>
+    <version>1.1.0.1</version>
     <relativePath>../jnl_parent</relativePath>
     <artifactId>parent</artifactId>
   </parent>
