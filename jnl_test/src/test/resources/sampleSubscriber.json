@@ -4,8 +4,8 @@
   "subscriber": {
   	"sessionTimeout": "00:00:00",
   	"dataClass": [ "log", "log" ],
-  	"pendingDigestMax": 1,
-  	"pendingDigestTimeout": 120,
+  	"pendingDigestMax": 100,
+  	"pendingDigestTimeout": 5,
   	"output": "./output",
   	"mode": "archive",
   }
