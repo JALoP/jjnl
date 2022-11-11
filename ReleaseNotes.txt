@@ -1,4 +1,4 @@
-Summary of release 1.1.0.1 changes (Day Nov DD 2022) -
+Summary of release 1.1.0.1 changes (Thu Nov 10 2022) -
     - Enable batch processing of digest-challenge messages.
     - Send digest-challenge on failure to read payload to force publisher to re-send the record.
     - Change java target version in jnl_parent pom.xml to be a maven property.
