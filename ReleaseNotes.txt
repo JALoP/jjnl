@@ -1,3 +1,13 @@
+Summary of release 2.1.0.0 changes (Thu Dec 15 2022) -
+    - Added Java 11 support (besides Java 8).
+        -- The default Java target version in jnl_parent/pom.xml is 1.8.
+        -- Use "mvn -Djava.version=11 -U clean package" for Java 11 build, or update jnl_parent/pom.xml before the build. 
+    - Tested JJNL subscriber on RHEL 8.
+    - Added support for trustStore. Until this point, all the private and remote certs/keys were stored in a single keyStore. Note that the single keyStore sill works just as before when the trustStore related settings are excluded in the JSON config file.
+    - Added "jalop-v2-tls.pdf" document with instructions on creating TLS certificates, keyStore, and trustStore.
+    - Added the ability to pass in a Logger implementation to JJNL. This facilitates conveying JJNL log messages (errors/warnings/debug based on log level) to the NiFi bulletin board.
+    - Allow multiple instances of the JJNL subscriber (jnl_test) from within the same JVM (e.g. a NiFi processor).
+
 Summary of release 2.0.0.4 changes (Sat Jan 08 2022) -
     - Upgraded to log4j-2.17.1 to mitigate CVE-2021-44832.
 
