@@ -437,7 +437,7 @@ public class JournalMissingTest {
         System.out.println("DR1.017.008.008.003 - Transfer Records:  journal-record - Journal Record:  Replace Journal Metadata");
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
         try
         {
@@ -570,7 +570,7 @@ public class JournalMissingTest {
         System.out.println("\nThis unit test verifies defect ticket #580\n");
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
         try
         {
@@ -697,7 +697,7 @@ public class JournalMissingTest {
     public void testNoJournalResumeOnFullPayloadUpload() throws ClientProtocolException, IOException
     {
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
         try
         {
@@ -807,7 +807,7 @@ public class JournalMissingTest {
         TestResources.cleanOutputDirectory(outputDirStr);
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
 
         try
@@ -894,7 +894,7 @@ public class JournalMissingTest {
         System.out.println("\nThis unit test verifies defect ticket #614\n");
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
         try
         {
@@ -1056,7 +1056,7 @@ public class JournalMissingTest {
         System.out.println("\nThis unit test verifies that if the journal record is deleted on initialize due to missing status.js file, then journal resume does not occur.\n");
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
         try
         {

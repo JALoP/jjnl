@@ -743,7 +743,7 @@ public class JalRecordTest {
         System.out.println("DR1.017.008.007.003 - Transfer Records:  journal-record - Journal Record:  JAL-Application-Metadata-Length");
 
         //Set archive mode on the subscriber
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         subscriber.getConfig().setMode(Mode.Archive);
 
         try
@@ -814,7 +814,7 @@ public class JalRecordTest {
     @Test
     public void testProcessJALRecordsCaseInsensitiveTest() throws ClientProtocolException, IOException {
 
-        JNLSubscriber subscriber = (JNLSubscriber)HttpUtils.getSubscriber();
+        JNLSubscriber subscriber = (JNLSubscriber)TestResources.getSubscriber();
         String [] modes = new String[] {"lIVe"};
         String publisherId = UUID.randomUUID().toString();
         for (RecordType recType : RecordType.values())

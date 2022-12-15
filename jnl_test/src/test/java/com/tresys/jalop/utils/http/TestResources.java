@@ -31,9 +31,11 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
 import com.tresys.jalop.jnl.impl.http.JNLAuditServlet;
@@ -56,6 +58,13 @@ public class TestResources {
     private static final String NONCE_FORMAT_STRING = "0000000000";
     static final DecimalFormat NONCE_FORMATER =
             new DecimalFormat(NONCE_FORMAT_STRING);
+
+    private static HttpUtils testHttpUtils;
+
+    public static Subscriber getSubscriber()
+    {
+        return testHttpUtils.getSubscriber();
+    }
 
     public static String getAutoNumberDirectoryName(int count)
     {
@@ -155,10 +164,6 @@ public class TestResources {
         server.setConnectors(new Connector[] { http, });
         server.setHandler(handler);
 
-        handler.addServletWithMapping(JNLJournalServlet.class, HttpUtils.JOURNAL_ENDPOINT);
-        handler.addServletWithMapping(JNLAuditServlet.class, HttpUtils.AUDIT_ENDPOINT);
-        handler.addServletWithMapping(JNLLogServlet.class, HttpUtils.LOG_ENDPOINT);
-
         //Sets up the subscriber
         HttpSubscriberConfig config = new HttpSubscriberConfig();
         config.setMode(Mode.Live);
@@ -168,12 +173,34 @@ public class TestResources {
         allowedConfigureDigests.add(HttpUtils.MSG_OFF);
         config.setAllowedConfigureDigests(allowedConfigureDigests);
 
-        HttpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
+        HttpUtils httpUtils = new HttpUtils();
+
+        httpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
         config.setOutputPath(new File("./output"));
         config.setMaxSessionLimit(5);
 
         JNLSubscriber subscriber = new JNLSubscriber(config);
-        HttpUtils.setSubscriber(subscriber);
+        httpUtils.setSubscriber(subscriber);
+
+        testHttpUtils = httpUtils;
+
+        JNLLogServlet logServlet = new JNLLogServlet();
+        logServlet.setHttpUtils(httpUtils);
+        ServletHolder logServletHolder = new ServletHolder(logServlet);
+
+        handler.addServletWithMapping(logServletHolder, HttpUtils.LOG_ENDPOINT);
+
+        JNLAuditServlet auditServlet = new JNLAuditServlet();
+        auditServlet.setHttpUtils(httpUtils);
+        ServletHolder auditServletHolder = new ServletHolder(auditServlet);
+
+        handler.addServletWithMapping(auditServletHolder, HttpUtils.AUDIT_ENDPOINT);
+
+        JNLJournalServlet journalServlet = new JNLJournalServlet();
+        journalServlet.setHttpUtils(httpUtils);
+        ServletHolder journalServletHolder = new ServletHolder(journalServlet);
+
+        handler.addServletWithMapping(journalServletHolder, HttpUtils.JOURNAL_ENDPOINT);
 
         return server;
     }
