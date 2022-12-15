@@ -1,3 +1,58 @@
+This README will detail the creation of the keystore files (.jks) in the
+jnl_test/certs directory. All commands are run from that directory.
+
+1) Construct a key store that will hold the private key material and public
+certificate:
+
+$> keytool -genkeypair -keyalg rsa -keystore server.jks -storepass changeit
+   -alias server -ext san=dns:<domain-name>,ip:<ip-address>
+
+Where the following are true:
+'changeit' is the desired password for the keystore
+'server' is the desired alias for the subscriber's keypair
+
+Either domain-name or ip-address should be filled in. Use whichever one that
+the publisher will use when connecting to this subscriber
+
+<domain-name> is the domain name of the server. For example, test-server.com.
+A domain-name only SAN would look like: san=dns:<domain-name>
+
+<ip-address> is the IP address of the server. For example, 127.0.0.1.
+An IP address only SAN would look like: san=ip:<ip-address>
+
+You will also be prompted to answer a number of questions (name,
+organization, etc).
+
+To extract the server's public certificate, you can do:
+
+$> keytool -exportcert -rfc -keystore server.jks > server.pem
+
+You will be prompted for the keystore password set when creating the keystore.
+
+The server.pem file is suitable for use in applications that use OpenSSL (such
+as the C JALoP Network Library).
+
+2) Import the publisher's public certificate into the keystore. This
+step is only necessary if you intend to enable TLS.
+
+$> keytool -importcert -keystore server.jks -file /path/to/publisher-cert.pem
+   -alias publisher
+
+Where 'publisher' is the alias you wish to assign to this certificate.
+
+You will be prompted for the keystore password set when creating the keystore.
+
+If you wish to use a trust store, replace the server's keystore 'server.jks'
+with the name of the trust store.
+
+The resulting keystore contains a keypair for the server and, optionally, the
+public certificate for the client.
+
+Note that if a keystore is being created on Java 11 > 11.0.12 and is expected to be
+used to Java 8 < 8.0.301, use -J-Dkeystore.pkcs12.legacy when the keystore is created.
+
+--------- OLD INSTRUCTIONS BELOW ---------
+
 1) Construct a key store that will hold the private key material and public
 certificate:
 

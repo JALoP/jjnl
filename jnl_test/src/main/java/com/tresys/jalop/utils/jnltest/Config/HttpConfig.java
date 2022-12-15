@@ -52,6 +52,8 @@ public class HttpConfig {
     private static final String JOURNAL = "journal";
     private static final String KEY_STORE_PASSPHRASE = "Key Store Passphrase";
     private static final String KEY_STORE = "Key Store";
+    private static final String TRUST_STORE_PASSPHRASE = "Trust Store Passphrase";
+    private static final String TRUST_STORE = "Trust Store";
     protected static final String LISTENER = "listener";
     private static final String LOG = "log";
     protected static final String OUTPUT = "output";
@@ -409,6 +411,28 @@ public class HttpConfig {
         }
 
         return keyStorePassword;
+    }
+
+    public String getTrustStorePath()
+    {
+        String trustStorePath = "";
+        if (this.sslConfig != null && this.sslConfig.containsKey(HttpConfig.TRUST_STORE))
+        {
+            trustStorePath = this.sslConfig.get(HttpConfig.TRUST_STORE);
+        }
+
+        return trustStorePath;
+    }
+
+    public String getTrustStorePassword()
+    {
+        String trustStorePassword = "";
+        if (this.sslConfig != null && this.sslConfig.containsKey(HttpConfig.TRUST_STORE_PASSPHRASE))
+        {
+            trustStorePassword = this.sslConfig.get(HttpConfig.TRUST_STORE_PASSPHRASE);
+        }
+
+        return trustStorePassword;
     }
 
     /**
@@ -787,6 +811,12 @@ public class HttpConfig {
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());
         httpSubscriberConfig.setOutputPath(this.getOutputPath());
+
+        if (!this.getTrustStorePath().isEmpty() && !this.getTrustStorePassword().isEmpty())
+        {
+            httpSubscriberConfig.setTrustStorePath(this.getTrustStorePath());
+            httpSubscriberConfig.setTrustStorePassword(this.getTrustStorePassword());
+        }
 
         return httpSubscriberConfig;
     }
