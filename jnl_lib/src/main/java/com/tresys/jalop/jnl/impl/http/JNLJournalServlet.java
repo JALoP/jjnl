@@ -15,8 +15,7 @@ import com.tresys.jalop.jnl.RecordType;
 @SuppressWarnings("serial")
 public class JNLJournalServlet extends HttpServlet implements JNLServlet
 {
-    /** Logger for this class */
-    private static final Logger logger = Logger.getLogger(JNLJournalServlet.class);
+    private HttpUtils httpUtils;
 
     /**
      * Create a JNLTest object based on the specified configuration.
@@ -26,6 +25,11 @@ public class JNLJournalServlet extends HttpServlet implements JNLServlet
      */
     public JNLJournalServlet() {
 
+
+    }
+
+    public void setHttpUtils(HttpUtils httpUtils) {
+        this.httpUtils = httpUtils;
     }
 
     @Override
@@ -33,7 +37,7 @@ public class JNLJournalServlet extends HttpServlet implements JNLServlet
             HttpServletResponse response)
                     throws ServletException, IOException {
 
-    	MessageProcessor.handleRequest(request, response, getSupportedRecordType());
+        MessageProcessor.handleRequest(request, response, getSupportedRecordType(), httpUtils);
     }
 
     @Override

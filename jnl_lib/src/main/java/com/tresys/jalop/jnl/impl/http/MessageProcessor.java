@@ -22,11 +22,13 @@ import org.apache.log4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.JNLSessionInvalidException;
+import com.tresys.jalop.jnl.impl.JNLLogger;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 /**
@@ -34,8 +36,6 @@ import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
  */
 public class MessageProcessor {
 
-    /** Logger for this class */
-    private static final Logger logger = Logger.getLogger(MessageProcessor.class);
     private static final Lock lock = new ReentrantLock();
 
     private static void updateSessionTimestamp(SubscriberHttpSessionImpl currSession)
@@ -68,7 +68,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJournalMissingMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJournalMissingMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, final Subscriber subscriber, JNLLog logger, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -95,6 +95,11 @@ public class MessageProcessor {
             throw new IllegalArgumentException("subscriberAndSession is required");
         }
 
+        if (subscriber == null)
+        {
+            throw new IllegalArgumentException("subscriber is required");
+        }
+
         final SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriberAndSession.getSession();
 
         if (sess == null)
@@ -102,9 +107,13 @@ public class MessageProcessor {
             throw new IllegalArgumentException("session cannot be null");
         }
 
-        logger.debug(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
 
-        final Subscriber subscriber = HttpUtils.getSubscriber();
+        logger.debug(HttpUtils.MSG_JOURNAL_MISSING + " message received with record type " + supportedRecType);
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -138,7 +147,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processInitializeMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, HashMap<String, String> successResponseHeaders, List<String> errorMessages) throws IOException
+    static boolean processInitializeMessage(final TreeMap<String, String> requestHeaders, final RecordType supportedRecType, HashMap<String, String> successResponseHeaders, final HttpUtils httpUtils, List<String> errorMessages) throws IOException
     {
         if (errorMessages == null)
         {
@@ -160,7 +169,26 @@ public class MessageProcessor {
             throw new IllegalArgumentException("supportedRecType is required");
         }
 
-        final Subscriber subscriber = HttpUtils.getSubscriber();
+        if (httpUtils == null)
+        {
+            throw new IllegalArgumentException("httpUtils is required");
+        }
+
+        if (httpUtils.getSubscriber() == null)
+        {
+            throw new IllegalArgumentException("httpUtils subscriber is required");
+        }
+
+        //Sets logger
+        JNLLog logger = null;
+        if (httpUtils.getExternalLogger() == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+        else
+        {
+            logger = httpUtils.getExternalLogger();
+        }
 
         logger.info(HttpUtils.MSG_INIT + " message received.");
 
@@ -170,6 +198,8 @@ public class MessageProcessor {
             logger.error("Initialize message failed due to invalid Publisher ID value of: " + publisherIdStr);
             return false;
         }
+
+        final Subscriber subscriber = httpUtils.getSubscriber();
 
         //Validates mode, must be live or archive, sets any error in response.
         String modeStr = requestHeaders.get(HttpUtils.HDRS_MODE);
@@ -209,7 +239,7 @@ public class MessageProcessor {
 
         //Validates record type
         String recordTypeStr = requestHeaders.get(HttpUtils.HDRS_RECORD_TYPE);
-        if (!HttpUtils.validateRecordType(recordTypeStr, supportedRecType, errorMessages))
+        if (!httpUtils.validateRecordType(recordTypeStr, supportedRecType, errorMessages))
         {
             logger.error("Initialize message failed due to unsupported record type: " + recordTypeStr);
             return false;
@@ -230,7 +260,7 @@ public class MessageProcessor {
             confDigestChallengeStr = HttpUtils.MSG_ON;
         }
 
-        String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorMessages);
+        String selectedConfDigestChallenge = httpUtils.validateConfigureDigestChallenge(confDigestChallengeStr, successResponseHeaders, errorMessages);
         if (selectedConfDigestChallenge == null)
         {
             logger.error("Initialize message failed due to unsupported configure digest challenge: " + confDigestChallengeStr);
@@ -248,7 +278,7 @@ public class MessageProcessor {
         final String sessionId = sessionUUID.toString();
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(publisherIdStr, sessionId,
                 supportedRecType, HttpUtils.getMode(modeStr), subscriber, selectedDigest,
-                selectedXmlCompression, 1, 1, performDigest);
+                selectedXmlCompression, 1, 1, performDigest, httpUtils.getExternalLogger());
 
         final SubscribeRequest subRequest = subscriber.getSubscribeRequest(sessionImpl, subscriber.getCreateConfirmedFile());
 
@@ -268,7 +298,7 @@ public class MessageProcessor {
             sessionImpl.setJournalResumeIS(subRequest.getResumeInputStream());
 
             //Adds journal resume header
-            if (!setJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, errorMessages))
+            if (!setJournalResumeMessage(subRequest.getNonce(), subRequest.getResumeOffset(), successResponseHeaders, logger, errorMessages))
             {
                 logger.error("Journal resume failed.");
                 return false;
@@ -288,14 +318,18 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processCloseSessionMessage(String sessionId)
+    static boolean processCloseSessionMessage(String sessionId, final Subscriber subscriber)
     {
-        final Subscriber subscriber = HttpUtils.getSubscriber();
+        if (subscriber == null)
+        {
+            throw new IllegalArgumentException("subscriber is required");
+        }
+
         return subscriber.removeSession(sessionId);
     }
 
     @VisibleForTesting
-    static boolean processDigestResponseMessage(final TreeMap<String, String> requestHeaders, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, List<String> errorMessages)
+    static boolean processDigestResponseMessage(final TreeMap<String, String> requestHeaders, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, final Subscriber subscriber, JNLLog logger, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -317,6 +351,11 @@ public class MessageProcessor {
             throw new IllegalArgumentException("subscriberAndSession is required");
         }
 
+        if (subscriber == null)
+        {
+            throw new IllegalArgumentException("subscriber is required");
+        }
+
         final SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriberAndSession.getSession();
 
         if (sess == null)
@@ -324,9 +363,13 @@ public class MessageProcessor {
             throw new IllegalArgumentException("session cannot be null");
         }
 
-        digestResult.setFailedDueToSync(false);
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
 
-        final Subscriber subscriber = HttpUtils.getSubscriber();
+        digestResult.setFailedDueToSync(false);
 
         //Checks the jal Id
         String jalId = requestHeaders.get(HttpUtils.HDRS_NONCE);
@@ -382,7 +425,7 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static boolean processJALRecordMessage(final TreeMap<String, String> requestHeaders, final InputStream requestInputStream, final RecordType supportedRecType, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, List<String> errorMessages)
+    static boolean processJALRecordMessage(final TreeMap<String, String> requestHeaders, final InputStream requestInputStream, final RecordType supportedRecType, final SubscriberAndSession subscriberAndSession, DigestResult digestResult, final Subscriber subscriber, final JNLLog currLogger, List<String> errorMessages)
     {
         if (digestResult == null)
         {
@@ -414,6 +457,11 @@ public class MessageProcessor {
             throw new IllegalArgumentException("subscriberAndSession is required");
         }
 
+        if (subscriber == null)
+        {
+            throw new IllegalArgumentException("subscriber is required");
+        }
+
         final SubscriberHttpSessionImpl sess = (SubscriberHttpSessionImpl)subscriberAndSession.getSession();
 
         if (sess == null)
@@ -421,8 +469,18 @@ public class MessageProcessor {
             throw new IllegalArgumentException("session cannot be null");
         }
 
+        //Sets logger
+        JNLLog logger = null;
+        if (currLogger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+        else
+        {
+            logger = currLogger;
+        }
+
         digestResult.setFailedDueToSync(false);
-        final Subscriber subscriber = HttpUtils.getSubscriber();
         digestResult.setPerformDigest(sess.getPerformDigest());
 
 
@@ -441,10 +499,10 @@ public class MessageProcessor {
         digestResult.setJalId(jalId);
 
         // Get the segment lengths from the header
-        Long sysMetadataSize = new Long(0);
+        Long sysMetadataSize = Long.valueOf(0);
         try
         {
-            sysMetadataSize = new Long(requestHeaders.get(HttpUtils.HDRS_SYS_META_LEN)).longValue();
+            sysMetadataSize = Long.valueOf(requestHeaders.get(HttpUtils.HDRS_SYS_META_LEN));
 
             if (sysMetadataSize <= 0)
             {
@@ -458,10 +516,10 @@ public class MessageProcessor {
             return false;
         }
 
-        Long appMetadataSize = new Long(0);
+        Long appMetadataSize = Long.valueOf(0);
         try
         {
-            appMetadataSize = new Long(requestHeaders.get(HttpUtils.HDRS_APP_META_LEN)).longValue();
+            appMetadataSize = Long.valueOf(requestHeaders.get(HttpUtils.HDRS_APP_META_LEN));
 
             if (appMetadataSize < 0)
             {
@@ -477,12 +535,12 @@ public class MessageProcessor {
 
         RecordType recType = RecordType.Unset;
         String payloadType = requestHeaders.get(HttpUtils.HDRS_MESSAGE);
-        Long payloadSize = new Long(0);
+        Long payloadSize = Long.valueOf(0);
         if (payloadType.equalsIgnoreCase(HttpUtils.MSG_LOG) && RecordType.Log.equals(supportedRecType))
         {
             try
             {
-                payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_LOG_LEN)).longValue();
+                payloadSize = Long.valueOf(requestHeaders.get(HttpUtils.HDRS_LOG_LEN));
 
                 if (payloadSize < 0)
                 {
@@ -509,7 +567,7 @@ public class MessageProcessor {
         {
             try
             {
-                payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_AUDIT_LEN)).longValue();
+                payloadSize = Long.valueOf(requestHeaders.get(HttpUtils.HDRS_AUDIT_LEN));
 
                 if (payloadSize <= 0)
                 {
@@ -535,7 +593,7 @@ public class MessageProcessor {
         {
             try
             {
-                payloadSize = new Long(requestHeaders.get(HttpUtils.HDRS_JOURNAL_LEN)).longValue();
+                payloadSize = Long.valueOf(requestHeaders.get(HttpUtils.HDRS_JOURNAL_LEN));
 
                 if (payloadSize < 0)
                 {
@@ -561,7 +619,7 @@ public class MessageProcessor {
             MessageDigest md = MessageDigest
                     .getInstance(sess.getDigestType(sess.getDigestMethod()));
 
-            SubscriberHttpANSHandler subscriberHandler = new SubscriberHttpANSHandler(md, sess, sess.getPerformDigest());
+            SubscriberHttpANSHandler subscriberHandler = new SubscriberHttpANSHandler(md, sess, sess.getPerformDigest(), currLogger);
             String digest = subscriberHandler.handleJALRecord(sysMetadataSize, appMetadataSize, payloadSize, payloadType, recType, jalId, requestInputStream, subscriberAndSession.getSubscriber());
 
             //If null, then failure occurred
@@ -616,16 +674,28 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setJournalMissingResponse(final String jalId, final HttpServletResponse response)
+    static void setJournalMissingResponse(final String jalId, final HttpServletResponse response, JNLLog logger)
     {
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_JOURNAL_MISSING_RESPONSE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         logger.debug(HttpUtils.MSG_JOURNAL_MISSING_RESPONSE + " message processed");
     }
 
     @VisibleForTesting
-    static void setRecordFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
+    static void setRecordFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response, JNLLog logger)
     {
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_RECORD_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
@@ -633,15 +703,27 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setCloseSessionResponse(final HttpServletResponse response)
+    static void setCloseSessionResponse(final HttpServletResponse response, JNLLog logger)
     {
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_CLOSE_SESSION_RESPONSE);
         logger.debug(HttpUtils.MSG_CLOSE_SESSION_RESPONSE + " message processed");
     }
 
     @VisibleForTesting
-    static void setDigestChallengeResponse(final String jalId, final DigestResult digestResult, final HttpServletResponse response)
+    static void setDigestChallengeResponse(final String jalId, final DigestResult digestResult, final HttpServletResponse response, JNLLog logger)
     {
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_DIGEST_CHALLENGE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_DIGEST_VALUE, digestResult.getDigest());
@@ -649,8 +731,14 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setSyncFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response)
+    static void setSyncFailureResponse(final String jalId, final List<String> errorMessages, final HttpServletResponse response, JNLLog logger)
     {
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC_FAILURE);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
@@ -658,16 +746,28 @@ public class MessageProcessor {
     }
 
     @VisibleForTesting
-    static void setSyncResponse(final String jalId, final HttpServletResponse response)
+    static void setSyncResponse(final String jalId, final HttpServletResponse response, JNLLog logger)
     {
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SYNC);
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
         logger.debug(HttpUtils.MSG_SYNC + " message processed");
     }
 
     @VisibleForTesting
-    static void setSessionFailureResponse(final List<String> errorMessages, final HttpServletResponse response, final String sessionId, final String jalId)
+    static void setSessionFailureResponse(final List<String> errorMessages, final HttpServletResponse response, final String sessionId, JNLLog logger, final String jalId)
     {
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+
         response.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_SESSION_FAILURE);
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
         response.setHeader(HttpUtils.HDRS_NONCE, jalId);
@@ -678,8 +778,14 @@ public class MessageProcessor {
 
     @VisibleForTesting
     static Boolean setJournalResumeMessage(final String nonce,
-            final long offset, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders) {
+            final long offset, HashMap<String, String> successResponseHeaders, JNLLog logger, List<String> errorResponseHeaders) {
         HttpUtils.checkForEmptyString(nonce);
+
+        //Sets logger
+        if (logger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
 
         if (offset < 0) {
             logger.error("offset for '"
@@ -702,28 +808,52 @@ public class MessageProcessor {
         response.setHeader(HttpUtils.HDRS_ERROR_MESSAGE, HttpUtils.convertListToString(errorMessages));
     }
 
-    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType)
+    public static void handleRequest(HttpServletRequest request, HttpServletResponse response, RecordType supportedRecType, HttpUtils httpUtils)
     {
-	// Set the Content-Type header in response message.
-	response.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+        // Set the Content-Type header in response message.
+        response.setHeader(HttpUtils.HDRS_CONTENT_TYPE, HttpUtils.DEFAULT_CONTENT_TYPE);
+
+        if (httpUtils == null)
+        {
+            throw new IllegalArgumentException("httpUtils is required");
+        }
+
+        if (httpUtils.getSubscriber() == null)
+        {
+            throw new IllegalArgumentException("httpUtils subscriber is required");
+        }
+
+        //Sets logger
+        JNLLog logger = null;
+        if (httpUtils.getExternalLogger() == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(MessageProcessor.class));
+        }
+        else
+        {
+            logger = httpUtils.getExternalLogger();
+        }
 
         //Used to capture all error messages that occur during the processing of this message
         List<String> errorMessages = new ArrayList<>();
         try
         {
             // Gets all the headers from the request
-            TreeMap<String, String> currHeaders = HttpUtils.parseHttpHeaders(request);
+            TreeMap<String, String> currHeaders = httpUtils.parseHttpHeaders(request);
 
-            Integer currRequestCount = HttpUtils.requestCount.incrementAndGet();
+            if (httpUtils != null)
+            {
+                Integer currRequestCount = httpUtils.requestCount.incrementAndGet();
 
-            logger.debug("request: " + currRequestCount.toString() + " started");
+                logger.debug("request: " + currRequestCount.toString() + " started");
+            }
 
             // Init message
             String messageType = request.getHeader(HttpUtils.HDRS_MESSAGE);
             if (messageType.equalsIgnoreCase(HttpUtils.MSG_INIT))
             {
                 HashMap<String, String> successResponseHeaders = new HashMap<String, String>();
-                if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, errorMessages))
+                if (!MessageProcessor.processInitializeMessage(currHeaders, supportedRecType, successResponseHeaders, httpUtils, errorMessages))
                 {
                     //Send initialize-nack on error
                     logger.info("Initialize message is invalid, sending intialize-nack");
@@ -740,7 +870,7 @@ public class MessageProcessor {
                 //Gets the session Id from header
                 String sessionIdStr = currHeaders.get(HttpUtils.HDRS_SESSION_ID);
 
-                SubscriberAndSession subscriberAndSession = HttpUtils.validateSessionId(sessionIdStr, errorMessages);
+                SubscriberAndSession subscriberAndSession = httpUtils.validateSessionId(sessionIdStr, errorMessages);
 
                 if (subscriberAndSession == null)
                 {
@@ -763,18 +893,18 @@ public class MessageProcessor {
 
                     updateSessionTimestamp(currSession);
                     if (!MessageProcessor.processJALRecordMessage(currHeaders, request.getInputStream(),
-                            supportedRecType, subscriberAndSession, digestResult, errorMessages))
+                            supportedRecType, subscriberAndSession, digestResult, httpUtils.getSubscriber(), httpUtils.getExternalLogger(), errorMessages))
                     {
                         updateSessionTimestamp(currSession);
 
                         //If digest was performed send digest-challenge-failed, otherwise send sync-failed
                         if (!digestResult.getFailedDueToSync())
                         {
-                            MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
+                            MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response, logger);
                         }
                         else
                         {
-                            MessageProcessor.setSyncFailureResponse(digestResult.getJalId(), errorMessages, response);
+                            MessageProcessor.setSyncFailureResponse(digestResult.getJalId(), errorMessages, response, logger);
                         }
                     }
                     else
@@ -785,12 +915,12 @@ public class MessageProcessor {
                         if (digestResult.getPerformDigest())
                         {
                             // Set digest-challenge response
-                            MessageProcessor.setDigestChallengeResponse(digestResult.getJalId(), digestResult, response);
+                            MessageProcessor.setDigestChallengeResponse(digestResult.getJalId(), digestResult, response, logger);
                         }
                         else
                         {
                             //Send sync message
-                            MessageProcessor.setSyncResponse(digestResult.getJalId(), response);
+                            MessageProcessor.setSyncResponse(digestResult.getJalId(), response, logger);
                         }
                     }
                 }
@@ -799,15 +929,15 @@ public class MessageProcessor {
                     updateSessionTimestamp(currSession);
 
                     DigestResult digestResult = new DigestResult();
-                    if (!MessageProcessor.processJournalMissingMessage(currHeaders, supportedRecType, subscriberAndSession, digestResult, errorMessages))
+                    if (!MessageProcessor.processJournalMissingMessage(currHeaders, supportedRecType, subscriberAndSession, digestResult, httpUtils.getSubscriber(), logger, errorMessages))
                     {
                         //Send record failure
-                        MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
+                        MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response, logger);
                     }
                     else
                     {
                         //Send journal missing response
-                        MessageProcessor.setJournalMissingResponse(digestResult.getJalId(), response);
+                        MessageProcessor.setJournalMissingResponse(digestResult.getJalId(), response, logger);
                     }
 
                     updateSessionTimestamp(currSession);
@@ -817,18 +947,18 @@ public class MessageProcessor {
                     DigestResult digestResult = new DigestResult();
 
                     updateSessionTimestamp(currSession);
-                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, subscriberAndSession, digestResult, errorMessages))
+                    if (!MessageProcessor.processDigestResponseMessage(currHeaders, subscriberAndSession, digestResult, httpUtils.getSubscriber(), logger, errorMessages))
                     {
                         updateSessionTimestamp(currSession);
 
                         //Determine if it failed due to a sync failure or record failure
                         if (digestResult.getFailedDueToSync())
                         {
-                            MessageProcessor.setSyncFailureResponse(digestResult.getJalId(), errorMessages, response);
+                            MessageProcessor.setSyncFailureResponse(digestResult.getJalId(), errorMessages, response, logger);
                         }
                         else
                         {
-                            MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response);
+                            MessageProcessor.setRecordFailureResponse(digestResult.getJalId(), errorMessages, response, logger);
                         }
                     }
                     else
@@ -836,12 +966,12 @@ public class MessageProcessor {
                         updateSessionTimestamp(currSession);
 
                         //Send sync message
-                        MessageProcessor.setSyncResponse(digestResult.getJalId(), response);
+                        MessageProcessor.setSyncResponse(digestResult.getJalId(), response, logger);
                     }
                 }
                 else if (messageType.equalsIgnoreCase(HttpUtils.MSG_CLOSE_SESSION))
                 {
-                    if (!MessageProcessor.processCloseSessionMessage(sessionIdStr))
+                    if (!MessageProcessor.processCloseSessionMessage(sessionIdStr, httpUtils.getSubscriber()))
                     {
                         String errMsg = "JAL message failed due to invalid Session ID value of: " + sessionIdStr;
                         logger.error(errMsg);
@@ -853,7 +983,7 @@ public class MessageProcessor {
                     else
                     {
                         //Send close session response message
-                        MessageProcessor.setCloseSessionResponse(response);
+                        MessageProcessor.setCloseSessionResponse(response, logger);
                     }
                 }
                 else
@@ -867,7 +997,7 @@ public class MessageProcessor {
         catch (JNLSessionInvalidException e)
         {
             logger.error("Failed to process message. Cause: " + e);
-            MessageProcessor.setSessionFailureResponse(errorMessages, response, HttpUtils.checkForEmptyString(e.getSessionId()), HttpUtils.checkForEmptyString(e.getJalId()));
+            MessageProcessor.setSessionFailureResponse(errorMessages, response, HttpUtils.checkForEmptyString(e.getSessionId()), logger, HttpUtils.checkForEmptyString(e.getJalId()));
         }
         catch (IOException ioe)
         {
@@ -885,6 +1015,6 @@ public class MessageProcessor {
             logger.error("A general excpetion occurred: ", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
-	HttpUtils.parseHttpResponseHeaders(response);
+        httpUtils.parseHttpResponseHeaders(response);
     }
 }

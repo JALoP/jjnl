@@ -17,19 +17,24 @@ import javax.xml.crypto.dsig.DigestMethod;
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
+import com.tresys.jalop.jnl.impl.JNLLogger;
 
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
  */
 public class HttpUtils {
 
-    /** Logger for this class */
-    private static final Logger logger = Logger.getLogger(HttpUtils.class);
+    //External logger instance
+    private JNLLog externalLogger = null;
 
-    public static AtomicInteger requestCount = new AtomicInteger();
+    //Logger instance for this class
+    private JNLLog logger = null;
+
+    public AtomicInteger requestCount = new AtomicInteger();
     private static final int BUFFER_SIZE = 4096;
     public static final int MAX_HEADER_SIZE = 32768;
 
@@ -146,11 +151,29 @@ public class HttpUtils {
     public static String AUDIT_ENDPOINT = "/audit";
     public static String LOG_ENDPOINT = "/log";
 
-    private static List<String> allowedConfigureDigests;
+    private List<String> allowedConfigureDigests;
 
-    private static Subscriber subscriber;
+    private Subscriber subscriber;
 
-    public static List<String> getAllowedConfigureDigests() {
+    public HttpUtils(JNLLog currLogger)
+    {
+        if (currLogger == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(HttpUtils.class));
+        }
+        else
+        {
+            logger = currLogger;
+            externalLogger = currLogger;
+        }
+    }
+
+    public HttpUtils()
+    {
+        this(null);
+    }
+
+    public List<String> getAllowedConfigureDigests() {
 
         if (allowedConfigureDigests == null)
         {
@@ -166,8 +189,8 @@ public class HttpUtils {
         return allowedConfigureDigests;
     }
 
-    public static void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
-        HttpUtils.allowedConfigureDigests = allowedConfigureDigests;
+    public void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
+        this.allowedConfigureDigests = allowedConfigureDigests;
     }
 
     public static List<String> parseHeaderList(String currHeader)
@@ -192,7 +215,7 @@ public class HttpUtils {
         return headerStr;
     }
 
-    public static TreeMap<String, String> parseHttpHeaders(HttpServletRequest request)
+    public TreeMap<String, String> parseHttpHeaders(HttpServletRequest request)
     {
         TreeMap<String, String> currHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         Enumeration<String> headerNames = request.getHeaderNames();
@@ -209,7 +232,7 @@ public class HttpUtils {
         return currHeaders;
     }
 
-    public static void parseHttpResponseHeaders(HttpServletResponse response)
+    public void parseHttpResponseHeaders(HttpServletResponse response)
     {
         Collection<String> headerNames = response.getHeaderNames();
 
@@ -290,7 +313,7 @@ public class HttpUtils {
     }
 
     // Validates Session ID, must be UUID
-    public static SubscriberAndSession validateSessionId(String sessionId, List<String> errorResponseHeaders)
+    public SubscriberAndSession validateSessionId(String sessionId, List<String> errorResponseHeaders)
     {
         String currSessionId = checkForEmptyString(sessionId);
 
@@ -418,7 +441,7 @@ public class HttpUtils {
 
 
     //Validates recordType, must be journal, audit, or log
-    public static boolean validateRecordType(String recordType, RecordType supportedRecType, List<String> errorResponseHeaders)
+    public boolean validateRecordType(String recordType, RecordType supportedRecType, List<String> errorResponseHeaders)
     {
         String currRecordType = checkForEmptyString(recordType);
 
@@ -479,7 +502,7 @@ public class HttpUtils {
     }
 
     //Validates configure digest challenge, must be on/off
-    public static String validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
+    public String validateConfigureDigestChallenge(String configureDigestChallenge, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
         String currConfigDigests = checkForEmptyString(configureDigestChallenge);
         String selectedConfigureDigest = null;
@@ -496,7 +519,7 @@ public class HttpUtils {
         //Check to ensure the configre digest challenge is valid, only on/off, the first one found is the preferred value
         for (String currConfigDigest : acceptedConfigDigests)
         {
-            if (HttpUtils.getAllowedConfigureDigests().contains(HttpUtils.checkForEmptyString(currConfigDigest)))
+            if (getAllowedConfigureDigests().contains(HttpUtils.checkForEmptyString(currConfigDigest)))
             {
                 selectedConfigureDigest = currConfigDigest;
                 successResponseHeaders.put(HDRS_CONFIGURE_DIGEST_CHALLENGE, currConfigDigest);
@@ -508,12 +531,12 @@ public class HttpUtils {
         return null;
     }
 
-    public static Subscriber getSubscriber() {
+    public Subscriber getSubscriber() {
         return subscriber;
     }
 
-    public static void setSubscriber(Subscriber subscriber) {
-        HttpUtils.subscriber = subscriber;
+    public void setSubscriber(Subscriber subscriber) {
+        this.subscriber = subscriber;
     }
 
     public static RecordType getRecordType(String recordTypeStr)
@@ -567,5 +590,9 @@ public class HttpUtils {
         }
 
         return mode;
+    }
+
+    public JNLLog getExternalLogger() {
+        return externalLogger;
     }
 }

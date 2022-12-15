@@ -49,7 +49,7 @@ public class SubscriberHttpSessionImplTest {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
                 XML_COMPRESSION_NONE, 1,
-                2, true);
+                2, true, null);
 
         return sessionImpl;
     }
@@ -66,7 +66,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"),
-                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true);
+                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -77,7 +77,7 @@ public class SubscriberHttpSessionImplTest {
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(null,
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"),
-                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true);
+                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -88,7 +88,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class SubscriberHttpSessionImplTest {
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 null, HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -110,7 +110,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", null, HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -121,7 +121,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Unset, Mode.Archive, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), null, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), Mode.Unset,
-                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true);
+                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, null, SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -165,7 +165,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), null,
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -176,7 +176,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), "",
-                XML_COMPRESSION_NONE, 1, 1, true);
+                XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -187,7 +187,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
-                null, 1, 1, true);
+                null, 1, 1, true, null);
     }
 
     @Test
@@ -198,7 +198,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
-                "", 1, 1, true);
+                "", 1, 1, true, null);
     }
 
     @Test
@@ -210,7 +210,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 0, 1, true);
+                XML_COMPRESSION_NONE, 0, 1, true, null);
     }
 
     @Test
@@ -222,7 +222,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
-                XML_COMPRESSION_NONE, 1, 0, true);
+                XML_COMPRESSION_NONE, 1, 0, true, null);
     }
 
     @Test

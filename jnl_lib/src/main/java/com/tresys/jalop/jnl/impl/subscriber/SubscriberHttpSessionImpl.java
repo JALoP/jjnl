@@ -10,17 +10,18 @@ import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
 
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.JNLLogger;
 
 public class SubscriberHttpSessionImpl implements SubscriberSession {
 
-    private static final Logger log = Logger
-            .getLogger(SubscriberHttpSessionImpl.class);
+    private JNLLog log = null;
 
     private final Subscriber subscriber;
     protected volatile int pendingDigestTimeoutSeconds;
@@ -61,7 +62,7 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
     public SubscriberHttpSessionImpl(final String publisherId, final String sessionId,
             final RecordType recordType, final Mode mode, final Subscriber subscriber,
             final String digestMethod, final String xmlEncoding,
-            final int pendingDigestTimeoutSeconds, final int pendingDigestMax,final boolean performDigest) {
+            final int pendingDigestTimeoutSeconds, final int pendingDigestMax,final boolean performDigest, JNLLog logger) {
 
         if (recordType == null || recordType.equals(RecordType.Unset)) {
             throw new IllegalArgumentException(
@@ -100,6 +101,16 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
         if (pendingDigestMax <= 0) {
             throw new IllegalArgumentException("'pendingDigestMax' "
                     + "must be a positive number.");
+        }
+
+        //Sets logger
+        if (logger == null)
+        {
+            log = new JNLLogger(Logger.getLogger(SubscriberHttpSessionImpl.class));
+        }
+        else
+        {
+            log = logger;
         }
 
         this.recordType = recordType;

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -12,6 +13,8 @@ public class HttpSubscriberConfig {
 
     private String keystorePath;
     private String keystorePassword;
+    private String trustStorePath;
+    private String trustStorePassword;
     private int port;
     private String address;
     private Set<RecordType> recordTypes;
@@ -22,6 +25,7 @@ public class HttpSubscriberConfig {
     private Mode mode;
     private File outputPath;
     private boolean createConfirmedFile;
+    private JNLLog logger;
 
     public String getKeystorePath() {
         return keystorePath;
@@ -34,6 +38,18 @@ public class HttpSubscriberConfig {
     }
     public void setKeystorePassword(String keystorePassword) {
         this.keystorePassword = keystorePassword;
+    }
+    public String getTrustStorePath() {
+        return trustStorePath;
+    }
+    public void setTrustStorePath(String trustStorePath) {
+        this.trustStorePath = trustStorePath;
+    }
+    public String getTrustStorePassword() {
+        return trustStorePassword;
+    }
+    public void setTrustStorePassword(String trustStorePassword) {
+        this.trustStorePassword = trustStorePassword;
     }
     public int getPort() {
         return port;
@@ -102,5 +118,11 @@ public class HttpSubscriberConfig {
         {
             this.createConfirmedFile = false;
         }
+    }
+    public JNLLog getLogger() {
+        return logger;
+    }
+    public void setLogger(JNLLog logger) {
+        this.logger = logger;
     }
 }

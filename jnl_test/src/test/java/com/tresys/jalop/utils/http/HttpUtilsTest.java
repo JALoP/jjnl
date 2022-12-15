@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +36,9 @@ public class HttpUtilsTest {
     @Test
     public void testGetAllowedConfigureDigests()
     {
-        HttpUtils.setAllowedConfigureDigests(null);
-        List<String> configureDigests = HttpUtils.getAllowedConfigureDigests();
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setAllowedConfigureDigests(null);
+        List<String> configureDigests = httpUtils.getAllowedConfigureDigests();
         assertNotNull(configureDigests);
         assertEquals(1, configureDigests.size());
     }
@@ -390,7 +392,8 @@ public class HttpUtilsTest {
     public void testValidateRecordTypeWorksForJournal() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String recordType = "journal";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final boolean returned = httpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
         assertTrue(returned);
     }
 
@@ -398,7 +401,8 @@ public class HttpUtilsTest {
     public void testValidateRecordTypeWorksForAudit() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String recordType = "audit";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Audit, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final boolean returned = httpUtils.validateRecordType(recordType, RecordType.Audit, errorResponseHeaders);
         assertTrue(returned);
     }
 
@@ -406,26 +410,29 @@ public class HttpUtilsTest {
     public void testValidateRecordTypeWorksForLog() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String recordType = "log";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Log, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final boolean returned = httpUtils.validateRecordType(recordType, RecordType.Log, errorResponseHeaders);
         assertTrue(returned);
     }
 
     public void testValidateRecordTypeFailsForEmptyRecordType() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String recordType = "";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final boolean returned = httpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
         assertFalse(returned);
 
         final String recordType2 = null;
         List <String> errorResponseHeaders2 = new ArrayList<String>();
-        final boolean returned2 = HttpUtils.validateRecordType(recordType2, RecordType.Journal, errorResponseHeaders2);
+        final boolean returned2 = httpUtils.validateRecordType(recordType2, RecordType.Journal, errorResponseHeaders2);
         assertFalse(returned2);
     }
 
     public void testValidateRecordTypeFailsForInvalidRecordType() throws MissingMimeHeaderException, UnexpectedMimeValueException {
         final String recordType = "invalid";
         List <String> errorResponseHeaders = new ArrayList<String>();
-        final boolean returned = HttpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final boolean returned = httpUtils.validateRecordType(recordType, RecordType.Journal, errorResponseHeaders);
         assertFalse(returned);
     }
 
@@ -465,7 +472,8 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "on";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final String selectedConfDigestChallenge = httpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
         assertEquals("on", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -479,11 +487,12 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "off";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        List<String> allowedConfigureDigests = HttpUtils.getAllowedConfigureDigests();
+        HttpUtils httpUtils = new HttpUtils();
+        List<String> allowedConfigureDigests = httpUtils.getAllowedConfigureDigests();
         allowedConfigureDigests.add("off");
-        HttpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
+        httpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
 
-        final String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        final String selectedConfDigestChallenge = httpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
         assertEquals("off", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -497,7 +506,8 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "on,off";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final String selectedConfDigestChallenge = httpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
         assertEquals("on", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -511,7 +521,10 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "off,on";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        List<String> allowedConfigureDigests = Arrays.asList(configureDigestChallenge.split(","));
+        httpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
+        final String selectedConfDigestChallenge = httpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
         assertEquals("off", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
@@ -525,7 +538,8 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final String selectedConfDigestChallenge = httpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
         assertEquals(null, selectedConfDigestChallenge);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
@@ -538,7 +552,8 @@ public class HttpUtilsTest {
         final String configureDigestChallenge = "invalid";
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List<String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedConfDigestChallenge = HttpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
+        HttpUtils httpUtils = new HttpUtils();
+        final String selectedConfDigestChallenge = httpUtils.validateConfigureDigestChallenge(configureDigestChallenge, successResponseHeaders, errorResponseHeaders);
         assertEquals(null, selectedConfDigestChallenge);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {

@@ -54,12 +54,14 @@ import org.json.simple.parser.ParseException;
 
 import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestStatus;
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.SubscribeRequest;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
+import com.tresys.jalop.jnl.impl.JNLLogger;
 import com.tresys.jalop.jnl.impl.http.JNLTestInterface;
 import com.tresys.jalop.jnl.impl.http.SubscriberAndSession;
 
@@ -180,7 +182,7 @@ public class SubscriberImpl implements Subscriber {
     final File outputIpRoot;
 
     /** A logger for this class. */
-    private static final Logger LOGGER = Logger.getLogger(SubscriberImpl.class);
+    private JNLLog LOGGER = null;
 
     /** The format string for output files. */
     private static final String NONCE_FORMAT_STRING = "0000000000";
@@ -196,18 +198,18 @@ public class SubscriberImpl implements Subscriber {
      * downloaded records.
      */
     static final FilenameFilter FILENAME_FILTER =
-        new PatternFilenameFilter(NONCE_REGEX);
+            new PatternFilenameFilter(NONCE_REGEX);
 
     /** Formatter used to generate the sub-directories for each record. */
     static final DecimalFormat NONCE_FORMATER =
-        new DecimalFormat(NONCE_FORMAT_STRING);
+            new DecimalFormat(NONCE_FORMAT_STRING);
 
     /** Local nonce counter. */
     private long nonce = 1;
 
     /** Maps remote NONCE to {@link LocalRecordInfo}. */
     private final Map<String, LocalRecordInfo> nonceMap =
-        new HashMap<String, SubscriberImpl.LocalRecordInfo>();
+            new HashMap<String, SubscriberImpl.LocalRecordInfo>();
 
     /** Buffer size for read data from the network and writing to disk. */
     private final int bufferSize = 4096;
@@ -248,7 +250,7 @@ public class SubscriberImpl implements Subscriber {
         public boolean accept(final File pathname) {
             if (pathname.isDirectory()) {
                 return FILENAME_FILTER.accept(pathname.getParentFile(),
-                                              pathname.getName());
+                        pathname.getName());
             }
             return false;
         }
@@ -283,7 +285,7 @@ public class SubscriberImpl implements Subscriber {
          */
         public LocalRecordInfo(final RecordInfo info, final long localNonce) {
             this(info.getNonce(), info.getAppMetaLength(),
-                 info.getSysMetaLength(), info.getPayloadLength(), localNonce);
+                    info.getSysMetaLength(), info.getPayloadLength(), localNonce);
         }
 
         /**
@@ -306,8 +308,8 @@ public class SubscriberImpl implements Subscriber {
                 final long localNonce) {
 
             this.recordDir =
-                new File(SubscriberImpl.this.outputIpRoot,
-                         SubscriberImpl.NONCE_FORMATER.format(localNonce));
+                    new File(SubscriberImpl.this.outputIpRoot,
+                            SubscriberImpl.NONCE_FORMATER.format(localNonce));
             this.statusFile = new File(this.recordDir, STATUS_FILENAME);
             this.status = new JSONObject();
             this.status.put(APP_META_SZ, appMetaLen);
@@ -339,9 +341,19 @@ public class SubscriberImpl implements Subscriber {
      *          The {@link InetAddress} of the remote.
      */
     public SubscriberImpl(final RecordType recordType, final File outputRoot,
-            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId, boolean createConfirmedFile) {
+            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId, boolean createConfirmedFile, JNLLog logger) {
         this.recordType = recordType;
         this.createConfirmedFile = createConfirmedFile;
+
+        //Sets logger
+        if (logger == null)
+        {
+            LOGGER = new JNLLogger(Logger.getLogger(SubscriberImpl.class));
+        }
+        else
+        {
+            LOGGER = logger;
+        }
 
         //If publisherId is not null, then use publisher uuid instead of ip for dir names
         if (publisherId != null)
@@ -381,15 +393,15 @@ public class SubscriberImpl implements Subscriber {
         this.outputIpRoot.mkdirs();
         if (!(this.outputIpRoot.exists() && this.outputIpRoot.isDirectory())) {
             throw new RuntimeException("Failed to create subdirs for "
-                                       + remoteAddr.getHostAddress() + "/"
-                                       + type);
+                    + remoteAddr.getHostAddress() + "/"
+                    + type);
         }
         this.lastConfirmedFile = new File(this.outputIpRoot, LAST_CONFIRMED_FILENAME);
         if(!lastConfirmedFile.exists()) {
             try {
                 this.lastConfirmedFile.createNewFile();
             } catch (final IOException e) {
-                LOGGER.fatal("Failed to create file: " + LAST_CONFIRMED_FILENAME);
+                LOGGER.error("Failed to create file: " + LAST_CONFIRMED_FILENAME);
                 throw new RuntimeException(e);
             }
         }
@@ -397,8 +409,7 @@ public class SubscriberImpl implements Subscriber {
         try {
             prepareForSubscribe();
         } catch (final Exception e) {
-            LOGGER.fatal("Failed to clean existing directories: ");
-            LOGGER.fatal(e);
+            LOGGER.error("Failed to clean existing directories: ", e);
             throw new RuntimeException(e);
         }
     }
@@ -421,7 +432,7 @@ public class SubscriberImpl implements Subscriber {
      *          directory name.
      */
     final void prepareForSubscribe() throws IOException, ParseException,
-                                                java.text.ParseException {
+    java.text.ParseException {
 
         final File[] outputRecordDirs = this.outputRoot.listFiles(SubscriberImpl.FILE_FILTER);
         long lastNonce = 0;
@@ -448,11 +459,11 @@ public class SubscriberImpl implements Subscriber {
         this.journalOffset = 0;
         final JSONParser p  = new JSONParser();
         final File[] recordDirs =
-            this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
+                this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
 
         if(this.lastConfirmedFile.length() > 0) {
             final JSONObject lastConfirmedJson = (JSONObject) p.parse(new FileReader(
-                this.lastConfirmedFile));
+                    this.lastConfirmedFile));
 
             this.lastNonceFromRemote = (String) lastConfirmedJson.get(LAST_CONFIRMED_NONCE);
         }
@@ -470,8 +481,8 @@ public class SubscriberImpl implements Subscriber {
             JSONObject status;
             try {
                 status = (JSONObject) p.parse(new FileReader(
-                                                   new File(firstRecord,
-                                                             STATUS_FILENAME)));
+                        new File(firstRecord,
+                                STATUS_FILENAME)));
 
                 final Number progress = (Number) status.get(PAYLOAD_PROGRESS);
                 final Number originalPayloadSize = (Number) status.get(ORIGINAL_PAYLOAD_SZ);
@@ -484,19 +495,19 @@ public class SubscriberImpl implements Subscriber {
                 if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null && originalPayloadSize != null && payloadFile.length() < originalPayloadSize.longValue()) {
                     // journal record can be resumed
                     this.lastNonceFromRemote =
-                        (String) status.get(REMOTE_NONCE);
+                            (String) status.get(REMOTE_NONCE);
                     this.journalOffset = progress.longValue();
                     FileUtils.forceDelete(new File(firstRecord, APP_META_FILENAME));
                     FileUtils.forceDelete(new File(firstRecord, SYS_META_FILENAME));
                     status.remove(APP_META_PROGRESS);
                     status.remove(SYS_META_PROGRESS);
                     this.nonce =
-                        NONCE_FORMATER.parse(firstRecord.getName()).longValue();
+                            NONCE_FORMATER.parse(firstRecord.getName()).longValue();
 
                     try
                     {
                         this.journalInputStream = new FileInputStream(
-                                       new File(firstRecord, PAYLOAD_FILENAME));
+                                new File(firstRecord, PAYLOAD_FILENAME));
                     }
                     catch (final FileNotFoundException e) {
                         if (LOGGER.isDebugEnabled()) {
@@ -534,7 +545,7 @@ public class SubscriberImpl implements Subscriber {
         for (final File f: deleteDirs) {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Removing directory for unsynced record: "
-                            + f.getAbsolutePath());
+                        + f.getAbsolutePath());
             }
             FileUtils.forceDelete(f);
         }
@@ -560,7 +571,7 @@ public class SubscriberImpl implements Subscriber {
         for (final File f: deleteDirs) {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Removing directory for unsynced journal record: "
-                            + f.getAbsolutePath());
+                        + f.getAbsolutePath());
             }
 
             try
@@ -569,8 +580,7 @@ public class SubscriberImpl implements Subscriber {
             }
             catch (IOException e)
             {
-                LOGGER.fatal("Failed to delete temp journal record directory: " + f.getAbsolutePath());
-                LOGGER.fatal(e);
+                LOGGER.error("Failed to delete temp journal record directory: " + f.getAbsolutePath(), e);
                 throw new RuntimeException(e);
             }
         }
@@ -578,10 +588,10 @@ public class SubscriberImpl implements Subscriber {
 
     @Override
     public final SubscribeRequest
-                    getSubscribeRequest(final SubscriberSession sess, boolean createConfirmedFile) {
+    getSubscribeRequest(final SubscriberSession sess, boolean createConfirmedFile) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Returning subscriber request for: " + sess.getRole()
-                        + sess.getRecordType());
+            + sess.getRecordType());
             LOGGER.info("nonce: " + this.lastNonceFromRemote);
         }
         return new SubscribeRequest() {
@@ -609,8 +619,8 @@ public class SubscriberImpl implements Subscriber {
 
     @Override
     public final boolean notifySysMetadata(final SubscriberSession sess,
-                                           final RecordInfo recordInfo,
-                                           final InputStream sysMetaData, Subscriber subscriber) {
+            final RecordInfo recordInfo,
+            final InputStream sysMetaData, Subscriber subscriber) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Got sysmetadata for " + recordInfo.getNonce());
         }
@@ -618,7 +628,7 @@ public class SubscriberImpl implements Subscriber {
         synchronized (this.nonceMap) {
             if (this.nonceMap.containsKey(recordInfo.getNonce())) {
                 LOGGER.error("Already contain a record for "
-                             + recordInfo.getNonce());
+                        + recordInfo.getNonce());
                 return false;
             }
             lri = new LocalRecordInfo(recordInfo, this.nonce);
@@ -639,8 +649,8 @@ public class SubscriberImpl implements Subscriber {
         }
 
         final boolean retVal = handleRecordData(lri, recordInfo.getSysMetaLength(),
-                                SYS_META_FILENAME, SYS_META_PROGRESS,
-                               sysMetaData, sess, this.journalResumeRecord);
+                SYS_META_FILENAME, SYS_META_PROGRESS,
+                sysMetaData, sess, this.journalResumeRecord);
 
         //Update local record modified date and if it exists for future verification
         //Before moving to confirmed location.
@@ -681,10 +691,10 @@ public class SubscriberImpl implements Subscriber {
             w.close();
         } catch (final FileNotFoundException e) {
             LOGGER.error("Failed to open file (" + file.getPath() + ") for writing:"
-                              + e.getMessage());
+                    + e.getMessage());
             return false;
         } catch (final UnsupportedEncodingException e) {
-            SubscriberImpl.LOGGER.error("cannot find UTF-8 encoder?");
+            LOGGER.error("cannot find UTF-8 encoder?");
             return false;
         } catch (final IOException e) {
             LOGGER.error("failed to write to the file (" + file.getPath() + "), aborting");
@@ -713,11 +723,11 @@ public class SubscriberImpl implements Subscriber {
     // suppress warnings about raw types for the JSON map
     @SuppressWarnings("unchecked")
     final boolean handleRecordData(final LocalRecordInfo lri,
-                                   final long dataSize,
-                                   final String outputFilename,
-                                   final String statusKey,
-                                   final InputStream incomingData,
-                                   SubscriberSession sess, final LocalRecordInfo journal_resume_record) {
+            final long dataSize,
+            final String outputFilename,
+            final String statusKey,
+            final InputStream incomingData,
+            SubscriberSession sess, final LocalRecordInfo journal_resume_record) {
         final byte[] buffer = new byte[this.bufferSize];
         BufferedOutputStream w;
         final File outputFile = new File(lri.recordDir, outputFilename);
@@ -774,12 +784,12 @@ public class SubscriberImpl implements Subscriber {
             w.close();
         } catch (final FileNotFoundException e) {
             LOGGER.error("Failed to open '" + outputFile.getAbsolutePath()
-                              + "' for writing");
+            + "' for writing");
             return false;
         } catch (final IOException e) {
             LOGGER.error("Error while trying to write to '"
-                         + outputFile.getAbsolutePath() + "' for writing: "
-                         + e.getMessage());
+                    + outputFile.getAbsolutePath() + "' for writing: "
+                    + e.getMessage());
             return false;
         } finally {
             lri.status.put(statusKey, total);
@@ -795,7 +805,7 @@ public class SubscriberImpl implements Subscriber {
 
         if (totalDataSize != dataSize) {
             LOGGER.error("System metadata reported to be: " + dataSize
-                         + ", received " + total);
+                    + ", received " + total);
             ret = false;
         }
 
@@ -804,8 +814,8 @@ public class SubscriberImpl implements Subscriber {
 
     @Override
     public final boolean notifyAppMetadata(final SubscriberSession sess,
-                    final RecordInfo recordInfo,
-                    final InputStream appMetaData, Subscriber subscriber) {
+            final RecordInfo recordInfo,
+            final InputStream appMetaData, Subscriber subscriber) {
         if (recordInfo.getAppMetaLength() != 0) {
             LocalRecordInfo lri;
             synchronized (this.nonceMap) {
@@ -813,13 +823,13 @@ public class SubscriberImpl implements Subscriber {
             }
             if (lri == null) {
                 LOGGER.error("Can't find local status for: "
-                             + recordInfo.getNonce());
+                        + recordInfo.getNonce());
                 return false;
             }
 
             final boolean result =  handleRecordData(lri, recordInfo.getAppMetaLength(),
-                                    APP_META_FILENAME, APP_META_PROGRESS,
-                                    appMetaData, sess, null);
+                    APP_META_FILENAME, APP_META_PROGRESS,
+                    appMetaData, sess, null);
 
             //Update local record modified date and if it exists for future verification
             //before moving to confirmed location.
@@ -843,8 +853,8 @@ public class SubscriberImpl implements Subscriber {
 
     @Override
     public final boolean notifyPayload(final SubscriberSession sess,
-                                       final RecordInfo recordInfo,
-                                       final InputStream payload, Subscriber subscriber) {
+            final RecordInfo recordInfo,
+            final InputStream payload, Subscriber subscriber) {
         if (recordInfo.getPayloadLength() != 0) {
             LocalRecordInfo lri;
             synchronized (this.nonceMap) {
@@ -852,7 +862,7 @@ public class SubscriberImpl implements Subscriber {
             }
             if (lri == null) {
                 LOGGER.error("Can't find local status for: "
-                                  + recordInfo.getNonce());
+                        + recordInfo.getNonce());
                 return false;
             }
 
@@ -860,8 +870,8 @@ public class SubscriberImpl implements Subscriber {
             lri.payloadExists = true;
 
             final boolean retVal = handleRecordData(lri, recordInfo.getPayloadLength(),
-                                    PAYLOAD_FILENAME, PAYLOAD_PROGRESS,
-                                    payload, sess, journalResumeRecord);
+                    PAYLOAD_FILENAME, PAYLOAD_PROGRESS,
+                    payload, sess, journalResumeRecord);
 
             //This journal resume record completed, reset journal resume to continue with normal record processing.
             if (journalResumeRecord == lri)
@@ -883,8 +893,8 @@ public class SubscriberImpl implements Subscriber {
     @SuppressWarnings("unchecked")
     @Override
     public final boolean notifyDigest(final SubscriberSession sess,
-                                      final RecordInfo recordInfo,
-                                      final byte[] digest, Subscriber subscriber) {
+            final RecordInfo recordInfo,
+            final byte[] digest, Subscriber subscriber) {
         String hexString = "";
         for (byte b : digest) {
             hexString = hexString + String.format("%02x",b);
@@ -892,7 +902,7 @@ public class SubscriberImpl implements Subscriber {
 
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Calculated digest for " + recordInfo.getNonce()
-                        + ": " + hexString);
+            + ": " + hexString);
         }
         LocalRecordInfo lri;
         synchronized (this.nonceMap) {
@@ -900,7 +910,7 @@ public class SubscriberImpl implements Subscriber {
         }
         if (lri == null) {
             LOGGER.error("Can't find local status for: "
-                         + recordInfo.getNonce());
+                    + recordInfo.getNonce());
             return false;
         }
 
@@ -1104,8 +1114,7 @@ public class SubscriberImpl implements Subscriber {
         }
         catch (IOException ioe)
         {
-            LOGGER.error("Error deleting record directory: " + lri.recordDir.getAbsolutePath());
-            LOGGER.error(ioe);
+            LOGGER.error("Error deleting record directory: " + lri.recordDir.getAbsolutePath(), ioe);
             return false;
         }
 

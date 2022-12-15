@@ -2,6 +2,7 @@ package com.tresys.jalop.jnl.impl.http;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -17,25 +18,30 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.JNLException;
+import com.tresys.jalop.jnl.impl.JNLLogger;
 
 
 @SuppressWarnings("serial")
 public class JNLWebServer
 {
     /** Logger for this class */
-    private static final Logger logger = Logger.getLogger(JNLWebServer.class);
+    private JNLLog logger = null;
 
 
     /**
      * Configuration for this instance of JNLTest.
      */
     private final HttpSubscriberConfig config;
+
+    private HttpUtils httpUtils;
 
 
     /**
@@ -50,16 +56,28 @@ public class JNLWebServer
             throw new IllegalArgumentException("'HttpSubscriberConfig' is required.");
         }
         this.config = config;
+
+        //Intantiates logger if not provided from parent application
+        if (config.getLogger() == null)
+        {
+            logger = new JNLLogger(Logger.getLogger(JNLWebServer.class));
+        }
+        else
+        {
+            logger = config.getLogger();
+        }
+
+        httpUtils = new HttpUtils(config.getLogger());
     }
 
     public void start(Subscriber subscriber) throws Exception{
 
-        HttpUtils.requestCount.set(0);
+        httpUtils.requestCount.set(0);
 
         if (this.config.getRole() == Role.Subscriber)
         {
             //Sets the subscriber reference
-            HttpUtils.setSubscriber(subscriber);
+            httpUtils.setSubscriber(subscriber);
 
             // Create a basic jetty server object that will listen on port 8080.
             // Note that if you set this to port 0 then a randomly available port
@@ -83,6 +101,25 @@ public class JNLWebServer
                 {
                     logger.error("The keystore file specified in the 'Key Store' setting in the configuration file does not exist: " + keystoreFile.getAbsolutePath() + "\nThis file must exist and be a valid keystore for the subscriber to successfully start.");
                     throw new FileNotFoundException(keystoreFile.getAbsolutePath());
+                }
+
+                // Configure the Trust Store
+                // This is an optional configuration setting that will require separate
+                // keystores for the server and remote keys.
+                // If it is missing from the configuration file, all keys are expected
+                // to be in a single keystore specified by the 'Key Store' setting.
+                String trustStorePath = config.getTrustStorePath();
+                if (trustStorePath != null)
+                {
+                    File trustStoreFile = new File(trustStorePath);
+                    if (!trustStoreFile.exists())
+                    {
+                        logger.error("The Trust Store file specified in the 'Trust Store' setting in the configuration file does not exist: " + trustStoreFile.getAbsolutePath() + "\nThis file must exist and be a valid trust store for the subscriber to successfully start.");
+                        throw new FileNotFoundException(trustStoreFile.getAbsolutePath());
+                    }
+
+                    sslContextFactory.setTrustStorePath(trustStoreFile.getAbsolutePath());
+                    sslContextFactory.setTrustStorePassword(config.getTrustStorePassword());
                 }
 
                 // SSL Context Factory for HTTPS
@@ -194,7 +231,7 @@ public class JNLWebServer
             // through a web.xml @WebServlet annotation, or anything similar.
 
             //Sets allowed configure digest values from config
-            HttpUtils.setAllowedConfigureDigests(config.getAllowedConfigureDigests());
+            httpUtils.setAllowedConfigureDigests(config.getAllowedConfigureDigests());
 
             //Separate endpoints/servlets for audit,journal,log
             //Only sets up endpoints as allowed in the configuration file.
@@ -207,23 +244,47 @@ public class JNLWebServer
             if (recordTypeSet.contains(RecordType.Log))
             {
                 logger.info("Log endpoint is active.");
-                handler.addServlet(JNLLogServlet.class, HttpUtils.LOG_ENDPOINT);
+                JNLLogServlet logServlet = new JNLLogServlet();
+                logServlet.setHttpUtils(httpUtils);
+                ServletHolder servletHolder = new ServletHolder(logServlet);
+                handler.addServlet(servletHolder, HttpUtils.LOG_ENDPOINT);
             }
 
             if (recordTypeSet.contains(RecordType.Audit))
             {
                 logger.info("Audit endpoint is active.");
-                handler.addServlet(JNLAuditServlet.class, HttpUtils.AUDIT_ENDPOINT);
+                JNLAuditServlet auditServlet = new JNLAuditServlet();
+                auditServlet.setHttpUtils(httpUtils);
+                ServletHolder servletHolder = new ServletHolder(auditServlet);
+                handler.addServlet(servletHolder, HttpUtils.AUDIT_ENDPOINT);
             }
 
             if (recordTypeSet.contains(RecordType.Journal))
             {
                 logger.info("Journal endpoint is active.");
-                handler.addServlet(JNLJournalServlet.class, HttpUtils.JOURNAL_ENDPOINT);
+                JNLJournalServlet journalServlet = new JNLJournalServlet();
+                journalServlet.setHttpUtils(httpUtils);
+                ServletHolder servletHolder = new ServletHolder(journalServlet);
+                handler.addServlet(servletHolder, HttpUtils.JOURNAL_ENDPOINT);
             }
 
-            // Start things up!
-            server.start();
+            try
+            {
+                // Start things up!
+                server.start();
+            }
+            catch (IOException e)
+            {
+                // This exception is thrown if at least one of the keystores specified
+                // in the 'Key Store' or 'Trust Store' configuration setting points to
+                // a file that cannot be recognized as a valid keystore.
+                // Stopping the server and waiting for the thread to join allows the
+                // subscriber to exit gracefully instead of hanging after the exception is thrown.
+                logger.error("A keystore file specified in the configuration file is incorrectly formatted\nThis file must be a valid keystore for the subscriber to successfully start.");
+                server.stop();
+                server.join();
+                throw new JNLException("Incorrectly formatted keystore. End of file unexpectantly found");
+            }
 
             if (config.getTlsConfiguration().equals(HttpUtils.MSG_ON)) {
                 //Display supported protocols and ciphers.

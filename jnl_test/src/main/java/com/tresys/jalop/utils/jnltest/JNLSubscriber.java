@@ -32,8 +32,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     {
         http_config = config;
     }
-    /** Logger for this class */
-    private static final Logger logger = Logger.getLogger(JNLSubscriber.class);
 
     /**
      * Counter to keep track of the last used nonce for log records
@@ -182,7 +180,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             sub = this.sessMap.get(sess);
             if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile);
+                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile, http_config.getLogger());
                 this.sessMap.put(sess, sub);
             }
         }

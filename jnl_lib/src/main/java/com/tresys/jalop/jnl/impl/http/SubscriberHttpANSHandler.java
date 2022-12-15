@@ -9,10 +9,12 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.IncompleteRecordException;
+import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.RecordInfo;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+import com.tresys.jalop.jnl.impl.JNLLogger;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 
 public class SubscriberHttpANSHandler {
@@ -30,7 +32,7 @@ public class SubscriberHttpANSHandler {
 
 
     private final SubscriberHttpSessionImpl subsess;
-    static Logger log = Logger.getLogger(SubscriberHttpANSHandler.class);
+    private JNLLog log = null;
 
     /**
      * Create a SubscriberHttpANSHandler for a record using the
@@ -41,11 +43,20 @@ public class SubscriberHttpANSHandler {
      *            calculations.
      */
     public SubscriberHttpANSHandler(final MessageDigest md,
-            final SubscriberHttpSessionImpl subsess, boolean performDigest) {
+            final SubscriberHttpSessionImpl subsess, boolean performDigest, JNLLog logger) {
         super();
         this.md = md;
         this.subsess = subsess;
         this.performDigest = performDigest;
+
+        if (logger == null)
+        {
+            log = new JNLLogger(Logger.getLogger(SubscriberHttpANSHandler.class));
+        }
+        else
+        {
+            log = logger;
+        }
     }
 
     /**
@@ -146,8 +157,8 @@ public class SubscriberHttpANSHandler {
                     log.debug("Updating payloadSize to account for the offset.");
                 }
 
-              //NOTE, the old code performed this calculation, but it appears to result in a negative number causing a failure later, so removing for http implementation.
-              //  payloadSizeToRead -= subsess.getJournalResumeOffset();
+                //NOTE, the old code performed this calculation, but it appears to result in a negative number causing a failure later, so removing for http implementation.
+                //  payloadSizeToRead -= subsess.getJournalResumeOffset();
             }
 
             // only the first record is a journal resume, subsequent records are normal
@@ -201,17 +212,20 @@ public class SubscriberHttpANSHandler {
 
             return hexDgst;
         } catch (final UnexpectedMimeValueException e) {
-            if(log.isEnabledFor(Level.ERROR)) {
+            if (log.isErrorEnabled())
+            {
                 log.error(e.getMessage());
             }
             return null;
         } catch (final IOException e) {
-            if(log.isEnabledFor(Level.ERROR)) {
+            if (log.isErrorEnabled())
+            {
                 log.error(e.getMessage());
             }
             return null;
         } catch (final IncompleteRecordException e) {
-            if(log.isEnabledFor(Level.ERROR)) {
+            if (log.isErrorEnabled())
+            {
                 log.error(e.getMessage());
             }
             return null;
@@ -226,7 +240,7 @@ public class SubscriberHttpANSHandler {
                 }
                 catch (IOException ioe)
                 {
-                    log.error(ioe);
+                    log.error(ioe.getMessage(), ioe);
                 }
             }
         }
@@ -239,7 +253,7 @@ public class SubscriberHttpANSHandler {
      * @param size the size to give the instance of JalopDataStream
      */
     JalopHttpDataStream getJalopDataStreamInstance(final long size, final InputStream is)
-                    throws UnexpectedMimeValueException, IOException {
+            throws UnexpectedMimeValueException, IOException {
         return new JalopHttpDataStream(size, is);
     }
 
