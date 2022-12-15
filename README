@@ -6,8 +6,9 @@ JALoP v2.x). Simply put, JJNL v2.x is a JALoP v2.x Subscriber.
 
 Building and Installing:
 
-This project uses the maven (maven.apache.org) build tool, and 
-is tested using the OpenJDK Runtime Environment (build 1.8.0_X).
+This project uses the maven (maven.apache.org) build tool version 3.8.6, and 
+is tested using OpenJDK 11. Any Java 11 or newer version of the JDK and other
+versions of maven should work, but have not been tested.
 
 The Java JALoP Network Library (JJNL) uses a multi-module layout, and the
 entire project can be built by running maven commands in the jnl_parent
@@ -57,5 +58,6 @@ To generate Javadoc documentation, run:
 The generated documents will appear in the directory target/site.
 
 This project is built and tested in the following environments:
-  RedHat Enterprise Linux (RHEL) 6 on x86_64
   RHEL 7 on x86_64
+  RHEL 8 on x86_64
+
