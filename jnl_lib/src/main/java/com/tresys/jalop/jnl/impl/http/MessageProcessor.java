@@ -16,7 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.crypto.dsig.DigestMethod;
+//import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
 
@@ -30,6 +30,7 @@ import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.exceptions.JNLSessionInvalidException;
 import com.tresys.jalop.jnl.impl.JNLLogger;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
+import com.tresys.jalop.jnl.DigestAlgorithms;
 
 /**
  * Utility class for creating and parsing JALoP/HTTP messages.
@@ -209,14 +210,15 @@ public class MessageProcessor {
             return false;
         }
 
-        //Validates supported digest
-        String digestStr =requestHeaders.get(HttpUtils.HDRS_ACCEPT_DIGEST);
+        //Validates supported digest...defaults to SHA256
+        String digestStr = requestHeaders.get(HttpUtils.HDRS_ACCEPT_DIGEST);
         if (digestStr == null || digestStr.isEmpty())
         {
-            digestStr = DigestMethod.SHA256;
+            digestStr = DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toUri();
         }
 
-        String selectedDigest = HttpUtils.validateDigests(digestStr, successResponseHeaders, errorMessages);
+        List<String> supportedDigests = httpUtils.getSupportedDigestAlgorithms();
+        String selectedDigest = HttpUtils.validateDigests(digestStr, supportedDigests, successResponseHeaders, errorMessages);
         if (selectedDigest == null)
         {
             logger.error("Initialize message failed due to none of the following digests supported: " + digestStr);

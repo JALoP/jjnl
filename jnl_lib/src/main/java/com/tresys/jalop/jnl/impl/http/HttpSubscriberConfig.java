@@ -19,8 +19,10 @@ public class HttpSubscriberConfig {
     private String address;
     private Set<RecordType> recordTypes;
     private List<String> allowedConfigureDigests;
+    private List<String> supportedDigestAlgorithms;
     private String tlsConfiguration;
     private int maxSessionLimit;
+    private int bufferSize;
     private Role role;
     private Mode mode;
     private File outputPath;
@@ -81,12 +83,26 @@ public class HttpSubscriberConfig {
     public void setMaxSessionLimit(int maxSessionLimit) {
         this.maxSessionLimit = maxSessionLimit;
     }
+    public int getBufferSize() {
+      return bufferSize;
+    }
+    public void setBufferSize(int bufferSize) {
+        this.bufferSize = bufferSize;
+    }
     public List<String> getAllowedConfigureDigests() {
         return allowedConfigureDigests;
     }
     public void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
         this.allowedConfigureDigests = allowedConfigureDigests;
     }
+
+    public List<String> getSupportedDigestAlgorithms() {
+        return supportedDigestAlgorithms;
+    }
+    public void setSupportedDigestAlgorithms(List<String> dgstAlg) {
+        this.supportedDigestAlgorithms = dgstAlg;
+    }
+
     public Role getRole() {
         return role;
     }

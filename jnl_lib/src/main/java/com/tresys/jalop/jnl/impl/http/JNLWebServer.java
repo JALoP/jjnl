@@ -233,6 +233,9 @@ public class JNLWebServer
             //Sets allowed configure digest values from config
             httpUtils.setAllowedConfigureDigests(config.getAllowedConfigureDigests());
 
+            //Sets supported digests
+            httpUtils.setSupportedDigestAlgorithms(config.getSupportedDigestAlgorithms());
+
             //Separate endpoints/servlets for audit,journal,log
             //Only sets up endpoints as allowed in the configuration file.
             Set<RecordType>recordTypeSet = config.getRecordTypes();

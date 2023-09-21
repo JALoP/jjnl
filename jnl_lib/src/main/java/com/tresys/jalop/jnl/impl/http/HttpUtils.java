@@ -12,10 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.log4j.Logger;
 
+import com.tresys.jalop.jnl.DigestAlgorithms;
+import com.tresys.jalop.jnl.DigestAlgorithms.DigestAlgorithmEnum;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.JNLLog;
 import com.tresys.jalop.jnl.Mode;
@@ -152,6 +153,7 @@ public class HttpUtils {
     public static String LOG_ENDPOINT = "/log";
 
     private List<String> allowedConfigureDigests;
+    private List<String> supportedDigestAlgorithms;
 
     private Subscriber subscriber;
 
@@ -191,6 +193,20 @@ public class HttpUtils {
 
     public void setAllowedConfigureDigests(List<String> allowedConfigureDigests) {
         this.allowedConfigureDigests = allowedConfigureDigests;
+    }
+
+    public List<String> getSupportedDigestAlgorithms() 
+    {
+        if (this.supportedDigestAlgorithms == null)
+        {
+            this.supportedDigestAlgorithms = new ArrayList<String>();
+        }
+
+        return supportedDigestAlgorithms;
+    }
+
+    public void setSupportedDigestAlgorithms(List<String> supportedDigests) {
+        this.supportedDigestAlgorithms = supportedDigests;
     }
 
     public static List<String> parseHeaderList(String currHeader)
@@ -380,27 +396,42 @@ public class HttpUtils {
     }
 
     //Validates supported digest
-    public static String validateDigests(String digests,  HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
+    public static String validateDigests(String digests,  List<String> supportedDigests, HashMap<String, String> successResponseHeaders, List<String> errorResponseHeaders)
     {
-        String currDigests = checkForEmptyString(digests);
+        String currDigests = null;
         String selectedDigest = null;
-
-        if (currDigests == null)
+        if(digests != null)
         {
-            errorResponseHeaders.add(HDRS_UNSUPPORTED_DIGEST);
-            return null;
+            currDigests = checkForEmptyString(digests);
+            if (currDigests == null)
+            {
+                errorResponseHeaders.add(HDRS_UNSUPPORTED_DIGEST);
+                return null;
+            }
+        }
+        else // digest header is optional.
+        {
+            currDigests = DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toUri(); // default to SHA256 if digest(s) missing
         }
 
-        List<String> acceptDigests = parseHeaderList(digests);
+        // trim entries in the digests String
+        List<String> acceptDigests = parseHeaderList(currDigests);
 
-        //Check to ensure the digest is valid, the first one found is the preferred value (currently only SHA256)
-        for (String currDigest : acceptDigests)
+        //Check to ensure the digest is valid, the first entry in the list is the preferred value 
+        for (String currDigest : acceptDigests)  // these are URI strings
         {
-            if (currDigest.equalsIgnoreCase(DigestMethod.SHA256))
+            DigestAlgorithmEnum digestAlg = DigestAlgorithmEnum.fromUri(currDigest);
+
+            if(digestAlg != null && supportedDigests.contains(digestAlg.toUri())) // found
             {
-                selectedDigest = DigestMethod.SHA256;
+                selectedDigest = currDigest;
                 successResponseHeaders.put(HDRS_DIGEST, selectedDigest);
                 return selectedDigest;
+            }
+            if(digestAlg == null) // unsupported digest....bail
+            {
+                errorResponseHeaders.add(HDRS_UNSUPPORTED_DIGEST);
+                return null;
             }
         }
 
@@ -516,7 +547,7 @@ public class HttpUtils {
 
         List<String> acceptedConfigDigests = parseHeaderList(currConfigDigests);
 
-        //Check to ensure the configre digest challenge is valid, only on/off, the first one found is the preferred value
+        //Check to ensure the configure digest challenge is valid, only on/off, the first one found is the preferred value
         for (String currConfigDigest : acceptedConfigDigests)
         {
             if (getAllowedConfigureDigests().contains(HttpUtils.checkForEmptyString(currConfigDigest)))

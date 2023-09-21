@@ -6,8 +6,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.crypto.dsig.DigestMethod;
-
 import org.apache.log4j.Logger;
 
 import com.tresys.jalop.jnl.JNLLog;
@@ -18,6 +16,7 @@ import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.impl.JNLLogger;
+import com.tresys.jalop.jnl.DigestAlgorithms;
 
 public class SubscriberHttpSessionImpl implements SubscriberSession {
 
@@ -136,12 +135,11 @@ public class SubscriberHttpSessionImpl implements SubscriberSession {
 
     public String getDigestType(final String algorithm) {
 
-        if (DigestMethod.SHA256.equals(algorithm)) {
+        if (DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI.equals(algorithm)) {
             return "SHA-256";
-        } else if (DigestMethod.SHA512.equals(algorithm)) {
+        } else if (DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI.equals(algorithm)) {
             return "SHA-512";
-        } else if ("http://www.w3.org/2001/04/xmldsig-more#sha384"
-                .equals(algorithm)) {
+        } else if (DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI.equals(algorithm)) {
             return "SHA-384";
         }
         return "";
