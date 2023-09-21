@@ -1,3 +1,7 @@
+Summary of release 2.1.0.1 changes (Fri Dec 22 2023) -
+    - Support configurable digest algorithms (one of sha256, sha384, sha512) for digest-challenge between publisher (‘jald’) and subscribers (‘jal_subscribe’, ‘jnl_test’). Until this point, only sha256 was supported. Note that Java 8 does not support sha384 hash algorithm.
+    - Added configurable buffer size for reading/downloading J/A/L record payloads.
+
 Summary of release 2.1.0.0 changes (Thu Dec 15 2022) -
     - Added Java 11 support (besides Java 8).
         -- The default Java target version in jnl_parent/pom.xml is 1.8.
