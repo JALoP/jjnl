@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-        <jalop.version>2.1.0.0</jalop.version>
+        <jalop.version>2.1.0.1</jalop.version>
     </properties>
 
 	<parent>
