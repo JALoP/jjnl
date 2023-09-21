@@ -2,6 +2,7 @@ package com.tresys.jalop.utils.jnltest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedInputStream;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -180,7 +181,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             sub = this.sessMap.get(sess);
             if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile, http_config.getLogger());
+                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile, http_config.getLogger(), http_config.getBufferSize());
                 this.sessMap.put(sess, sub);
             }
         }

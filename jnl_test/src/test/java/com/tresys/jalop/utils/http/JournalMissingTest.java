@@ -9,8 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-import javax.xml.crypto.dsig.DigestMethod;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -29,6 +27,7 @@ import org.junit.rules.ExpectedException;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
+import com.tresys.jalop.jnl.DigestAlgorithms;
 import com.tresys.jalop.utils.jnltest.JNLSubscriber;
 
 /**
@@ -502,7 +501,7 @@ public class JournalMissingTest {
             httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
             httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
             httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
-            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
             httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
             httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
             httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
@@ -635,7 +634,7 @@ public class JournalMissingTest {
             httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
             httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
             httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
-            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
             httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
             httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
             httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
@@ -747,7 +746,7 @@ public class JournalMissingTest {
             httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
             httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
             httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
-            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
             httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
             httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
             httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
@@ -959,7 +958,7 @@ public class JournalMissingTest {
             httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
             httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
             httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
-            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
             httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
             httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
             httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);
@@ -1112,7 +1111,7 @@ public class JournalMissingTest {
             httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
             httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
             httpPost.setHeader(HttpUtils.HDRS_MODE, HttpUtils.MSG_ARCHIVE);
-            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+            httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
             httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
             httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, RecordType.Journal.toString().toLowerCase());
             httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);

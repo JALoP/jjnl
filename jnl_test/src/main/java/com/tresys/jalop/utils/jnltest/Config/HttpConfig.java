@@ -31,6 +31,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.google.common.net.InetAddresses;
+import com.tresys.jalop.jnl.DigestAlgorithms;
+import com.tresys.jalop.jnl.DigestAlgorithms.DigestAlgorithmEnum;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
@@ -45,6 +47,7 @@ public class HttpConfig {
     private static final String ADDRESS = "address";
     private static final String AUDIT = "audit";
     private static final String CONFIGURE_DIGEST = "configureDigest";
+    private static final String SUPPORTED_DIGEST_ALGORITHMS = "digestAlgorithms";
     private static final String CONFIGURE_TLS = "configureTls";
     private static final String CREATE_CONFIRMED_FILE = "createConfirmedFile";
     protected static final String HOSTS = "hosts";
@@ -65,9 +68,11 @@ public class HttpConfig {
     protected static final String PUBLISHER = "publisher";
     private static final String RECORD_TYPE = "recordType";
     protected static final String SUBSCRIBER = "subscriber";
+    private static final String BUFFER_SIZE = "bufferSize";
 
     protected InetAddress address;
-    private List<String> configureDigests;
+    private List<String> configureDigests; // "configureDigest": [ "on", "off"],
+    private DigestAlgorithms digestAlgorithms; // "digestAlgorithms": [ "SHA384", "SHA512", "SHA256" ],
     private String configureTls;
     private String createConfirmedFile;
     private int maxSessionLimit;
@@ -78,6 +83,7 @@ public class HttpConfig {
     private Role role;
     protected final String source;
     private HashMap<String, String> sslConfig;
+    private int bufferSize;
 
     /**
      * Parses a configuration file for use by the JNLTest program.
@@ -110,8 +116,7 @@ public class HttpConfig {
      * @return A {@link HttpConfig} object.
      * @throws ConfigurationException
      */
-    public static HttpConfig createFromJson(final String cfgFile,
-            final JSONObject parsedConfig) throws ConfigurationException {
+    public static HttpConfig createFromJson(final String cfgFile, final JSONObject parsedConfig) throws ConfigurationException {
         final HttpConfig config = new HttpConfig(cfgFile);
         config.handleCommon(parsedConfig);
 
@@ -141,12 +146,13 @@ public class HttpConfig {
         setRole(Role.Subscriber);
         setOutputPath(new File(itemAsString(OUTPUT, subscriber, true)));
         setMode(itemAsString(MODE, subscriber, true));
-
         handleConfigureDigest(subscriber);
+        handleDigestAlgorithms(subscriber);
         handleTls(subscriber);
         handleCreateConfirmedFile(subscriber);
         handleRecordType(subscriber);
         handleMaxSessionLimit(subscriber);
+        handleBufferSize(subscriber);
     }
 
 
@@ -301,12 +307,49 @@ public class HttpConfig {
         {
            throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must contain at least " + HttpUtils.MSG_ON);
         }
-
         //Ensures that only contains "on" and "off"
         if (this.configureDigests.size() > 1 && !this.configureDigests.contains(HttpUtils.MSG_OFF) ||
             this.configureDigests.size() > 2)
         {
             throw new ConfigurationException (this.source, HttpConfig.CONFIGURE_DIGEST + " must only contain " + HttpUtils.MSG_ON + " and/or " + HttpUtils.MSG_OFF);
+        }
+    }
+
+    /**
+     * Handle parsing the configure digest algorithm field.
+     * @param obj
+     *            The context to look up keys in.
+     * @throws ConfigurationException
+     *            If an error is detected in the configuration.
+     */
+    public void handleDigestAlgorithms(final JSONObject subscriber) throws ConfigurationException 
+    {
+        // check to see if we actually have the entry in the config file.
+        // if it is missing or empty default to SHA256
+        JSONArray dgsts = (JSONArray)subscriber.get(SUPPORTED_DIGEST_ALGORITHMS);
+        if(dgsts != null && dgsts.size() > 0)
+        {
+            final JSONArray configureDigestAlgorithmsList = itemAsArray(SUPPORTED_DIGEST_ALGORITHMS, subscriber);
+            this.digestAlgorithms = new DigestAlgorithms();
+            for (final Object o : configureDigestAlgorithmsList) 
+            {
+                if(!this.digestAlgorithms.addDigestAlgorithmByName((String)o)) // invalid digest name
+                {
+                    if(((String)o).equalsIgnoreCase(DigestAlgorithms.JJNL_SHA384_ALGORITHM_NAME))
+                    {
+                        throw new ConfigurationException(this.source, "Digest SHA384 is an unsupported digest for this version of java");
+                    }
+                    else
+                    {
+                        throw new ConfigurationException(this.source, "Invalid digest name " + (String)o + " in " + HttpConfig.SUPPORTED_DIGEST_ALGORITHMS);
+                    }
+                }
+            }
+        }
+        else 
+        {
+            this.digestAlgorithms = new DigestAlgorithms();
+            this.digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName());
         }
     }
 
@@ -349,9 +392,27 @@ public class HttpConfig {
         }
     }
 
+    public void handleBufferSize(final JSONObject obj) throws ConfigurationException {
+        final int bufferSize = itemAsNumber(BUFFER_SIZE, obj).intValue();
+        this.bufferSize = bufferSize;
+        if (this.bufferSize <= 0) {
+            throw new ConfigurationException (this.source, HttpConfig.BUFFER_SIZE + " must be a positive, non-zero value.");
+        }
+    }
+
     public List<String> getConfigureDigests()
     {
         return this.configureDigests;
+    }
+
+    public List<String> getDigestAlgorithmNames()
+    {
+        return this.digestAlgorithms.getDigestAlgorithmNames();
+    }
+
+    public List<String> getDigestAlgorithmUris()
+    {
+        return this.digestAlgorithms.getDigestAlgorithmUris();
     }
 
     public String getTlsConfiguration()
@@ -367,6 +428,11 @@ public class HttpConfig {
     public int getMaxSessionLimit()
     {
         return this.maxSessionLimit;
+    }
+
+    public int getBufferSize()
+    {
+        return this.bufferSize;
     }
 
     public Set<RecordType> getRecordTypes()
@@ -805,9 +871,11 @@ public class HttpConfig {
         httpSubscriberConfig.setPort(this.getPort());
         httpSubscriberConfig.setRecordTypes(this.getRecordTypes());
         httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
+        httpSubscriberConfig.setSupportedDigestAlgorithms(this.getDigestAlgorithmUris());
         httpSubscriberConfig.setTlsConfiguration(this.getTlsConfiguration());
         httpSubscriberConfig.setCreateConfirmedFile(this.getCreateConfirmedFile());
         httpSubscriberConfig.setMaxSessionLimit(this.getMaxSessionLimit());
+        httpSubscriberConfig.setBufferSize(this.getBufferSize());
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());
         httpSubscriberConfig.setOutputPath(this.getOutputPath());

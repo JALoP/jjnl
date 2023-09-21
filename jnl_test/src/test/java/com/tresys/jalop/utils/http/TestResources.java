@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.xml.crypto.dsig.DigestMethod;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -33,6 +31,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import com.tresys.jalop.jnl.DigestAlgorithms;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
@@ -173,11 +172,21 @@ public class TestResources {
         allowedConfigureDigests.add(HttpUtils.MSG_OFF);
         config.setAllowedConfigureDigests(allowedConfigureDigests);
 
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        digestAlgorithms.setSHA384Supported(true);
+        digestAlgorithms.addDigestAlgorithmByName("SHA256");
+        digestAlgorithms.addDigestAlgorithmByName("SHA384");
+        digestAlgorithms.addDigestAlgorithmByName("SHA512");
+        config.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
         HttpUtils httpUtils = new HttpUtils();
 
         httpUtils.setAllowedConfigureDigests(allowedConfigureDigests);
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
         config.setOutputPath(new File("./output"));
         config.setMaxSessionLimit(5);
+        config.setBufferSize(1024);
 
         JNLSubscriber subscriber = new JNLSubscriber(config);
         httpUtils.setSubscriber(subscriber);
@@ -376,7 +385,7 @@ public class TestResources {
         httpPost.setHeader(HttpUtils.HDRS_PUBLISHER_ID, publisherId);
         httpPost.setHeader(HttpUtils.HDRS_MESSAGE, HttpUtils.MSG_INIT);
         httpPost.setHeader(HttpUtils.HDRS_MODE, mode);
-        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestMethod.SHA256);
+        httpPost.setHeader(HttpUtils.HDRS_ACCEPT_DIGEST, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
         httpPost.setHeader(HttpUtils.HDRS_ACCEPT_XML_COMPRESSION, HttpUtils.SUPPORTED_XML_COMPRESSIONS[0]);
         httpPost.setHeader(HttpUtils.HDRS_RECORD_TYPE, recType.toString().toLowerCase());
         httpPost.setHeader(HttpUtils.HDRS_VERSION, HttpUtils.SUPPORTED_VERSIONS[0]);

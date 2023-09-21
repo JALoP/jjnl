@@ -35,6 +35,7 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
@@ -212,7 +213,7 @@ public class SubscriberImpl implements Subscriber {
             new HashMap<String, SubscriberImpl.LocalRecordInfo>();
 
     /** Buffer size for read data from the network and writing to disk. */
-    private final int bufferSize = 4096;
+    private int bufferSize;
 
     /** The type of records to transfer. */
     private final RecordType recordType;
@@ -341,9 +342,10 @@ public class SubscriberImpl implements Subscriber {
      *          The {@link InetAddress} of the remote.
      */
     public SubscriberImpl(final RecordType recordType, final File outputRoot,
-            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId, boolean createConfirmedFile, JNLLog logger) {
+            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId, boolean createConfirmedFile, JNLLog logger, int bufferSize) {
         this.recordType = recordType;
         this.createConfirmedFile = createConfirmedFile;
+        this.bufferSize = bufferSize;
 
         //Sets logger
         if (logger == null)
@@ -735,6 +737,8 @@ public class SubscriberImpl implements Subscriber {
         long totalDataSize = dataSize;
         boolean isValidJournalResume = false;
         boolean isJournalResume = false;
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(
+          incomingData, this.bufferSize);
 
         //Checks if this is a valid journal resume
         if (this.journalOffset > 0 && journal_resume_record != null && lri == journal_resume_record)
@@ -771,15 +775,15 @@ public class SubscriberImpl implements Subscriber {
 
         boolean ret = true;
         try {
-            w = new BufferedOutputStream(new FileOutputStream(outputFile, true));
-            int cnt = incomingData.read(buffer);
+            w = new BufferedOutputStream(new FileOutputStream(outputFile, true), this.bufferSize);
+            int cnt = bufferedInputStream.read(buffer);
             while (cnt != -1) {
                 w.write(buffer, 0, cnt);
                 w.flush();
                 total += cnt;
                 lri.status.put(statusKey, total);
                 ret = dumpStatus(lri.statusFile, lri.status);
-                cnt = incomingData.read(buffer);
+                cnt = bufferedInputStream.read(buffer);
             }
             w.close();
         } catch (final FileNotFoundException e) {

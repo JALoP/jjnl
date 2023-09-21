@@ -5,7 +5,7 @@
     "maxSessionLimit": 100,
     "recordType": [ "audit", "journal", "log" ],
     "configureDigest": [ "on", "off"],
-    "digestAlgorithms": [ "SHA256", "SHA384", "SHA512" ],
+    "digestAlgorithms": [ "SHA256", "SHA999", "SHA512" ],
     "configureTls": "on",
     "output": "./output",
     "mode": "archive",

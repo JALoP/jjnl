@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
+import java.io.IOException;
 
 import org.apache.log4j.Level;
 import org.junit.BeforeClass;
@@ -22,6 +24,15 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
+import com.tresys.jalop.jnl.DigestAlgorithms;
+import com.tresys.jalop.utils.jnltest.Config.HttpConfig;
+
+import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
+import org.json.simple.parser.ParseException;
+
+import com.tresys.jalop.jnl.DigestAlgorithms;
+import com.tresys.jalop.jnl.DigestAlgorithms.DigestAlgorithmEnum;
+
 
 /**
  * Tests for common utility class.
@@ -33,6 +44,7 @@ public class HttpUtilsTest {
         TestResources.configureLogging(Level.DEBUG);
     }
 
+    // Test that the list is a length of 1 if we haven't added a digest
     @Test
     public void testGetAllowedConfigureDigests()
     {
@@ -41,6 +53,20 @@ public class HttpUtilsTest {
         List<String> configureDigests = httpUtils.getAllowedConfigureDigests();
         assertNotNull(configureDigests);
         assertEquals(1, configureDigests.size());
+    }
+
+    @Test
+    // Test that the list is 0 length if we've only added invalid digests
+    public void testGetSupportedDigestAlgorithms()
+    {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        digestAlgorithms.addDigestAlgorithmByName("sha999");
+
+        HttpUtils httpUtils = new HttpUtils();
+        List<String> supportedDigests = httpUtils.getSupportedDigestAlgorithms();
+
+        assertNotNull(supportedDigests);
+        assertEquals(0, supportedDigests.size());
     }
 
     @Test
@@ -239,50 +265,308 @@ public class HttpUtilsTest {
         }
     }
 
+    /**
+     * Checks to ensure SHA256 will be the default digest algorithm
+     */
+    @Test
+    public void testDigestDefaultSHA256() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+
+        HttpUtils httpUtils = new HttpUtils();
+
+        String defaultDigest = DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName();
+        assertEquals(defaultDigest, DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+    }
+
+    /**
+     * Checks to ensure SHA256 will be supported by during digest selection
+     */
     @Test
     public void testValidateDigestWorksWithSHA256() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
 
-        final String digests = "http://www.w3.org/2001/04/xmlenc#sha256";
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedDigest = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
-        assertEquals("http://www.w3.org/2001/04/xmlenc#sha256", selectedDigest);
+
+        final String selectedDigest = httpUtils.validateDigests(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, digestAlgorithms.getDigestAlgorithmUris(), successResponseHeaders, errorResponseHeaders);
+
+        assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, selectedDigest);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-Digest", entry.getKey());
-            assertEquals("http://www.w3.org/2001/04/xmlenc#sha256", entry.getValue());
+            assertEquals(HttpUtils.HDRS_DIGEST, entry.getKey());
+            assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, entry.getValue());
         }
         assertTrue(errorResponseHeaders.isEmpty());
     }
 
+    /**
+     * Checks to ensure SHA384 will be supported during digest selection
+     * JVM support for SHA384 was introduced in version 9.0.1.  The software
+     * will check so see if the JVM is at the correct version.
+     */
     @Test
-    public void testValidateDigestWorksWithSHA256andJunkDigests() {
+    public void testValidateDigestWorksWithSHA384() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        // Need to hard-code this so that it runs the same on Java 8 and 11
+        digestAlgorithms.setSHA384Supported(true);
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA384_ALGORITHM_NAME);
 
-        final String digests = "junk digest,http://www.w3.org/2001/04/xmlenc#sha256";
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedDigest = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
-        assertEquals("http://www.w3.org/2001/04/xmlenc#sha256", selectedDigest);
+
+        final String selectedDigest = httpUtils.validateDigests(DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI, digestAlgorithms.getDigestAlgorithmUris(), successResponseHeaders, errorResponseHeaders);
+
+        assertEquals(DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI, selectedDigest);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-Digest", entry.getKey());
-            assertEquals("http://www.w3.org/2001/04/xmlenc#sha256", entry.getValue());
+            assertEquals(HttpUtils.HDRS_DIGEST, entry.getKey());
+            assertEquals(DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI, entry.getValue());
         }
         assertTrue(errorResponseHeaders.isEmpty());
     }
 
-    ///TODO add tests for the rest of the future supported digests
-
+    /**
+     * Checks to ensure SHA384 will fail when unsupported
+     */
     @Test
-    public void testValidateDigestFailsForEmptyDigest() {
+    public void testValidateDigestFailsWithSHA384Unsupported() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        // Need to hard-code this so that it fails the same on Java 8 and 11
+        digestAlgorithms.setSHA384Supported(false);
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA384_ALGORITHM_NAME);
 
-        final String digests = "";
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
         final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
         final List <String> errorResponseHeaders = new ArrayList<String>();
-        final String selectedDigest = HttpUtils.validateDigests(digests, successResponseHeaders, errorResponseHeaders);
+
+        final String selectedDigest = httpUtils.validateDigests(DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI, digestAlgorithms.getDigestAlgorithmUris(), successResponseHeaders, errorResponseHeaders);
+ 
+        assertTrue(successResponseHeaders.isEmpty());
+        for (String entry : errorResponseHeaders) {
+            assertEquals(HttpUtils.HDRS_UNSUPPORTED_DIGEST, entry);
+        }
+    }
+
+
+    /**
+     * Checks to ensure SHA512 will be supported during digest selection
+     */
+    @Test
+    public void testValidateDigestWorksWithSHA512() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME);
+
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
+        final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+
+        final String selectedDigest = httpUtils.validateDigests(DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI, digestAlgorithms.getDigestAlgorithmUris(), successResponseHeaders, errorResponseHeaders);
+
+        assertEquals(DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI, selectedDigest);
+        for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
+            assertEquals(HttpUtils.HDRS_DIGEST, entry.getKey());
+            assertEquals(DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI, entry.getValue());
+        }
+        assertTrue(errorResponseHeaders.isEmpty());
+    }
+
+    /**
+     * Checks to ensure the digest defaults to SHA256 if the supported digests from
+     * the config file constain sha256 and the http header digest value is missing
+     */
+    @Test
+    public void testValidateDigestWorksDefaultsToSHA256() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
+        final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+
+        final String selectedDigest = httpUtils.validateDigests(null, digestAlgorithms.getDigestAlgorithmUris(), successResponseHeaders, errorResponseHeaders);
+
+        assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, selectedDigest);
+        for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
+            assertEquals(HttpUtils.HDRS_DIGEST, entry.getKey());
+            assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, entry.getValue());
+        }
+        assertTrue(errorResponseHeaders.isEmpty());
+    }
+
+    /**
+     * Checks to ensure an error is reported if there are not mutually agreed on digests
+     */
+    @Test
+    public void testValidateDigestUnsupportedDigest() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+
+        final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+
+        final String digests = DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI;
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+        final String selectedDigest = HttpUtils.validateDigests(digests, digestAlgorithms.getDigestAlgorithmUris(), successResponseHeaders, errorResponseHeaders);
         assertEquals(null, selectedDigest);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Digest", entry);
+            assertEquals(HttpUtils.HDRS_UNSUPPORTED_DIGEST, entry);
         }
+    }
+
+    /**
+     * Checks to ensure a NAK and report unsupported digest if junk in JAL-Accept-Digest header
+     */
+    @Test
+    public void testValidateDigestFailsWithSHA256andJunkDigests() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME);
+
+        final String digests = "http://www.w3.org/2001/04/xmlenc#sha999, " + DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI;
+
+        HttpUtils httpUtils = new HttpUtils();
+        httpUtils.setSupportedDigestAlgorithms(digestAlgorithms.getDigestAlgorithmUris());
+
+        final HashMap <String,String> successResponseHeaders = new HashMap<String,String>();
+        final List <String> errorResponseHeaders = new ArrayList<String>();
+
+        final String selectedDigest = httpUtils.validateDigests(digests, digestAlgorithms.getDigestAlgorithmUris(), successResponseHeaders, errorResponseHeaders);
+
+        assertEquals(null, selectedDigest);
+        assertTrue(successResponseHeaders.isEmpty());
+        for (String entry : errorResponseHeaders) {
+            assertEquals(HttpUtils.HDRS_UNSUPPORTED_DIGEST, entry);
+        }
+    }
+
+    /**
+     * Checks to ensure inability to create an entry in the digest enum class
+     * with an unsupported digest name
+     */
+    @Test
+    public void testCantAddJunkDigests() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+        boolean ret = digestAlgorithms.addDigestAlgorithmByName("sha999");
+        assertEquals(false, ret);
+    }
+
+    /**
+     * Checks that a ConfigurationException is thrown with an unsupported digest
+     */
+    @Test
+    public void testUnsupportedDigest() {
+        boolean configerr = false;
+        boolean parseerr = false;
+        boolean ioerr = false;
+
+        final String path = "../jnl_test/target/test-classes/sampleHttpSubscriberUnsupportedDigest.json";
+        try
+        {
+            HttpConfig.parse(path);
+        }
+        catch(ParseException pe)
+        {
+            parseerr = true;
+        }
+        catch(ConfigurationException ce)
+        {
+            configerr = true;
+        }
+        catch(IOException e)
+        {
+            ioerr = true;
+        }
+
+        assertEquals(true, configerr);
+        assertEquals(false, parseerr);
+        assertEquals(false, ioerr);
+    }
+
+    /**
+     * Checks to ensure defaults to SHA256 if no config file entry for algorithms
+     */
+    @Test
+    public void testNo_digestAlgorithms_Default256() {
+        boolean configerr = false;
+        boolean parseerr = false;
+        boolean ioerr = false;
+
+        final String path = "../jnl_test/target/test-classes/sampleHttpSubscriberNoEntry.json";
+	try
+        {
+            HttpConfig.parse(path);
+	}
+	catch(ParseException pe)
+        {
+            parseerr = true;
+	}
+	catch(ConfigurationException ce)
+        {
+            configerr = true;
+	}
+	catch(IOException e)
+        {
+            ioerr = true;
+	}
+
+        assertEquals(false, configerr);
+        assertEquals(false, parseerr);
+        assertEquals(false, ioerr);
+
+        DigestAlgorithmEnum digestAlg = DigestAlgorithmEnum.fromName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+        assertNotNull(digestAlg);
+        String algName = digestAlg.toName();
+        assertEquals(algName, DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+    }
+
+    /**
+     * Checks that a ConfigurationException is thrown with an empty digestAlrorithms entry
+     */
+    @Test
+    public void testEmptyDigest() {
+        boolean configerr = false;
+        boolean parseerr = false;
+        boolean ioerr = false;
+
+        final String path = "../jnl_test/target/test-classes/sampleHttpSubscriberDigestEmpty.json";
+        try
+        {
+            HttpConfig.parse(path);
+        }
+        catch(ParseException pe)
+        {
+            parseerr = true;
+        }
+        catch(ConfigurationException ce)
+        {
+            configerr = true;
+        }
+        catch(IOException e)
+        {
+            ioerr = true;
+        }
+
+        assertEquals(false, configerr);
+        assertEquals(false, parseerr);
+        assertEquals(false, ioerr);
+
+        DigestAlgorithmEnum digestAlg = DigestAlgorithmEnum.fromName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+        assertNotNull(digestAlg);
+        String algName = digestAlg.toName();
+        assertEquals(algName, DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
     }
 
     @Test

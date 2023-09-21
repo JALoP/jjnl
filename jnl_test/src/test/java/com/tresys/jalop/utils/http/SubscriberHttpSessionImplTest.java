@@ -18,10 +18,10 @@ import com.tresys.jalop.jnl.impl.http.HttpSubscriberConfig;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberHttpSessionImpl;
 import com.tresys.jalop.utils.jnltest.JNLSubscriber;
+import com.tresys.jalop.jnl.DigestAlgorithms;
 
 public class SubscriberHttpSessionImplTest {
 
-    public static final String SHA256_STR = "http://www.w3.org/2001/04/xmlenc#sha256";
     public static final String XML_COMPRESSION_NONE = "none";
 
     @BeforeClass
@@ -36,6 +36,8 @@ public class SubscriberHttpSessionImplTest {
         config.setOutputPath(new File("./output"));
         config.setAddress("127.0.0.1");
         config.setAllowedConfigureDigests(Arrays.asList(new String[] {HttpUtils.MSG_ON}));
+        //config.setSupportedDigestAlgorithms(Arrays.asList(new String[] {HttpUtils.DEFAULT_DIGEST}));
+        config.setSupportedDigestAlgorithms(Arrays.asList(new String[] {DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName()}));
         config.setKeystorePassword("changeit");
         config.setKeystorePath("keystore.jks");
         config.setPort(8443);
@@ -47,7 +49,7 @@ public class SubscriberHttpSessionImplTest {
     public SubscriberHttpSessionImpl getValidSession()
     {
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1,
                 2, true, null);
 
@@ -66,7 +68,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"),
-                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true, null);
+                getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -77,7 +79,7 @@ public class SubscriberHttpSessionImplTest {
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl(null,
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"),
-                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true, null);
+                getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -87,7 +89,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'sessionId' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
+                "", HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
@@ -98,7 +100,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'sessionId' is required.");
 
         SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                null, HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
+                null, HttpUtils.getRecordType("audit"), HttpUtils.getMode("live"), getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
@@ -109,7 +111,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'recordType' cannot be null or Unset.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", null, HttpUtils.getMode("live"), getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", null, HttpUtils.getMode("live"), getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
@@ -120,7 +122,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'recordType' cannot be null or Unset.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Unset, Mode.Archive, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Unset, Mode.Archive, getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
@@ -131,7 +133,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'mode' cannot be null or Unset.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), null, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), null, getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
@@ -143,7 +145,7 @@ public class SubscriberHttpSessionImplTest {
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
                 "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", HttpUtils.getRecordType("audit"), Mode.Unset,
-                getSubscriber(), SHA256_STR, XML_COMPRESSION_NONE, 1, 1, true, null);
+                getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
     @Test
@@ -153,7 +155,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'subscriber' cannot be null.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, null, SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, null, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1, 1, true, null);
     }
 
@@ -186,7 +188,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'xmlEncoding' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 null, 1, 1, true, null);
     }
 
@@ -197,7 +199,7 @@ public class SubscriberHttpSessionImplTest {
         exception.expectMessage("'xmlEncoding' is required.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 "", 1, 1, true, null);
     }
 
@@ -209,7 +211,7 @@ public class SubscriberHttpSessionImplTest {
                 + "must be a positive number.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 0, 1, true, null);
     }
 
@@ -221,7 +223,7 @@ public class SubscriberHttpSessionImplTest {
                 + "must be a positive number.");
 
         final SubscriberHttpSessionImpl sessionImpl = new SubscriberHttpSessionImpl("ae8a54d7-dd7c-4c50-a7e7-f948a140c556",
-                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), SHA256_STR,
+                "ae8a54d7-dd7c-4c50-a7e7-f948a140c556", RecordType.Audit, Mode.Archive, getSubscriber(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
                 XML_COMPRESSION_NONE, 1, 0, true, null);
     }
 
@@ -231,7 +233,7 @@ public class SubscriberHttpSessionImplTest {
         final SubscriberHttpSessionImpl sessionImpl = getValidSession();
         assertEquals(RecordType.Audit, sessionImpl.getRecordType());
         assertEquals(Mode.Archive, sessionImpl.getMode());
-        assertEquals(SHA256_STR, sessionImpl.getDigestMethod());
+        assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, sessionImpl.getDigestMethod());
         assertEquals(XML_COMPRESSION_NONE, sessionImpl.getXmlEncoding());
         assertEquals(true, sessionImpl.getConfigureDigest());
         assertEquals("ae8a54d7-dd7c-4c50-a7e7-f948a140c556", sessionImpl.getPublisherId());
