@@ -69,8 +69,9 @@ public class HttpConfig {
     private static final String RECORD_TYPE = "recordType";
     protected static final String SUBSCRIBER = "subscriber";
     private static final String BUFFER_SIZE = "bufferSize";
+    private static final String JOURNAL_RESUME_THRESHOLD_SIZE = "journalResumeThresholdSize";
 
-    protected InetAddress address;
+    protected String address;
     private List<String> configureDigests; // "configureDigest": [ "on", "off"],
     private DigestAlgorithms digestAlgorithms; // "digestAlgorithms": [ "SHA384", "SHA512", "SHA256" ],
     private String configureTls;
@@ -84,6 +85,12 @@ public class HttpConfig {
     protected final String source;
     private HashMap<String, String> sslConfig;
     private int bufferSize;
+
+    //The minimum partially received payload size (in bytes) to perform journal resume on.  Any partially received
+    //payload size smaller than this, will not be resumed.
+    //A value of 0 means journal resume is always performed for any partially received payload size
+    //A value of -1 or less means journal resume is never performed and is disabled
+    private long journalResumeThresholdSize;
 
     /**
      * Parses a configuration file for use by the JNLTest program.
@@ -153,6 +160,7 @@ public class HttpConfig {
         handleRecordType(subscriber);
         handleMaxSessionLimit(subscriber);
         handleBufferSize(subscriber);
+        handleJournalResumeThresholdSize(subscriber);
     }
 
 
@@ -172,12 +180,11 @@ public class HttpConfig {
     }
 
     /**
-     * Get the IP address.
+     * Get the IP address or DNS hostname string.
      *
-     * @return The {@link InetAddress}. Currently on IPv4 addresses are
-     *         supported.
+     * @return The IP address or DNS hostname
      */
-    public InetAddress getAddress() {
+    public String getAddress() {
         return this.address;
     }
 
@@ -243,8 +250,7 @@ public class HttpConfig {
      *             If 'address' is not found.
      */
     void handleAddress(final JSONObject obj) throws ConfigurationException {
-        final String addrString = itemAsString(ADDRESS, obj);
-        this.address = InetAddresses.forString(addrString);
+        this.address = itemAsString(ADDRESS, obj);
     }
 
     /**
@@ -322,7 +328,7 @@ public class HttpConfig {
      * @throws ConfigurationException
      *            If an error is detected in the configuration.
      */
-    public void handleDigestAlgorithms(final JSONObject subscriber) throws ConfigurationException 
+    public void handleDigestAlgorithms(final JSONObject subscriber) throws ConfigurationException
     {
         // check to see if we actually have the entry in the config file.
         // if it is missing or empty default to SHA256
@@ -331,7 +337,7 @@ public class HttpConfig {
         {
             final JSONArray configureDigestAlgorithmsList = itemAsArray(SUPPORTED_DIGEST_ALGORITHMS, subscriber);
             this.digestAlgorithms = new DigestAlgorithms();
-            for (final Object o : configureDigestAlgorithmsList) 
+            for (final Object o : configureDigestAlgorithmsList)
             {
                 if(!this.digestAlgorithms.addDigestAlgorithmByName((String)o)) // invalid digest name
                 {
@@ -346,7 +352,7 @@ public class HttpConfig {
                 }
             }
         }
-        else 
+        else
         {
             this.digestAlgorithms = new DigestAlgorithms();
             this.digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName());
@@ -400,6 +406,20 @@ public class HttpConfig {
         }
     }
 
+    public void handleJournalResumeThresholdSize(final JSONObject obj) throws ConfigurationException {
+        //journalResumeThresholdSize is optional
+        Number journalResumeThresholdSizeNum = itemAsNumber(JOURNAL_RESUME_THRESHOLD_SIZE, obj, false);
+
+        if (journalResumeThresholdSizeNum != null)
+        {
+            this.journalResumeThresholdSize = journalResumeThresholdSizeNum.longValue();
+        }
+        else
+        {
+            this.journalResumeThresholdSize = 0;
+        }
+    }
+
     public List<String> getConfigureDigests()
     {
         return this.configureDigests;
@@ -433,6 +453,11 @@ public class HttpConfig {
     public int getBufferSize()
     {
         return this.bufferSize;
+    }
+
+    public long getJournalResumeThresholdSize()
+    {
+        return this.journalResumeThresholdSize;
     }
 
     public Set<RecordType> getRecordTypes()
@@ -678,7 +703,7 @@ public class HttpConfig {
      * @param address
      *            The address.
      */
-    public void setAddress(final InetAddress address) {
+    public void setAddress(final String address) {
         this.address = address;
     }
 
@@ -867,7 +892,7 @@ public class HttpConfig {
         HttpSubscriberConfig httpSubscriberConfig = new HttpSubscriberConfig();
         httpSubscriberConfig.setKeystorePath(this.getKeystorePath());
         httpSubscriberConfig.setKeystorePassword(this.getKeystorePassword());
-        httpSubscriberConfig.setAddress(this.getAddress().getHostAddress());
+        httpSubscriberConfig.setAddress(this.getAddress());
         httpSubscriberConfig.setPort(this.getPort());
         httpSubscriberConfig.setRecordTypes(this.getRecordTypes());
         httpSubscriberConfig.setAllowedConfigureDigests(this.getConfigureDigests());
@@ -876,6 +901,7 @@ public class HttpConfig {
         httpSubscriberConfig.setCreateConfirmedFile(this.getCreateConfirmedFile());
         httpSubscriberConfig.setMaxSessionLimit(this.getMaxSessionLimit());
         httpSubscriberConfig.setBufferSize(this.getBufferSize());
+        httpSubscriberConfig.setJournalResumeThresholdSize(this.getJournalResumeThresholdSize());
         httpSubscriberConfig.setRole(this.getRole());
         httpSubscriberConfig.setMode(this.getMode());
         httpSubscriberConfig.setOutputPath(this.getOutputPath());

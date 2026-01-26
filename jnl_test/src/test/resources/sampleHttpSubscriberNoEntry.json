@@ -10,12 +10,13 @@
     "mode": "archive",
     "createConfirmedFile" : "on",
     "bufferSize": 4096,
-  }
+    "journalResumeThresholdSize": 0,
+  },
   "ssl": {
     "Key Store Passphrase": "changeit",
-    "Key Store": "../keystore/keystore.jks",
+    "Key Store": "../certs/TLS_CA_Signed/server/jal_subscriber_v2_server.jks",
 
     "Trust Store Passphrase": "changeit",
-    "Trust Store": "../keystore/remotes.jks",
+    "Trust Store": "../certs/TLS_CA_Signed/server/jal_subscriber_v2_server-remotes.jks"
   }
 }

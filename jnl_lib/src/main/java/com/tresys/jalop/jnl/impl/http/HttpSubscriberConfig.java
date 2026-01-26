@@ -23,6 +23,7 @@ public class HttpSubscriberConfig {
     private String tlsConfiguration;
     private int maxSessionLimit;
     private int bufferSize;
+    private long journalResumeThresholdSize;
     private Role role;
     private Mode mode;
     private File outputPath;
@@ -88,6 +89,12 @@ public class HttpSubscriberConfig {
     }
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
+    }
+    public long getJournalResumeThresholdSize(){
+        return this.journalResumeThresholdSize;
+    }
+    public void setJournalResumeThresholdSize(long journalResumeThresholdSize) {
+        this.journalResumeThresholdSize = journalResumeThresholdSize;
     }
     public List<String> getAllowedConfigureDigests() {
         return allowedConfigureDigests;

@@ -181,7 +181,7 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
 
             sub = this.sessMap.get(sess);
             if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile, http_config.getLogger(), http_config.getBufferSize());
+                sub = new SubscriberImpl(sess.getRecordType(), http_config.getOutputPath(), null, this, sess.getPublisherId(), createConfirmedFile, http_config.getLogger(), http_config.getBufferSize(), http_config.getJournalResumeThresholdSize());
                 this.sessMap.put(sess, sub);
             }
         }

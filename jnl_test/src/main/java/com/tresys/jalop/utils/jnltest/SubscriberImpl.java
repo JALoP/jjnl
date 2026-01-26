@@ -105,24 +105,6 @@ public class SubscriberImpl implements Subscriber {
     private static final String ORIGINAL_PAYLOAD_SZ = "original_payload_sz";
 
     /**
-     * Key in the status file for tracking how many bytes of the system
-     * meta-data was actually transfered.
-     */
-    private static final String SYS_META_PROGRESS = "sys_meta_progress";
-
-    /**
-     * Key in the status file for tracking how many bytes of the application
-     * meta-data was actually transfered.
-     */
-    private static final String APP_META_PROGRESS = "app_meta_progress";
-
-    /**
-     * Key in the status file for tracking how many bytes of the payload was
-     * actually transfered.
-     */
-    private static final String PAYLOAD_PROGRESS = "payload_progress";
-
-    /**
      * Key in the status file for the nonce the remote uses to identify
      * this record.
      */
@@ -214,6 +196,13 @@ public class SubscriberImpl implements Subscriber {
 
     /** Buffer size for read data from the network and writing to disk. */
     private int bufferSize;
+
+    /** The minimum size of the partially received payload in bytes to perform journal resume on.
+     * If the current payload is smaller than this, then journal resume its not peformed.
+     * A value of 0 will perform journal resume on any size payload.
+     * A value of -1 or less will disable journal resume
+     */
+    private long journalResumeThresholdSize;
 
     /** The type of records to transfer. */
     private final RecordType recordType;
@@ -342,10 +331,11 @@ public class SubscriberImpl implements Subscriber {
      *          The {@link InetAddress} of the remote.
      */
     public SubscriberImpl(final RecordType recordType, final File outputRoot,
-            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId, boolean createConfirmedFile, JNLLog logger, int bufferSize) {
+            final InetAddress remoteAddr, final JNLTestInterface jnlTest, String publisherId, boolean createConfirmedFile, JNLLog logger, int bufferSize, long journalResumeThresholdSize) {
         this.recordType = recordType;
         this.createConfirmedFile = createConfirmedFile;
         this.bufferSize = bufferSize;
+        this.journalResumeThresholdSize = journalResumeThresholdSize;
 
         //Sets logger
         if (logger == null)
@@ -484,25 +474,29 @@ public class SubscriberImpl implements Subscriber {
             try {
                 status = (JSONObject) p.parse(new FileReader(
                         new File(firstRecord,
-                                STATUS_FILENAME)));
+                                  STATUS_FILENAME)));
 
-                final Number progress = (Number) status.get(PAYLOAD_PROGRESS);
                 final Number originalPayloadSize = (Number) status.get(ORIGINAL_PAYLOAD_SZ);
 
                 //#548 - Special case for journal resume, if the record completely uploaded, but wasn't synced and the publisher sends the same record again.
                 //Only resume if the uploaded payload length is less than the expected length.  Delete the temp record and completely re-upload again if greater than or equal
                 //to expected payload length.
+                //#887 - special case to check for journal resume threshold size from config file in the journalResumeThresholdSize setting.
+                //If partially received payload size is equal or greater than this minimal size, then perform journal resume.
+                //If this setting is 0 then journal resume is performed on any partially received payload size
+                //If this setting is -1 or less then journal resume is disabled
                 File payloadFile = new File(firstRecord, PAYLOAD_FILENAME);
 
-                if (!CONFIRMED.equals(status.get(DGST_CONF)) && progress != null && originalPayloadSize != null && payloadFile.length() < originalPayloadSize.longValue()) {
+                if (!CONFIRMED.equals(status.get(DGST_CONF)) && originalPayloadSize != null &&
+                        originalPayloadSize != null &&
+                        payloadFile.length() < originalPayloadSize.longValue() &&
+                        payloadFile.length() >= journalResumeThresholdSize && journalResumeThresholdSize > -1) {
                     // journal record can be resumed
                     this.lastNonceFromRemote =
                             (String) status.get(REMOTE_NONCE);
-                    this.journalOffset = progress.longValue();
+                    this.journalOffset = payloadFile.length();
                     FileUtils.forceDelete(new File(firstRecord, APP_META_FILENAME));
                     FileUtils.forceDelete(new File(firstRecord, SYS_META_FILENAME));
-                    status.remove(APP_META_PROGRESS);
-                    status.remove(SYS_META_PROGRESS);
                     this.nonce =
                             NONCE_FORMATER.parse(firstRecord.getName()).longValue();
 
@@ -638,6 +632,7 @@ public class SubscriberImpl implements Subscriber {
             this.nonceMap.put(recordInfo.getNonce(), lri);
         }
         lri.statusFile.getParentFile().mkdirs();
+
         if (!dumpStatus(lri.statusFile, lri.status)) {
             return false;
         }
@@ -651,7 +646,7 @@ public class SubscriberImpl implements Subscriber {
         }
 
         final boolean retVal = handleRecordData(lri, recordInfo.getSysMetaLength(),
-                SYS_META_FILENAME, SYS_META_PROGRESS,
+                SYS_META_FILENAME,
                 sysMetaData, sess, this.journalResumeRecord);
 
         //Update local record modified date and if it exists for future verification
@@ -716,9 +711,6 @@ public class SubscriberImpl implements Subscriber {
      *            The filename to use for the data section.
      * @param incomingData
      *            The {@link InputStream} to write to disk.
-     * @param statusKey
-     *            Key to use in the status file for recording the total number
-     *            of bytes written.
      * @return <code>true</code> if the data was successfully written to disk,
      *         <code>false</code> otherwise.
      */
@@ -727,7 +719,6 @@ public class SubscriberImpl implements Subscriber {
     final boolean handleRecordData(final LocalRecordInfo lri,
             final long dataSize,
             final String outputFilename,
-            final String statusKey,
             final InputStream incomingData,
             SubscriberSession sess, final LocalRecordInfo journal_resume_record) {
         final byte[] buffer = new byte[this.bufferSize];
@@ -781,8 +772,6 @@ public class SubscriberImpl implements Subscriber {
                 w.write(buffer, 0, cnt);
                 w.flush();
                 total += cnt;
-                lri.status.put(statusKey, total);
-                ret = dumpStatus(lri.statusFile, lri.status);
                 cnt = bufferedInputStream.read(buffer);
             }
             w.close();
@@ -795,9 +784,6 @@ public class SubscriberImpl implements Subscriber {
                     + outputFile.getAbsolutePath() + "' for writing: "
                     + e.getMessage());
             return false;
-        } finally {
-            lri.status.put(statusKey, total);
-            ret = dumpStatus(lri.statusFile, lri.status);
         }
 
         //Need special case to account for journal resume offset.  The dataSize is the size of the partial record being uploaded
@@ -832,7 +818,7 @@ public class SubscriberImpl implements Subscriber {
             }
 
             final boolean result =  handleRecordData(lri, recordInfo.getAppMetaLength(),
-                    APP_META_FILENAME, APP_META_PROGRESS,
+                    APP_META_FILENAME,
                     appMetaData, sess, null);
 
             //Update local record modified date and if it exists for future verification
@@ -874,7 +860,7 @@ public class SubscriberImpl implements Subscriber {
             lri.payloadExists = true;
 
             final boolean retVal = handleRecordData(lri, recordInfo.getPayloadLength(),
-                    PAYLOAD_FILENAME, PAYLOAD_PROGRESS,
+                    PAYLOAD_FILENAME,
                     payload, sess, journalResumeRecord);
 
             //This journal resume record completed, reset journal resume to continue with normal record processing.
@@ -919,7 +905,6 @@ public class SubscriberImpl implements Subscriber {
         }
 
         lri.status.put(DGST, hexString);
-        dumpStatus(lri.statusFile, lri.status);
         return true;
     }
 
@@ -1051,13 +1036,35 @@ public class SubscriberImpl implements Subscriber {
         return true;
     }
 
+    //11006ad2-d6fd-44ec-a2f8-c67025ba1635_2025-11-24T18:06:52.995703_910964_182449728
+    public static String buildDirectoryName(String nonce){
+        String[] info = nonce.split("_");
+        if (info.length != 4){
+            return null;
+        }
+        StringBuilder name = new StringBuilder("");
+        name.append(info[1]).append("_");
+        name.append(info[2]).append("_");
+        name.append(info[3]).append("_");
+        name.append(info[0]);
+        return name.toString();
+    }
+
     @SuppressWarnings("unchecked")
     private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
-
-        final long latestNonce = retrieveLatestNonce();
-        final File dest = new File(this.outputRoot, SubscriberImpl.NONCE_FORMATER.format(latestNonce));
-
-        if(LOGGER.isDebugEnabled()) {
+        String nonce = (String) lri.status.get(REMOTE_NONCE);
+        if(nonce == null){
+            LOGGER.error("REMOTE_NONCE is NULL");
+            return false;
+        }
+        String directoryName = buildDirectoryName(nonce);
+        if(directoryName == null){
+            LOGGER.error("REMOTE_NONCE is JAL_ID: " + nonce);
+            return false;
+        }
+        final File dest = new File(this.outputRoot, directoryName);
+        
+        if(LOGGER.isDebugEnabled()) { 
             LOGGER.debug("Renaming directory from: " +lri.recordDir.getAbsolutePath() + " to: "+
                     dest.getAbsolutePath());
         }

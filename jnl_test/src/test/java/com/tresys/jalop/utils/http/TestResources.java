@@ -58,6 +58,8 @@ public class TestResources {
     static final DecimalFormat NONCE_FORMATER =
             new DecimalFormat(NONCE_FORMAT_STRING);
 
+    public static final String testJalIDSuffix = "_2025-11-24T18:06:52.995703_910964_182449728";
+
     private static HttpUtils testHttpUtils;
 
     public static Subscriber getSubscriber()
@@ -187,6 +189,7 @@ public class TestResources {
         config.setOutputPath(new File("./output"));
         config.setMaxSessionLimit(5);
         config.setBufferSize(1024);
+        config.setJournalResumeThresholdSize(0);
 
         JNLSubscriber subscriber = new JNLSubscriber(config);
         httpUtils.setSubscriber(subscriber);
@@ -301,7 +304,7 @@ public class TestResources {
 
     public static String sendValidJalRecord(RecordType recType, String sessionId) throws ClientProtocolException, IOException
     {
-        String jalId = UUID.randomUUID().toString();
+        String jalId = UUID.randomUUID().toString() + TestResources.testJalIDSuffix;
 
         return sendValidJalRecord(recType, sessionId, jalId);
     }
