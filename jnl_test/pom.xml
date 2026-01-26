@@ -2,8 +2,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-        <jalop.version>2.1.0.1</jalop.version>
-    </properties>
+		<jalop.version>2.2.0.0</jalop.version>
+	</properties>
 
 	<parent>
 		<artifactId>parent</artifactId>
@@ -29,6 +29,9 @@
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>com.tresys.jalop.utils.jnltest.JNLSubscriber</mainClass>
+									<manifestEntries>
+									    <Multi-Release>true</Multi-Release>
+									</manifestEntries>
 								</transformer>
 							</transformers>
 						</configuration>
