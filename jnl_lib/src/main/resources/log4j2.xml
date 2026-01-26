@@ -6,7 +6,8 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Root level="debug">
+    <!-- Can be overridden at command line with -Dlog4j2.level=OFF|ALL|TRACE|DEBUG|INFO|WARN|ERROR|FATAL -->
+    <Root level="${sys:log4j2.level:-INFO}">
       <AppenderRef ref="Console"/>
     </Root>
   </Loggers>
