@@ -278,15 +278,16 @@ public class JNLWebServer
             }
             catch (IOException e)
             {
-                // This exception is thrown if at least one of the keystores specified
+                // This exception can be thrown if at least one of the keystores specified
                 // in the 'Key Store' or 'Trust Store' configuration setting points to
                 // a file that cannot be recognized as a valid keystore.
+            	// This will also catch any additional error on JNL Web server startup
                 // Stopping the server and waiting for the thread to join allows the
                 // subscriber to exit gracefully instead of hanging after the exception is thrown.
-                logger.error("A keystore file specified in the configuration file is incorrectly formatted\nThis file must be a valid keystore for the subscriber to successfully start.");
+                logger.error("An error occurred while trying to start the JNL Web Server.", e);
                 server.stop();
                 server.join();
-                throw new JNLException("Incorrectly formatted keystore. End of file unexpectantly found");
+                throw new JNLException("An error occurred while trying to start the JNL Web Server.", e);
             }
 
             if (config.getTlsConfiguration().equals(HttpUtils.MSG_ON)) {

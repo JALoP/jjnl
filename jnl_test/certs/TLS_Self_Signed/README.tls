@@ -1,0 +1,78 @@
+TLS_Self_Signed Certificate Setup
+================================================================================
+The TLS_Self_Signed directory is already populated with test certificates built from:
+	generate_certs.sh with the default selections.
+================================================================================
+If you want to build your own set of certificates you can:
+run ./generate_certs.sh
+
+================================================================================
+The public certificates for server and client are built with alt_names:
+  [ alt_name ]
+  DNS.0 = localhost
+  DNS.1 = jal-publisher-v2-client
+  IP.0 = 127.0.0.1
+
+  [ alt_name ]
+  DNS.0 = localhost
+  DNS.1 = jal-subscriber-v2-server
+  IP.0 = 127.0.0.1
+
+  So when running publisher and subscriber on different machines you can add
+  entries to their /etc/hosts file.
+  example:
+    192.168.1.100 jal-publisher-v2-client (on server)
+    192.168.1.101 jal-subscriber-v2-server (on client)
+================================================================================
+
+
+TLS_Self_Signed between jald & jal_subscribe
+================================================================================
+
+Have the following settings in jald.cfg -
+private_key = "./test-input/TLS_Self_Signed/pub-certs/publisher.key";
+public_cert = "./test-input/TLS_Self_Signed/pub-certs/publisher.crt";
+remote_cert_dir = "./test-input/TLS_Self_Signed/pub-certs/trust_store_dir";
+
+Have the following settings in jal_subscriber.cfg -
+enableTls = true
+privateKey = "./test-input/TLS_Self_Signed/sub-certs/subscriber.key";
+publicCert = "./test-input/TLS_Self_Signed/sub-certs/subscriber.crt";
+trustStore = "./test-input/TLS_Self_Signed/sub-certs/trust_store_dir/publisher.trusted_certs";
+
+
+Start C Publisher (jald) with TLS -
+$ ./release/bin/jald -d -c ./jald.cfg --no-daemon
+
+Start C Subscriber (jal_subscribe) with TLS -
+$ ./release/bin/jal_subscribe -d -c ./jal_subscribe.cfg
+
+Important: If you are running both the publisher (jald) and
+	subscriber (jal_subscribe) on the same host for testing, make sure
+	to use a separate database for jal_subscribe (via db_root in jal_subscribe.cfg)
+	to store the received JAL records.
+
+
+TLS_Self_Signed (between jald & JJNL subscriber)
+================================================================================
+Have the following settings in jald.cfg -
+private_key = "./test-input/TLS_Self_Signed/pub-certs/publisher.key";
+public_cert = "./test-input/TLS_Self_Signed/pub-certs/publisher.crt";
+remote_cert_dir = "./test-input/TLS_Self_Signed/pub-certs/trust_store_dir";
+
+Have the following settings in sampleHttpSubcriber.json -
+
+  "ssl": {
+    "Key Store Passphrase": "changeit",
+    "Key Store": "<absolute path to jalop repo>/test-input/TLS_Self_Signed/sub-certs/jal_subscriber_v2_client.jks",
+
+    "Trust Store Passphrase": "changeit",
+    "Trust Store": "<absolute path to jalop repo>/test-input/TLS_Self_Signed/sub-certs/jal_subscriber_v2_client-remotes.jks",
+  }
+
+Start C Publisher (jald) with TLS -
+$ ./release/bin/jald -d -c ./jald.cfg --no-daemon
+
+Start JJNL Subscriber (jal_subscribe) with TLS -
+$ cd <jjnl root dir>/jnl_test/target
+$ java -jar <jnl_test*.jar> ../src/test/resources/sampleHttpSubscriber.json
