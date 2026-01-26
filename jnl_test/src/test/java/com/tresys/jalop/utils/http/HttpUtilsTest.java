@@ -277,6 +277,44 @@ public class HttpUtilsTest {
         String defaultDigest = DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName();
         assertEquals(defaultDigest, DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
     }
+    
+    /**
+     * Checks to ensure digest algorithm ignores duplicates - byName
+     */
+    @Test
+    public void testAddDigestByNameIgnoresDuplicates() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+        digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME);
+
+        List<String> addedDigestAlgorthms = digestAlgorithms.getDigestAlgorithmNames();
+
+        assertEquals(2, addedDigestAlgorthms.size());
+        assertTrue(addedDigestAlgorthms.contains(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME));
+        assertTrue(addedDigestAlgorthms.contains(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME));
+    }    
+
+    /**
+     * Checks to ensure digest algorithm ignores duplicates - byUris
+     */
+    @Test
+    public void testAddDigestByUriIgnoresDuplicates() {
+        DigestAlgorithms digestAlgorithms = new DigestAlgorithms();
+
+        digestAlgorithms.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+        digestAlgorithms.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+        digestAlgorithms.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+        digestAlgorithms.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI);
+
+        List<String> addedDigestAlgorthms = digestAlgorithms.getDigestAlgorithmUris();
+
+        assertEquals(2, addedDigestAlgorthms.size());
+        assertTrue(addedDigestAlgorthms.contains(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI));
+        assertTrue(addedDigestAlgorthms.contains(DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI));
+    }    
 
     /**
      * Checks to ensure SHA256 will be supported by during digest selection

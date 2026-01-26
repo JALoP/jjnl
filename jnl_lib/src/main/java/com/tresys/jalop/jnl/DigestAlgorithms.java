@@ -100,8 +100,10 @@ public class DigestAlgorithms
     public boolean addDigestAlgorithmByName(String name) {
         DigestAlgorithmEnum alg = DigestAlgorithmEnum.fromName(name);
 
-        if (alg != null && !this.supportedDigestAlgorithms.contains(alg) && this.canAddAlgorithm(alg)) {
-            this.supportedDigestAlgorithms.add(alg);
+        if (alg != null && this.canAddAlgorithm(alg)) {
+            if (!this.supportedDigestAlgorithms.contains(alg)) {
+                this.supportedDigestAlgorithms.add(alg);
+            }
             return true;
         }
 
@@ -121,8 +123,10 @@ public class DigestAlgorithms
     public boolean addDigestAlgorithmByUri(String uri) {
         DigestAlgorithmEnum alg = DigestAlgorithmEnum.fromUri(uri);
 
-        if (alg != null && !this.supportedDigestAlgorithms.contains(alg) && this.canAddAlgorithm(alg)) {
-            this.supportedDigestAlgorithms.add(alg);
+        if (alg != null && this.canAddAlgorithm(alg)) {
+            if (!this.supportedDigestAlgorithms.contains(alg)) {
+                this.supportedDigestAlgorithms.add(alg);
+            }
             return true;
         }
 
