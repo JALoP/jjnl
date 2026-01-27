@@ -1602,7 +1602,7 @@ public class JalRecordTest {
             //Send 3 records of each
             for (int i = 0; i < 3; i++)
             {
-                String jalId = UUID.randomUUID().toString();
+                String jalId = UUID.randomUUID().toString() + TestResources.testJalIDSuffix;
                 HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
 
                 for (Map.Entry<String, String> entry : headers.entrySet())
@@ -1737,7 +1737,7 @@ public class JalRecordTest {
 
             HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
-            String jalId = UUID.randomUUID().toString();
+            String jalId = UUID.randomUUID().toString() + TestResources.testJalIDSuffix;
             HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", recType);
 
             for (Map.Entry<String, String> entry : headers.entrySet())

@@ -26,6 +26,7 @@ import org.junit.rules.ExpectedException;
 import com.tresys.jalop.jnl.DigestStatus;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.impl.http.HttpUtils;
+import com.tresys.jalop.utils.jnltest.SubscriberImpl;
 
 /**
  * Tests for common utility class.
@@ -485,7 +486,9 @@ public class DigestResponseTest {
             assertTrue(recordDir.list().length > 0);
 
             //Verifies the confirmed location is empty
-            String confirmDirStr = outputDirStr +  "/" + recType.toString().toLowerCase() + "/" + autoNumberDir;
+            String nonceDir = SubscriberImpl.buildDirectoryName(jalId);
+            assertNotNull(nonceDir);
+            String confirmDirStr = outputDirStr +  "/" + recType.toString().toLowerCase() + "/" + nonceDir;
             File confirmDir = new File(confirmDirStr);
             assertTrue(!confirmDir.exists());
 
