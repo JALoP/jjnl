@@ -3,7 +3,7 @@
   <parent>
     <artifactId>parent</artifactId>
     <groupId>com.tresys.jalop.jnl</groupId>
-    <version>1.1.0.1</version>
+    <version>1.2.0.0</version>
     <relativePath>../jnl_parent</relativePath>
   </parent>
   <artifactId>jnl_test</artifactId>
@@ -24,6 +24,9 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.tresys.jalop.utils.jnltest.JNLTest</mainClass>
+                  <manifestEntries>
+                      <Multi-Release>true</Multi-Release>
+                  </manifestEntries>
                 </transformer>
               </transformers>
             </configuration>
@@ -47,7 +50,7 @@
     <dependency>
       <groupId>com.tresys.jalop.jnl</groupId>
       <artifactId>jnl_lib</artifactId>
-      <version>1.1.0.1</version>
+      <version>1.2.0.0</version>
     </dependency>
   </dependencies>
 </project>

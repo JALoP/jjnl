@@ -1,3 +1,14 @@
+Summary of release 1.2.0.0 changes (Fri Jan 30 2026) -
+    - Added RHEL 9 support.
+    - Added Java 17 and 21 support.
+    - Changed to use uuid directories for JAL records instead of autonumber.
+    - Updated default TLS certs to work with default certs in JALoP git repo.
+    - Updated beepcore version in JJNL to 0.9.21
+    - Implemented journalResumeThresholdSize config setting to specify minimum payload size to resume.
+    - Added bufferSize config setting.
+    - Bug fixes to JJNL publisher to work with C subscriber.
+    - Changed so journal resume byte size is pulled from actual uploaded payload.
+
 Summary of release 1.1.0.1 changes (Thu Nov 10 2022) -
     - Enable batch processing of digest-challenge messages.
     - Send digest-challenge on failure to read payload to force publisher to re-send the record.

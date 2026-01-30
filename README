@@ -6,9 +6,9 @@ JJNL v1.x is a JALoP v1.x (JALoP over BEEP) Publisher and Subscriber.
 
 Building and Installing:
 
-This project uses the maven (maven.apache.org) build tool version 3.2.1, and 
-is tested using the Oracle Java SE Development Kit 7u51. Other versions of
-the JDK/JVM and maven should work, but have not been tested.
+This project uses the maven (maven.apache.org) build tool version 3.8.6, and
+is tested using OpenJDK 8, 11, 17, and 21. Any other versions of maven should
+work, but have not been tested.
 
 The JJNL uses a multi-module layout, and the entire project can be built by
 running maven commands in the jnl_parent directory. The various modules are:
@@ -22,8 +22,7 @@ running maven commands in the jnl_parent directory. The various modules are:
  - jnl_test - This module contains a utility program that acts as a JALoP Network
       Store. It uses the JNL to either listen for incoming connections, or
       initiate a connection to a remote. It's behaviour is governed by a
-      configuration file.  The path to the configuration file is passed as a
-      command line argument.
+      configuration file.
 
 Installation Instructions:
 
@@ -42,9 +41,9 @@ Installation Instructions:
         cd beepcore-${ver}/lib
         chmod 744 ./install_jars.sh
         ./install_jars.sh
-     
+
 3. Package JALoP JNL project
-	# Go to the root directory for the jjnl repository. 
+	# Go to the root directory for the jjnl repository.
 	# Go into the jnl_parent subdirectory:
         cd ../../../../../jnl_parent
 
@@ -53,8 +52,46 @@ Installation Instructions:
 		mvn package
 
 	# Note:
-	# On Solaris use the following option when building under Java 7 due to JMockit / Java 7 configuration issues.
+	# To build using specific Java version and bypass SSL certificate validation, run the following mvn command, for example -
+	# mvn -Dmaven.wagon.http.ssl.insecure=true -Djava.version="17" -U clean package
+
+	# Note:
+	# To skip the unit tests, run the following mvn command -
 		mvn package -DskipTests=true
+
+Logging:
+--------
+To change the logging level, you can either set the `log4j2.level` system property at the command line (e.g.):
+
+     java -Dlog4j2.level=DEBUG -jar target/jnl_test-1.2.0.0.jar ./sampleSubscriber.json
+
+or set the `log4j2.configurationFile` system property and pass in a custom `log4j2.xml` file (e.g.):
+
+    java -Dlog4j2.configurationFile=log4j2.debug.xml -jar target/jnl_test-1.2.0.0.jar ./sampleSubscriber.json
+
+The default logging level is INFO.
+
+To append to a file, you can redirect output using Bash as follows:
+
+    java -Dlog4j2.configurationFile=log4j2.debug.xml -jar target/jnl_test-1.2.0.0.jar ./sampleSubscriber.json 1>output.log 2>error.log
+
+Or you can update the custom `log4j2.xml` by adding a File Appender as follows:
+
+    <Appenders>
+        ...
+        <File name="LogFile" fileName="out.log" immediateFlush="true" append="false">
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+    </Appenders>
+
+
+And then add an AppenderRef for `LogFile` under Loggers/Root:
+
+    <Root level="info">
+        ...
+        <AppenderRef ref="LogFile"/>
+    </Root>
+
 
 Other Options:
 --------------
@@ -62,19 +99,22 @@ These steps do not need to be executed in order to use the JALoP
 libraries.
 
 To run the unit tests and generate code coverage reports, run:
-	mvn test
+
+    mvn test
 
 The generated code coverage reports will appear in the directory coverage-report
 
 To clean the target directory, run:
-	mvn clean
+
+    mvn clean
 
 To generate Javadoc documentation, run:
-	mvn site
+
+    mvn site
 
 The generated documents will appear in the directory target/site.
 
 This project is built and tested in the following environments:
-  RHEL 6 on x86_64
-  RHEL 7 on x86_64
-
+  - RHEL 7 on x86_64
+  - RHEL 8 on x86_64
+  - RHEL 9 on x86_64
