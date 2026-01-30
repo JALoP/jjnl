@@ -21,18 +21,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.tresys.jalop.utils.jnltest.Config;
+package com.tresys.jalop.utils.jnltest.config;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.List;
 
 import org.beepcore.beep.profile.ProfileConfiguration;
 import org.beepcore.beep.profile.tls.jsse.TLSProfileJSSE;
@@ -45,6 +47,7 @@ import com.google.common.net.InetAddresses;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 /**
  * The {@link Config} class is used to to parse a configuration file, and
@@ -54,26 +57,35 @@ public class Config {
 	private static final String ADDRESS = "address";
 	private static final String AUDIT = "audit";
 	private static final String BEEP_ACTION = "beepAction";
+	private static final String BUFFER_SIZE = "bufferSize";
+	private static final String CONFIGURE_TLS = "configureTLS";
+	private static final String CONFIGURE_TLS_ON = "on";
+	private static final String CONFIGURE_TLS_OFF = "off";
 	private static final String CONNECT = "connect";
 	private static final String DATA_CLASS = "dataClass";
 	private static final String HOSTS = "hosts";
 	private static final String INPUT = "input";
 	private static final String JOURNAL = "journal";
+	private static final String JOURNAL_RESUME_THRESHOLD_SIZE = "journalResumeThresholdSize";
 	private static final String LISTENER = "listener";
 	private static final String LOG = "log";
-	private static final String OUTPUT = "output";
 	private static final String MODE = "mode";
 	private static final String MODE_ARCHIVE = "archive";
+	private static final String MODE_ARCHIVAL = "archival";
 	private static final String MODE_LIVE = "live";
+	private static final String OUTPUT = "output";
 	private static final String PEERS = "peers";
 	private static final String PENDING_DGST_MAX = "pendingDigestMax";
 	private static final String PENDING_DGST_TIMEOUT = "pendingDigestTimeout";
+	private static final String SUPPORTED_DIGEST_ALGORITHMS = "digestAlgorithms";
 	private static final String PORT = "port";
 	private static final String PUBLISH_ALLOW = "publishAllow";
 	private static final String PUBLISHER = "publisher";
 	private static final String SESSION_TIMEOUT = "sessionTimeout";
 	private static final String SUBSCRIBE_ALLOW = "subscribeAllow";
 	private static final String SUBSCRIBER = "subscriber";
+
+	private DigestAlgorithms digestAlgorithms;
 
 	/**
 	 * Method to create a {@link Config} from a {@link JSONObject}
@@ -85,33 +97,46 @@ public class Config {
 	 * @return A {@link Config} object.
 	 * @throws ConfigurationException
 	 */
-	public static Config createFromJson(final String cfgFile,
-			final JSONObject parsedConfig) throws ConfigurationException {
+	public static Config createFromJson(final String cfgFile, final JSONObject parsedConfig) throws ConfigurationException
+	{
 		final Config config = new Config(cfgFile);
 		config.handleCommon(parsedConfig);
 
 		final Object subscriber = parsedConfig.get(SUBSCRIBER);
 		final Object publisher = parsedConfig.get(PUBLISHER);
-	    final Object listener = parsedConfig.get(LISTENER);
-	    final String exceptionMsg = new StringBuilder().append("Must specify one of '")
-	        .append(SUBSCRIBER).append("', '")
-	        .append(PUBLISHER).append("', ")
-	        .append(LISTENER).append('\'').toString();
-	    if (subscriber != null) {
-	        if (publisher != null || listener != null) {
-	            throw new ConfigurationException(cfgFile, exceptionMsg);
-	        }
-	        config.handleSubscriber(asJsonObject(cfgFile, SUBSCRIBER, subscriber));
-	    } else if (publisher != null) {
-	        if (listener != null) {
-                throw new ConfigurationException(cfgFile, exceptionMsg);
-	        }
-            config.handlePublisher(asJsonObject(cfgFile, PUBLISHER, publisher));
-	    } else if (listener != null) {
-            config.handleListener(asJsonObject(cfgFile, LISTENER, listener));
-	    } else {
-            throw new ConfigurationException(cfgFile, exceptionMsg);
-	    }
+		final Object listener = parsedConfig.get(LISTENER);
+		final String exceptionMsg = new StringBuilder().append("Must specify one of '")
+			.append(SUBSCRIBER).append("', '")
+			.append(PUBLISHER).append("', ")
+			.append(LISTENER).append('\'').toString();
+		if (subscriber != null) {
+			if (publisher != null || listener != null) {
+				throw new ConfigurationException(cfgFile, exceptionMsg);
+			}
+			config.handleSubscriber(asJsonObject(cfgFile, SUBSCRIBER, subscriber));
+		} else if (publisher != null) {
+			if (listener != null) {
+				throw new ConfigurationException(cfgFile, exceptionMsg);
+			}
+			config.handlePublisher(asJsonObject(cfgFile, PUBLISHER, publisher));
+		} else if (listener != null) {
+			config.handleListener(asJsonObject(cfgFile, LISTENER, listener));
+		} else {
+			throw new ConfigurationException(cfgFile, exceptionMsg);
+		}
+
+		// configureTLS must be set to on or off.
+		// We know that it exists if we get to this point.
+		final Object configureTLS = parsedConfig.get(CONFIGURE_TLS);
+		if (!configureTLS.equals(CONFIGURE_TLS_ON) && !configureTLS.equals(CONFIGURE_TLS_OFF)) {
+			throw new ConfigurationException(cfgFile, new StringBuilder()
+				.append("Valid values for ")
+				.append(CONFIGURE_TLS)
+				.append(" are ")
+				.append(CONFIGURE_TLS_ON)
+				.append(" and ")
+				.append(CONFIGURE_TLS_OFF).toString());
+		}
 
 		return config;
 	}
@@ -127,8 +152,8 @@ public class Config {
 	 *             If there is a problem reading the config file.
 	 * @throws ConfigurationException
 	 */
-	public static Config parse(final String path) throws IOException,
-			ParseException, ConfigurationException {
+	public static Config parse(final String path) throws IOException, ParseException, ConfigurationException
+	{
 		final FileReader fr = new FileReader(new File(path));
 		final JSONParser jsonParser = new JSONParser();
 		final Object o = jsonParser.parse(fr);
@@ -150,7 +175,9 @@ public class Config {
 	private Role role;
 	private long sessionTimeout;
 	private final String source;
-    private ProfileConfiguration sslConfig;
+	private ProfileConfiguration sslConfig;
+	private int bufferSize = 4096;
+	private long journalResumeThresholdSize = 0;
 
 	/**
 	 * Create a new {@link Config} object.
@@ -208,17 +235,17 @@ public class Config {
 
 	/**
 	 * Obtain the indicated maximum number of digests to calculate before
-	 * sending a "digest" message. This maximum is a per session maximum.
+	 * sending a "digest-challenge" message. This maximum is a per session maximum.
 	 *
 	 * @return The maximum number of digests to calculate before sending a
-	 *         "digest" message.
+	 *         "digest-challenge" message.
 	 */
 	public int getPendingDigestMax() {
 		return this.pendingDigestMax;
 	}
 
 	/**
-	 * Obtain the indicated number of seconds to wait before sending a "digest"
+	 * Obtain the indicated number of seconds to wait before sending a "digest-challenge"
 	 * message.
 	 *
 	 * @return The maximum number of seconds to wait before sending a digest
@@ -296,6 +323,26 @@ public class Config {
 	}
 
 	/**
+	 * Obtain the bufferSize to be used for the subscriber bufferedIO
+	 *
+	 * @see Config#Config(String)
+	 * @return The bufferSize as an int
+	 */
+	public int getBufferSize() {
+		return this.bufferSize;
+	}
+
+    /**
+     * Obtain the journalResumeThresholdSize to be used for the subscriber journal resume
+     *
+     * @see Config#Config(String)
+     * @return The journalResumeThresholdSize as an long
+     */
+    public long getJournalResumeThresholSize() {
+        return this.journalResumeThresholdSize;
+    }
+
+	/**
 	 * Get IP address from the {@link JSONObject}. This expects there to be a
 	 * key with the name "address" in the {@link JSONObject} obj.
 	 *
@@ -306,7 +353,39 @@ public class Config {
 	 */
 	void handleAddress(final JSONObject obj) throws ConfigurationException {
 		final String addrString = itemAsString(ADDRESS, obj);
-		this.address = InetAddresses.forString(addrString);
+
+		this.address = getInetAddress(addrString);
+	}
+
+	/**
+	 * Helper utility to parse a string as an IP address or hostname
+	 *
+	 * @param addrString
+	 *            The address string to parse.
+	 * @throws ConfigurationException
+	 *             If an error is detected in the configuration.
+	 */
+	InetAddress getInetAddress(String addrString) throws ConfigurationException {
+		InetAddress currAddress;
+
+		//Handles as an ip address if valid ip otherwise attempt to parse as dns name
+		if (InetAddresses.isInetAddress(addrString))
+		{
+			currAddress = InetAddresses.forString(addrString);
+		}
+		else
+		{
+			try
+			{
+				currAddress = InetAddress.getByName(addrString);
+			}
+			catch(UnknownHostException uhe)
+			{
+				throw new ConfigurationException(this.source, "Invalid address in configuration file: " + uhe.getMessage());
+			}
+		}
+
+		return currAddress;
 	}
 
 	/**
@@ -320,13 +399,17 @@ public class Config {
 	void handleCommon(final JSONObject obj) throws ConfigurationException {
 		handleAddress(obj);
 		setPort(itemAsNumber(PORT, obj).intValue());
-		obj.get("ssl");
-		JSONObject ssl = asJsonObject(this.source, "ssl", obj.get("ssl"), false);
-		if (ssl != null) {
-		    handleSslConfig(ssl);
+		final String configureTLS = itemAsString(CONFIGURE_TLS, obj);
+
+		if (configureTLS.equals(CONFIGURE_TLS_ON)) {
+			obj.get("ssl");
+			JSONObject ssl = asJsonObject(this.source, "ssl", obj.get("ssl"), false);
+			if (ssl != null) {
+				handleSslConfig(ssl);
+			}
 		}
 	}
-	
+
 	/**
 	 * Retrieve the {@link ProfileConfiguration}, if any, for setting up SSL.
 	 * The object returned by this function should be passed to the
@@ -399,6 +482,7 @@ public class Config {
 				.intValue());
 		setInputPath(new File(itemAsString(INPUT, obj, true)));
 		setOutputPath(new File(itemAsString(OUTPUT, obj, true)));
+		handleDigestAlgorithms(obj);
 		final JSONArray peers = itemAsArray(PEERS, obj);
 		for (final Object o : peers) {
 			final JSONObject elm = asJsonObject(this.source, null, o);
@@ -417,11 +501,12 @@ public class Config {
 	 */
 	void handlePublisher(final JSONObject publisher)
 			throws ConfigurationException {
-	    this.listener = false;
-        handleSessionTimeout(publisher);
-        handleDataClass(publisher);
+		this.listener = false;
+		handleSessionTimeout(publisher);
+		handleDataClass(publisher);
 		setRole(Role.Publisher);
 		setInputPath(new File(itemAsString(INPUT, publisher, true)));
+		handleDigestAlgorithms(publisher);
 		setMode(itemAsString(MODE, publisher, true));
 	}
 
@@ -434,18 +519,95 @@ public class Config {
 	 * @throws ConfigurationException
 	 *             If an error is detected in the configuration.
 	 */
-	void handleSubscriber(final JSONObject subscriber)
-			throws ConfigurationException {
-        this.listener = false;
+	void handleSubscriber(final JSONObject subscriber) throws ConfigurationException {
+		this.listener = false;
 		setRole(Role.Subscriber);
 		handleSessionTimeout(subscriber);
 		handleDataClass(subscriber);
+		handleDigestAlgorithms(subscriber);
 		setOutputPath(new File(itemAsString(OUTPUT, subscriber, true)));
-		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, subscriber)
-				.intValue());
-		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, subscriber)
-				.intValue());
+		setPendingDigestMax(itemAsNumber(PENDING_DGST_MAX, subscriber).intValue());
+		setPendingDigestTimeout(itemAsNumber(PENDING_DGST_TIMEOUT, subscriber).intValue());
 		setMode(itemAsString(MODE, subscriber, true));
+		setBufferSize(itemAsNumber(BUFFER_SIZE, subscriber).intValue());
+
+		//journalResumeThresholdSize is optional
+		Number journalResumeThresholdSize = itemAsNumber(JOURNAL_RESUME_THRESHOLD_SIZE, subscriber, false);
+		if (journalResumeThresholdSize != null)
+		{
+		    setJournalResumeThresholdSize(journalResumeThresholdSize.longValue());
+		}
+		else
+		{
+		    //Default to 0 if not found in config file
+		    setJournalResumeThresholdSize(0);
+		}
+	}
+	/**
+	* Handle parsing the configure digest algorithm field.
+	* @param obj
+	*            The context to look up keys in.
+	* @throws ConfigurationException
+	*            If an error is detected in the configuration.
+	*/
+	public void handleDigestAlgorithms(final JSONObject role) throws ConfigurationException
+	{
+		// check to see if we actually have the entry in the config file.
+		// if it is missing or empty default to sha256
+		JSONArray dgsts = (JSONArray)role.get(SUPPORTED_DIGEST_ALGORITHMS);
+		if(dgsts != null && dgsts.size() > 0)
+		{
+			final JSONArray configureDigestAlgorithmsList = itemAsArray(SUPPORTED_DIGEST_ALGORITHMS, role);
+			this.digestAlgorithms = DigestAlgorithms.getInstance();
+			// clear out supported digests for the new set
+			this.digestAlgorithms.clear();
+			for (final Object o : configureDigestAlgorithmsList)
+			{
+				if(!this.digestAlgorithms.addDigestAlgorithmByName((String)o)) // unsupported or invalid digest name
+				{
+					if(((String)o).equalsIgnoreCase(DigestAlgorithms.JJNL_SHA384_ALGORITHM_NAME))
+					{
+						throw new ConfigurationException(this.source, "Digest SHA384 is an unsupported digest for this version of java");
+					}
+					else
+					{
+						throw new ConfigurationException(this.source, "Invalid digest name " + (String)o);
+					}
+				}
+			}
+		}
+		else
+		{
+			this.digestAlgorithms = DigestAlgorithms.getInstance();
+			this.digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName());
+		}
+		// sha256 is always supported
+		DigestAlgorithms da = DigestAlgorithms.getInstance();
+		List<String> digestList = da.getDigestAlgorithmNames();
+		if(!digestList.contains(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME))
+		{
+			this.digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+		}
+	}
+
+	/**
+	 * Returns the list of allowed digest algorithms
+	 *
+	 * @return List of allowed digest algorithms
+	 */
+	public List<String> getDigestAlgorithmNames()
+	{
+		return this.digestAlgorithms.getDigestAlgorithmNames();
+	}
+
+	/**
+	 * Returns the list of allowed digest algorithms uris
+	 *
+	 * @return List of allowed digest algorithms uris
+	 */
+	public List<String> getDigestAlgorithmUris()
+	{
+		return this.digestAlgorithms.getDigestAlgorithmUris();
 	}
 
 	/**
@@ -686,11 +848,11 @@ public class Config {
 	}
 
 	/**
-	 * Set the maximum number of digests to store before sending a "digest"
+	 * Set the maximum number of digests to store before sending a "digest-challenge"
 	 * message.
 	 *
 	 * @param pendingDigestMax
-	 *            The number of digests to calculate before sending a "digest"
+	 *            The number of digests to calculate before sending a "digest-challenge"
 	 *            message.
 	 */
 	public void setPendingDigestMax(final int pendingDigestMax) {
@@ -698,7 +860,7 @@ public class Config {
 	}
 
 	/**
-	 * Set the maximum number of seconds to wait before sending a "digest"
+	 * Set the maximum number of seconds to wait before sending a "digest-challenge"
 	 * message.
 	 *
 	 * @param pendingDigestTimeout
@@ -736,15 +898,20 @@ public class Config {
 	 * @param mode
 	 *            The mode.
 	 */
-	public void setMode(final String mode)
-			throws ConfigurationException {
-		if (mode.equalsIgnoreCase(MODE_LIVE)) {
+	public void setMode(final String mode) throws ConfigurationException
+	{
+		if (mode.equalsIgnoreCase(MODE_LIVE))
+		{
 			this.mode = Mode.Live;
-		} else if (mode.equalsIgnoreCase(MODE_ARCHIVE)) {
+		}
+		else if (mode.equalsIgnoreCase(MODE_ARCHIVE) || mode.equalsIgnoreCase(MODE_ARCHIVAL) )
+		{
 			this.mode = Mode.Archive;
-		} else {
+		}
+		else
+		{
 			throw new ConfigurationException(this.source,
-				"Expected '" + MODE_LIVE + " or " + MODE_ARCHIVE);
+				"Expected '" + MODE_LIVE + " or " + MODE_ARCHIVE + " or " + MODE_ARCHIVAL);
 		}
 	}
 
@@ -757,6 +924,24 @@ public class Config {
 	public void setSessionTimeout(final long sessionTimeout) {
 		this.sessionTimeout = sessionTimeout;
 	}
+
+	/**
+	 * Configure the subscriber bufferSize.
+	 *
+	 * @param bufferSize
+	 */
+	public void setBufferSize(final int bufferSize) {
+		this.bufferSize = bufferSize;
+	}
+
+	/**
+     * Configure the subscriber journalResumeThresholdSize.
+     *
+     * @param journalResumeThresholdSize
+     */
+    public void setJournalResumeThresholdSize(final long journalResumeThresholdSize) {
+        this.journalResumeThresholdSize = journalResumeThresholdSize;
+    }
 
 	/**
 	 * Helper utility to append permissions to the {@link PeerConfig} map.
@@ -776,7 +961,7 @@ public class Config {
 		for (final Object o : hosts) {
 			String host;
 			host = asStringValue(this.source, null, o);
-			final InetAddress hostAddress = InetAddresses.forString(host);
+			final InetAddress hostAddress = getInetAddress(host);
 			PeerConfig pc;
 			if (this.peerConfigs.containsKey(hostAddress)) {
 				pc = this.peerConfigs.get(hostAddress);
@@ -809,6 +994,7 @@ public class Config {
 	                                  e.getValue().toString());
 	    }
 	}
+
 	/**
 	 * Helper utility to cast a {@link Object} as a {@link String}.
 	 *
@@ -937,5 +1123,14 @@ public class Config {
 			throw new ConfigurationException(path,
 					"Expected JSON Array, found '" + o + "'");
 		}
+	}
+
+	/**
+	 * Getter for SUPPORTED_DIGEST_ALGORITHMS
+	 *
+	 * @return SUPPORTED_DIGEST_ALGORITHMS constant value
+	 */
+	static String getSupportedDigestAlgorithmsConfigKey() {
+		return SUPPORTED_DIGEST_ALGORITHMS;
 	}
 }

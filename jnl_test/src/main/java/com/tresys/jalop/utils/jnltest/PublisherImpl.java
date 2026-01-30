@@ -40,6 +40,11 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import jakarta.xml.soap.MimeHeaders;
 
@@ -48,6 +53,9 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestPair;
@@ -89,6 +97,10 @@ public class PublisherImpl implements Publisher {
 
     /** Key in the status file for the peer digest. */
     private static final String PEERDGST = "peer_digest";
+
+    /** Sys metadata xml tags needed to construct remote nonce */
+    private static final String RECORD_ID_TAG = "RecordID";
+    private static final String TIMESTAMP_TAG = "Timestamp";
 
     /**
      * Regular expression used for filtering directories, i.e. only directories
@@ -152,17 +164,107 @@ public class PublisherImpl implements Publisher {
         }
 	}
 
-	private SourceRecord getJournalRecord(final String nonce, final long offset) {
-		final File nonceDir = new File(this.inputRoot,
-					NONCE_FORMATER.format(Long.valueOf(nonce)));
+	private SourceRecord getJournalRecord(final String nonce, String localNonce, final long offset) {
+
+		String formatedNonce = null;
+		try {
+			formatedNonce = NONCE_FORMATER.format(Long.valueOf(localNonce));
+		} catch (NumberFormatException nfe) {
+			if (LOGGER.isEnabledFor(Level.ERROR)) {
+				LOGGER.error("Nonce is not numeric - returning null");
+			}
+			return null;
+		}
+
+		final File nonceDir = new File(this.inputRoot, formatedNonce
+					);
+
 		if(!nonceDir.exists()) {
 			if(LOGGER.isInfoEnabled()) {
-				LOGGER.info("Directory structure for nonce: " + nonce +
+				LOGGER.info("Directory structure for nonce: " + localNonce +
 						" does not exist. Returning null.");
 			}
 			return null;
 		}
-		return new SourceRecordImpl(nonce, offset);
+		return new SourceRecordImpl(nonce, localNonce, offset);
+	}
+
+	private String getXmlValue(String tagName, Document document) {
+		String value = null;
+		NodeList list = document.getElementsByTagName(tagName);
+
+		if (list != null && list.getLength() > 0) {
+			NodeList subList = list.item(0).getChildNodes();
+
+			if (subList != null && subList.getLength() > 0) {
+				value = subList.item(0).getNodeValue();
+			}
+		}
+		return value;
+	}
+
+	private String getRemoteNonceFromSystemMetadata(String sysMetadataFilePath) {
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		File sysMetadataFile = new File(sysMetadataFilePath);
+		String remoteNonce = null;
+		try {
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document document = builder.parse(sysMetadataFile);
+
+			String recordId = getXmlValue(RECORD_ID_TAG, document);
+	 		String timestamp = getXmlValue(TIMESTAMP_TAG, document);
+
+	 		//JAL-974 - Need to add a dummy process id and thread id (extra underscore) to work with c subscriber using lmdb to successfully extract the nonce timestamp
+ 			remoteNonce = recordId + "_" + timestamp + "_0_0";
+		} catch (IOException ioe) {
+			LOGGER.error("Failed to parse system metadata file due to IO exception: " + sysMetadataFilePath, ioe);
+			return null;
+		} catch (SAXException sax) {
+			LOGGER.error("Failed to parse system metadata file: " + sysMetadataFilePath, sax);
+			return null;
+		} catch (ParserConfigurationException pce) {
+			LOGGER.error("Parser configruation exception occurred while parsing system metadata file: " + sysMetadataFilePath, pce);
+			return null;
+		}
+
+		return remoteNonce;
+	}
+
+	public long lookupLocalNonce(final PublisherSession sess, final String remoteNonce) {
+
+		long localNonce = 1;
+		File[] directories = this.inputRoot.listFiles(File::isDirectory);
+
+		while (directories != null && localNonce <= directories.length) {
+
+			final File nonceDir =
+					new File(this.inputRoot,
+						NONCE_FORMATER.format(Long.valueOf(localNonce)));
+
+			if(!nonceDir.exists()) {
+				if(LOGGER.isInfoEnabled()) {
+					LOGGER.info("Directory structure for nonce: " + localNonce +
+							" does not exist. Local nonce was not found");
+				}
+				return -1;
+			}
+
+			File sysFile = new File(nonceDir, SYS_META_FILENAME);
+			if(!sysFile.exists()) {
+				throw new RuntimeException("SysMetadata file doesn't exist");
+			}
+			String currRemoteNonce = getRemoteNonceFromSystemMetadata(sysFile.getAbsolutePath());
+
+			//Record with remote nonce was found, retgurn local nonce
+			if (currRemoteNonce != null && currRemoteNonce.equals(remoteNonce))
+			{
+				return localNonce;
+			}
+
+			localNonce = localNonce + 1;
+		}
+
+		return -1;
 	}
 
 	public SourceRecord getNextRecord(final PublisherSession sess, final String lastNonce) {
@@ -180,6 +282,11 @@ public class PublisherImpl implements Publisher {
 
 				final File[] recordDirs =
 					this.inputRoot.listFiles(PublisherImpl.FILE_FILTER);
+
+
+				if (recordDirs == null || recordDirs.length == 0) {
+					return null;
+				}
 
 				Arrays.sort(recordDirs);
 
@@ -215,7 +322,23 @@ public class PublisherImpl implements Publisher {
 				return null;
 			}
 
-			return new SourceRecordImpl(Long.toString(nextNonce), 0);
+			String localNonce = Long.toString(nextNonce);
+
+			//remote nonce must be in this format:
+			//<record uid from system metadata file>_<timestamp from system metadata file>
+			//ex: "f9032e9c-7e9a-4f2c-b40e-621b0e66c47b_2024-02-26T16:16:08.028292";
+			File sysFile = new File(nonceDir, SYS_META_FILENAME);
+			if(!sysFile.exists()) {
+				throw new RuntimeException("SysMetadata file doesn't exist");
+			}
+			String remoteNonce = getRemoteNonceFromSystemMetadata(sysFile.getAbsolutePath());
+
+			if (remoteNonce == null) {
+				LOGGER.error("Failed to create remote nonce from system metadata file.");
+				return null;
+			}
+
+			return new SourceRecordImpl(remoteNonce, localNonce, 0);
 
 		} catch (final NumberFormatException e) {
 			if(LOGGER.isEnabledFor(Level.ERROR)) {
@@ -229,17 +352,28 @@ public class PublisherImpl implements Publisher {
 	public boolean onJournalResume(final PublisherSession sess, final String nonce,
 					final long offset, final MimeHeaders headers) {
 
+		//Looks up local nonce
+		long localNonceNum = lookupLocalNonce(sess, nonce);
+
+		if (localNonceNum == -1) {
+			if (LOGGER.isEnabledFor(Level.ERROR)) {
+				LOGGER.error("Journal record could not be found for remote nonce: " + nonce);
+			}
+			return false;
+		}
+
 		// Get the Journal record.
-		SourceRecord rec = getJournalRecord(nonce, offset);
+		String localNonce = String.valueOf(localNonceNum);
+		SourceRecord rec = getJournalRecord(nonce, localNonce, offset);
 		if (rec == null) {
-			if(LOGGER.isEnabledFor(Level.ERROR)) {
+			if (LOGGER.isEnabledFor(Level.ERROR)) {
 				LOGGER.error("Journal record does not exist");
 			}
 			return false;
 		}
 		sess.sendRecord(rec);
 
-		rec = getNextRecord(sess, nonce);
+		rec = getNextRecord(sess, localNonce);
 		while ( rec != null ){
 			String currNonce = rec.getNonce();
 			sess.sendRecord(rec);
@@ -264,6 +398,7 @@ public class PublisherImpl implements Publisher {
 				if(LOGGER.isEnabledFor(Level.ERROR)) {
 					LOGGER.error("nonce must be a postive number");
 				}
+				sess.complete();
 				return false;
 			}
 			SourceRecord rec = getNextRecord(sess, nonce);
@@ -276,9 +411,10 @@ public class PublisherImpl implements Publisher {
 			if(LOGGER.isEnabledFor(Level.ERROR)) {
 				LOGGER.error("nonce sent is not numeric - " + nonce);
 			}
+			sess.complete();
 			return false;
 		}
-		sess.complete();
+
 		return true;
 	}
 
@@ -297,7 +433,16 @@ public class PublisherImpl implements Publisher {
 
 		final Map<String, String> synched = new HashMap<String, String>();
 		synched.put(SYNCED, "true");
-		return dumpStatus(nonce, synched);
+
+		String localNonce = sess.getLocalNonce(nonce);
+		if (localNonce == null) {
+			LOGGER.error("Could not find local nonce for remote nonce: " + nonce);
+			return false;
+		}
+
+		//Clear out remote/local nonce map entry
+		sess.deleteNonceMapEntry(nonce);
+		return dumpStatus(localNonce, synched);
 	}
 
 	@Override
@@ -332,7 +477,13 @@ public class PublisherImpl implements Publisher {
 			final String hexString = (new BigInteger(1, pair.getPeerDigest())).toString(16);
 			final Map<String, String> map = new HashMap<String, String>();
 	        map.put(PEERDGST, hexString);
-	        dumpStatus(pair.getNonce(), map);
+
+	        String localNonce = sess.getLocalNonce(pair.getNonce());
+			if (localNonce != null) {
+				dumpStatus(NONCE_FORMATER.format(Long.valueOf(localNonce)), map);
+			} else {
+				LOGGER.error("No local nonce exists for remote nonce: " + pair.getNonce());
+			}
 		}
 	}
 	/**
@@ -396,7 +547,8 @@ public class PublisherImpl implements Publisher {
 
 	private class SourceRecordImpl implements SourceRecord {
 
-		private final String nonce;
+		private final String remoteNonce;
+		private final String localNonce;
 		private final long offset;
 		final File nonceDir;
 		final File sysFile;
@@ -404,14 +556,15 @@ public class PublisherImpl implements Publisher {
 		final File payloadFile;
 
 		@SuppressWarnings("unchecked")
-		public SourceRecordImpl(final String nonce, final long offset) {
+		public SourceRecordImpl(final String remoteNonce, final String localNonce, final long offset) {
 
-			this.nonce = nonce;
+			this.remoteNonce = remoteNonce;
+			this.localNonce = localNonce;
 			this.offset = offset;
 
 			this.nonceDir =
                 new File(PublisherImpl.this.inputRoot,
-                		PublisherImpl.NONCE_FORMATER.format(Long.valueOf(nonce)));
+                		PublisherImpl.NONCE_FORMATER.format(Long.valueOf(localNonce)));
 
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("Getting files for sysMetadata, appMetadata, and payload.");
@@ -433,7 +586,12 @@ public class PublisherImpl implements Publisher {
 
 		@Override
 		public String getNonce() {
-			return this.nonce;
+			return this.localNonce;
+		}
+
+		@Override
+		public String getRemoteNonce() {
+			return this.remoteNonce;
 		}
 
 		@Override

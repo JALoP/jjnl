@@ -25,6 +25,7 @@
 package com.tresys.jalop.utils.jnltest;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +39,7 @@ import com.tresys.jalop.jnl.ConnectionHandler;
 import com.tresys.jalop.jnl.ConnectionRequest;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Session;
-import com.tresys.jalop.utils.jnltest.Config.PeerConfig;
+import com.tresys.jalop.utils.jnltest.config.PeerConfig;
 
 /**
  * Implementation of a {@link ConnectionHandler}
@@ -60,19 +61,27 @@ public class ConnectionHandlerImpl implements ConnectionHandler {
 		if(log.isDebugEnabled()) {
 			log.debug("Received connection request.");
 		}
-
 		final Set<ConnectError> errors = new HashSet<ConnectError>();
-		if(!peerConfigs.containsKey(connRequest.getAddress())	||
-				(connRequest.getRole().equals(Role.Publisher) &&
-						peerConfigs.get(connRequest.getAddress()).getPublishAllow().isEmpty())	||
-				(connRequest.getRole().equals(Role.Subscriber) &&
-						peerConfigs.get(connRequest.getAddress()).getSubscribeAllow().isEmpty())) {
+		try
+		{
+			InetAddress address = InetAddress.getByName(connRequest.getAddress());
+			if(!peerConfigs.containsKey(address)	||
+					(connRequest.getRole().equals(Role.Publisher) &&
+							peerConfigs.get(address).getPublishAllow().isEmpty())	||
+					(connRequest.getRole().equals(Role.Subscriber) &&
+							peerConfigs.get(address).getSubscribeAllow().isEmpty())) {
+				errors.add(ConnectError.UnsupportedMode);
+			} else if((connRequest.getRole().equals(Role.Publisher) &&
+					!peerConfigs.get(address).getPublishAllow().contains(connRequest.getRecordType()))	||
+					(connRequest.getRole().equals(Role.Subscriber) &&
+							!peerConfigs.get(address).getSubscribeAllow().contains(connRequest.getRecordType()))) {
+				errors.add(ConnectError.UnauthorizedMode);
+			}
+		}
+		catch (UnknownHostException uhe)
+		{
+			log.error("Invalid IP address: " + connRequest.getAddress(), uhe);
 			errors.add(ConnectError.UnsupportedMode);
-		} else if((connRequest.getRole().equals(Role.Publisher) &&
-				!peerConfigs.get(connRequest.getAddress()).getPublishAllow().contains(connRequest.getRecordType()))	||
-				(connRequest.getRole().equals(Role.Subscriber) &&
-						!peerConfigs.get(connRequest.getAddress()).getSubscribeAllow().contains(connRequest.getRecordType()))) {
-			errors.add(ConnectError.UnauthorizedMode);
 		}
 
 		return errors;

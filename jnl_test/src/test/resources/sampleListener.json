@@ -1,31 +1,33 @@
 {
-  "address": "192.168.90.1",
+  "address": "127.0.0.1",
   "port": 1234,
+  "configureTLS": "on",
   "listener": {
-    "pendingDigestMax": 128,
-    "pendingDigestTimeout": 120,
-    "input" : "./foo/input",
-    "output" : "./foo/output",
+    "pendingDigestMax": 10,
+    "pendingDigestTimeout": 1,
+    "input" : "../../input",
+    "output" : "./output",
+    "journalResumeThresholdSize": 0,
     "peers": [
       { "hosts": ["192.168.90.5"],
         "publishAllow": ["audit", "journal"],
-        "subscribeAllow": ["log"], 
+        "subscribeAllow": ["log"],
       },
       { "hosts": ["192.168.90.5", "192.168.90.6"],
         "publishAllow": ["log"],
         "subscribeAllow": ["audit"],
       }
     ]
-  }
+  },
   "ssl": {
     "Key Algorithm": "SunX509",
     "Key Store Passphrase": "changeit",
     "Key Store Data Type": "file",
-    "Key Store": "keystore/server.jks",
+    "Key Store": "../certs/TLS_CA_Signed/server/jal_publisher_v1_server.jks",
 
     "Trust Algorithm": "SunX509",
     "Trust Store Passphrase": "changeit",
     "Trust Store Data Type": "file",
-    "Trust Store": "keystore/remotes.jks",
+    "Trust Store": "../certs/TLS_CA_Signed/server/jal_publisher_v1_server-remotes.jks",
   }
 }

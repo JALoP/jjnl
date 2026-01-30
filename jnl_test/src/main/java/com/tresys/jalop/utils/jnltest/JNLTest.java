@@ -57,9 +57,9 @@ import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.SubscriberSession;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
-import com.tresys.jalop.utils.jnltest.Config.Config;
-import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
-import com.tresys.jalop.utils.jnltest.Config.PeerConfig;
+import com.tresys.jalop.utils.jnltest.config.Config;
+import com.tresys.jalop.utils.jnltest.config.ConfigurationException;
+import com.tresys.jalop.utils.jnltest.config.PeerConfig;
 
 /**
  * Main class for JNLTest
@@ -193,11 +193,11 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
     private void start() throws JNLException, BEEPException {
         if (!this.config.isListener()) {
             if (this.config.getRole() == Role.Subscriber) {
-                final ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
+                final ContextImpl contextImpl = new ContextImpl(null, this, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", config.getDigestAlgorithmUris(), null, config.getSslConfiguration());
 				contextImpl.subscribe(this.config.getAddress(), this.config.getPort(), config.getMode(), this.config.getRecordTypes().toArray(new RecordType[0]));
 
             } else if (this.config.getRole() == Role.Publisher) {
-				final ContextImpl contextImpl = new ContextImpl(this, null, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
+				final ContextImpl contextImpl = new ContextImpl(this, null, null, this.config.getPendingDigestTimeout(), config.getPendingDigestMax(), "agent", config.getDigestAlgorithmUris(), null, config.getSslConfiguration());
 				contextImpl.publish(this.config.getAddress(), this.config.getPort(), config.getMode(), this.config.getRecordTypes().toArray(new RecordType[0]));
             }
             this.logger.info("Waiting: " + config.getSessionTimeout());
@@ -225,7 +225,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 				}
         	}
 
-        	final ContextImpl contextImpl = new ContextImpl(publisher, subscriber, this, this.config.getPendingDigestTimeout(), this.config.getPendingDigestMax(), "agent", null, null, config.getSslConfiguration());
+        	final ContextImpl contextImpl = new ContextImpl(publisher, subscriber, this, this.config.getPendingDigestTimeout(), this.config.getPendingDigestMax(), "agent", config.getDigestAlgorithmUris(), null, config.getSslConfiguration());
         	contextImpl.listen(this.config.getAddress(), this.config.getPort());
         }
     }
@@ -247,7 +247,7 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
         synchronized(map) {
             sub = map.get(sess.getRecordType());
             if (sub == null) {
-                sub = new SubscriberImpl(sess.getRecordType(), this.config.getOutputPath(), sess.getAddress(), this);
+                sub = new SubscriberImpl(sess.getRecordType(), this.config.getOutputPath(), sess.getAddress(), this.config.getBufferSize(), this.config.getJournalResumeThresholSize(), this);
                 map.put(sess.getRecordType(), sub);
             }
         }

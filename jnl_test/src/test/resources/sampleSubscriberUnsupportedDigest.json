@@ -1,12 +1,12 @@
 {
   "address": "127.0.0.1",
-  "port": 1234,
-  "configureTLS": "on",
+  "port": 8444,
+  "configureTLS": "off",
   "subscriber": {
   	"sessionTimeout": "00:00:00",
-  	"dataClass": [ "log", "audit", "journal" ],
+  	"dataClass": [ "audit", "log", "journal" ],
   	"pendingDigestMax": 10,
-        "digestAlgorithms": [ "sha256" ],
+        "digestAlgorithms": [ "sha256", "sha999", "sha512" ],
   	"pendingDigestTimeout": 1,
   	"output": "./output",
   	"mode": "archive",
@@ -17,11 +17,11 @@
     "Key Algorithm": "SunX509",
     "Key Store Passphrase": "changeit",
     "Key Store Data Type": "file",
-    "Key Store": "../certs/TLS_CA_Signed/client/jal_subscriber_v1_client.jks",
+    "Key Store": "keystore/server.jks",
 
     "Trust Algorithm": "SunX509",
     "Trust Store Passphrase": "changeit",
     "Trust Store Data Type": "file",
-    "Trust Store": "../certs/TLS_CA_Signed/client/jal_subscriber_v1_client-remotes.jks",
+    "Trust Store": "keystore/remotes.jks",
   }
 }

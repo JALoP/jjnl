@@ -48,7 +48,7 @@ import com.tresys.jalop.jnl.ConnectionHandler.ConnectError;
 import com.tresys.jalop.jnl.ConnectionRequest;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
-import com.tresys.jalop.utils.jnltest.Config.PeerConfig;
+import com.tresys.jalop.utils.jnltest.config.PeerConfig;
 
 
 public class ConnectionHandlerImplTest {
@@ -58,6 +58,7 @@ public class ConnectionHandlerImplTest {
 	private static Field peerConfigsField;
 	private static Field publishAllowField;
 	private static Field subscribeAllowField;
+	private InetAddress address;
 
 	@BeforeClass
     public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
@@ -89,6 +90,8 @@ public class ConnectionHandlerImplTest {
 
 		// Disable logging so the build doesn't get spammed.
 		Logger.getRootLogger().setLevel(Level.OFF);
+
+		address = InetAddress.getByName("localhost");
 	}
 
 	@Test
@@ -105,7 +108,7 @@ public class ConnectionHandlerImplTest {
 
 		new Expectations() {
 			{
-				connRequest.getAddress(); result = InetAddress.getByName("localhost");
+				connRequest.getAddress(); result = address.getHostAddress();
 				connRequest.getRecordType(); result = RecordType.Audit;
 				connRequest.getRole(); result = Role.Publisher;
 			}
@@ -116,14 +119,14 @@ public class ConnectionHandlerImplTest {
 	}
 
 	@Test
-	public void testHandleConnectionRequestErrorWhenWrongAddress(@Mocked final ConnectionRequest connRequest, @Mocked final InetAddress address)
+	public void testHandleConnectionRequestErrorWhenWrongAddress(@Mocked final ConnectionRequest connRequest)
 			throws UnknownHostException, IllegalAccessException {
 
 		final ConnectionHandler ch = new ConnectionHandlerImpl(pubPeerConfigs);
 
 		new Expectations() {
 			{
-				connRequest.getAddress(); result = address;
+				connRequest.getAddress(); result = "127.0.0.175";
 			}
 		};
 
@@ -139,7 +142,7 @@ public class ConnectionHandlerImplTest {
 
 		new Expectations() {
 			{
-				connRequest.getAddress(); result = InetAddress.getByName("localhost");
+				connRequest.getAddress(); result = address.getHostAddress();
 				connRequest.getRole(); result = Role.Subscriber;
 			}
 		};
@@ -156,7 +159,7 @@ public class ConnectionHandlerImplTest {
 
 		new Expectations() {
 			{
-				connRequest.getAddress(); result = InetAddress.getByName("localhost");
+				connRequest.getAddress(); result = address.getHostAddress();
 				connRequest.getRole(); result = Role.Publisher;
 			}
 		};
@@ -173,7 +176,7 @@ public class ConnectionHandlerImplTest {
 
 		new Expectations() {
 			{
-				connRequest.getAddress(); result = InetAddress.getByName("localhost");
+				connRequest.getAddress(); result = address.getHostAddress();
 				connRequest.getRecordType(); result = RecordType.Log;
 				connRequest.getRole(); result = Role.Publisher;
 			}
@@ -191,7 +194,7 @@ public class ConnectionHandlerImplTest {
 
 		new Expectations() {
 			{
-				connRequest.getAddress(); result = InetAddress.getByName("localhost");
+				connRequest.getAddress(); result = address.getHostAddress();
 				connRequest.getRecordType(); result = RecordType.Log;
 				connRequest.getRole(); result = Role.Subscriber;
 			}

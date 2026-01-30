@@ -22,7 +22,7 @@
  * limitations under the License.
  */
 
-package com.tresys.jalop.utils.jnltest.Config;
+package com.tresys.jalop.utils.jnltest.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -37,9 +37,12 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.io.IOException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
 import org.junit.Test;
 import org.junit.Before;
@@ -47,22 +50,24 @@ import org.junit.Before;
 import com.google.common.net.InetAddresses;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
-import com.tresys.jalop.utils.jnltest.Config.Config;
-import com.tresys.jalop.utils.jnltest.Config.ConfigurationException;
+import com.tresys.jalop.utils.jnltest.config.Config;
+import com.tresys.jalop.utils.jnltest.config.ConfigurationException;
 
 @SuppressWarnings("unchecked")
 public class ConfigTest {
 	private JSONObject jsonCfg;
-    private JSONObject sub;
-    private JSONObject pub;
-    private JSONObject listener;
+	private JSONObject sub;
+	private JSONObject pub;
+	private JSONObject listener;
 
 	@Before
 	public void setup() throws Exception {
 		jsonCfg = new JSONObject();
 		jsonCfg.put("address", "127.0.0.1");
 		jsonCfg.put("port", 1234);
+		jsonCfg.put("configureTLS", "on");
         JSONArray dataClassArray = new JSONArray();
         dataClassArray.add("audit");
 
@@ -73,32 +78,41 @@ public class ConfigTest {
         sub.put("output", "./output");
         sub.put("sessionTimeout", "00:00:00");
         sub.put("mode", "Live");
+        sub.put("bufferSize", 4096);
+        sub.put("journalResumeThresholdSize", 0);
 
 	    pub = new JSONObject();
         pub.put("dataClass", dataClassArray);
 	    pub.put("input", "./input");
 	    pub.put("sessionTimeout", "00:00:00");
-	pub.put("mode", "Live");
+		pub.put("mode", "Live");
 
 	    listener = new JSONObject();
 	    listener.put("pendingDigestMax", 128);
 	    listener.put("pendingDigestTimeout", 120);
 	    listener.put("output", "./output");
-        listener.put("input", "./input");
+	    listener.put("input", "./input");
 	    listener.put("peers", new JSONArray());
 	    listener.put("sessionTimeout", "00:00:00");
+	    listener.put("journalResumeThresholdSize", 0);
 	}
+
 
 	@Test
 	public void configWorks() {
+		JSONArray digestArray = new JSONArray();
+		digestArray.add(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+		digestArray.add(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME);
+		sub.put(Config.getSupportedDigestAlgorithmsConfigKey(), digestArray);
+
 		Config cfg = new Config("path/to/nothing");
 		assertNotNull(cfg);
 		assertEquals("path/to/nothing", cfg.getSource());
 		assertNotNull(cfg.getRecordTypes());
 		assertNotNull(cfg.getPeerConfigs());
 		assertEquals((short)-1, cfg.getPendingDigestMax());
-		assertEquals((long)-1, cfg.getPendingDigestTimeout());
-		assertEquals((int)-1, cfg.getPort());
+		assertEquals(-1, cfg.getPendingDigestTimeout());
+		assertEquals(-1, cfg.getPort());
 	}
 
 	@Test
@@ -131,21 +145,212 @@ public class ConfigTest {
 	}
 
 	@Test
-    public void createFromJsonReturnsValidConfigWithSubscriber() throws Exception {
-        jsonCfg.put("subscriber", sub);
-        Config cfg = Config.createFromJson("path/to/nothing", jsonCfg);
-        assertNotNull(cfg);
-        assertEquals("path/to/nothing", cfg.getSource());
-        assertTrue(Arrays.equals(new byte[]{127,0,0,1}, cfg.getAddress().getAddress()));
-        assertEquals(128, cfg.getPendingDigestMax());
-        assertEquals(120, cfg.getPendingDigestTimeout());
-        assertEquals(1234, cfg.getPort());
-        assertEquals(Mode.Live, cfg.getMode());
-        assertNotNull(cfg.getPeerConfigs());
-        assertTrue(cfg.getPeerConfigs().isEmpty());
-        assertEquals(new File("./output").getPath(), cfg.getOutputPath().getPath());
-        assertEquals(0, cfg.getSessionTimeout());
+	public void createFromJsonReturnsValidConfigWithSubscriber() throws Exception {
+		boolean configerr = false;
+
+		DigestAlgorithms digestAlgorithms = DigestAlgorithms.getInstance();
+		// Need to hard-code this so that it runs the same on Java 8 and 11
+		digestAlgorithms.setSHA384Supported(true);
+
+		JSONArray digestArray = new JSONArray();
+		digestArray.add(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+		digestArray.add(DigestAlgorithms.JJNL_SHA384_ALGORITHM_NAME);
+		digestArray.add(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME);
+		sub.put(Config.getSupportedDigestAlgorithmsConfigKey(), digestArray);
+
+		jsonCfg.put("subscriber", sub);
+
+		Config cfg = null;
+		try
+		{
+        	cfg = Config.createFromJson("path/to/nothing", jsonCfg);
+		}
+		catch(ConfigurationException ce)
+		{
+			configerr = true;
+		}
+
+		assertNotNull(cfg);
+		assertEquals("path/to/nothing", cfg.getSource());
+		assertTrue(Arrays.equals(new byte[]{127,0,0,1}, cfg.getAddress().getAddress()));
+		assertEquals(128, cfg.getPendingDigestMax());
+		assertEquals(120, cfg.getPendingDigestTimeout());
+		assertEquals(1234, cfg.getPort());
+		assertEquals(Mode.Live, cfg.getMode());
+		assertNotNull(cfg.getPeerConfigs());
+		assertTrue(cfg.getPeerConfigs().isEmpty());
+		assertEquals(new File("./output").getPath(), cfg.getOutputPath().getPath());
+		assertEquals(0, cfg.getSessionTimeout());
     }
+
+	/**
+	* Checks that a ConfigurationException is thrown with an unsupported digest
+	*/
+	@Test
+	public void testUnsupportedDigest()
+	{
+		boolean configerr = false;
+		boolean parseerr = false;
+		boolean ioerr = false;
+
+		final String path = "../jnl_test/src/test/resources/sampleSubscriberUnsupportedDigest.json";
+		try
+		{
+			Config.parse(path);
+		}
+		catch(ParseException pe)
+		{
+			parseerr = true;
+		}
+		catch(ConfigurationException ce)
+		{
+			configerr = true;
+		}
+		catch(IOException e)
+		{
+			ioerr = true;
+		}
+
+		assertEquals(true, configerr);
+		assertEquals(false, parseerr);
+		assertEquals(false, ioerr);
+	}
+
+	/**
+	 * Checks to ensure defaults to SHA256 if no config file entry for algorithms
+	 */
+	@Test
+	public void testConfigDefaultDigestAlgorithmSHA256() {
+		boolean configerr = false;
+		boolean parseerr = false;
+		boolean ioerr = false;
+
+		final String path = "../jnl_test/src/test/resources/sampleSubscriberNoDigest.json";
+		try
+		{
+			Config.parse(path);
+		}
+		catch(ParseException pe)
+		{
+			parseerr = true;
+		}
+		catch(ConfigurationException ce)
+		{
+			configerr = true;
+		}
+		catch(IOException e)
+		{
+			ioerr = true;
+		}
+
+		assertEquals(false, configerr);
+		assertEquals(false, parseerr);
+		assertEquals(false, ioerr);
+
+		DigestAlgorithms digestAlgorithms = DigestAlgorithms.getInstance();
+		List<String> algorithmList = digestAlgorithms.getDigestAlgorithmUris();
+		assertEquals(1, algorithmList.size());
+		assertEquals(algorithmList.get(0), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+	}
+
+	/*
+	 * A simple test for adding digest names to the DigestAlgorithms class
+	 */
+	@Test
+	public void testDigestAlgorithmsDigestAddNameWorks() throws Exception
+	{
+		DigestAlgorithms da = DigestAlgorithms.getInstance();
+		da.setSHA384Supported(true);
+
+		da.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+		da.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA384_ALGORITHM_NAME);
+		da.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME);
+
+		List<String> dalist = da.getDigestAlgorithmNames();
+		int cnt = dalist.size();
+		assertEquals(cnt, 3);
+		da.clear();
+	}
+
+	/*
+	 * A simple test for adding digest URI's to the DigestAlgorithms class
+	 */
+	@Test
+	public void testDigestAlgorithmsDigestAddUriWorks() throws Exception
+	{
+		DigestAlgorithms da = DigestAlgorithms.getInstance();
+		da.setSHA384Supported(true);
+
+		da.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+		da.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI);
+		da.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI);
+
+		List<String> dalist = da.getDigestAlgorithmUris();
+		int cnt = dalist.size();
+		assertEquals(cnt, 3);
+		da.clear();
+	}
+
+	/*
+	 * A simple test for removing a digest from the DigestAlgorithms class
+	 */
+	@Test
+	public void testDigestAlgorithmsDigestRemoveWorks() throws Exception
+	{
+		DigestAlgorithms da = DigestAlgorithms.getInstance();
+		da.setSHA384Supported(true);
+
+		da.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+		da.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI);
+		da.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI);
+
+		List<String> dalist = da.getDigestAlgorithmUris();
+		int cnt = dalist.size();
+
+		assertEquals(cnt, 3);
+
+		da.removeDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+
+		dalist = da.getDigestAlgorithmUris();
+		cnt = dalist.size();
+
+		assertEquals(cnt, 2);
+
+		da.clear();
+	}
+
+	/*
+	 * A simple test to ensure the default digest is available
+	 */
+	@Test
+	public void testDigestAlgorithmsDefaultDigestWorks() throws Exception
+	{
+		String name = DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName();
+
+		assertNotNull(name);
+	}
+
+	/*
+	 * Checks to ensure SHA384 will fail when unsupported
+	 */
+	@Test
+	public void testDigestAlgorithmsUnsupportedSHA384() {
+		DigestAlgorithms digestAlgorithms = DigestAlgorithms.getInstance();
+		// Need to hard-code this so that it fails the same on Java 8 and 11
+		digestAlgorithms.setSHA384Supported(false);
+
+		List<String> algorithmList = digestAlgorithms.getDigestAlgorithmUris();
+		int cnt = algorithmList.size();
+
+		assertEquals(cnt, 0);
+
+		digestAlgorithms.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA384_ALGORITHM_NAME);
+
+		algorithmList = digestAlgorithms.getDigestAlgorithmUris();
+		cnt = algorithmList.size();
+
+		assertEquals(cnt, 0);
+	}
 
 	@Test(expected = ConfigurationException.class)
 	public void createFromJsonFailsWithWithNoListenerPublisherOrSubscriber() throws Exception {
@@ -263,7 +468,7 @@ public class ConfigTest {
 	@Test(expected = ConfigurationException.class)
 	public void objectToRecordTypeFailsOnInvalidObject() throws Exception {
 		Config cfg = new Config("/path/to/nothing");
-		cfg.objectToRecordType((Object)cfg);
+		cfg.objectToRecordType(cfg);
 	}
 
 	@Test
