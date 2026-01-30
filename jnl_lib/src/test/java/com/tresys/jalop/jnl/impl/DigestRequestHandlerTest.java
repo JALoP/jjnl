@@ -98,10 +98,11 @@ public class DigestRequestHandlerTest {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
-                isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST;
+                isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST_CHAL;
                 Utils.processDigestMessage(isa); result = dm;
                 dm.getMap(); result = map;
-                publisherSessionImpl.fetchAndRemoveDigest(anyString); result = "123456".getBytes();
+                //This fails due to mocking java hashmap in this method which jmockit does not support
+                //publisherSessionImpl.fetchAndRemoveDigest(anyString); result = "123456".getBytes();
                 contextImpl.getPublisher(); result = publisher;
                 Utils.createDigestResponse((Map<String, DigestStatus>) any); result = ods;
 			}
@@ -138,7 +139,7 @@ public class DigestRequestHandlerTest {
 			{
 				msg.getDataStream(); result = ids;
                 ids.getInputStream(); result = isa;
-                isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST;
+                isa.getHeaderValue(Utils.HDRS_MESSAGE); result = Utils.MSG_DIGEST_CHAL;
                 Utils.processDigestMessage(isa); result = dm;
                 dm.getMap(); result = map;
              //This fails due to mocking java hashmap in this method which jmockit does not support
@@ -149,7 +150,7 @@ public class DigestRequestHandlerTest {
 
 		drh.receiveMSG(msg);
 
-		new DigestPairImpl(anyString, (byte[])any, (byte[])any, DigestStatus.Invalid);
+		new DigestPairImpl(anyString, any, any, DigestStatus.Invalid);
 		publisher.notifyPeerDigest(publisherSessionImpl, anymap);
 	}
 

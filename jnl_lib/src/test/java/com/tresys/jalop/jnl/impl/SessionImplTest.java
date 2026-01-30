@@ -34,8 +34,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
-
-import javax.xml.crypto.dsig.DigestMethod;
+import java.net.UnknownHostException;
 
 import mockit.*;
 
@@ -52,10 +51,12 @@ import org.junit.Test;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 public class SessionImplTest {
 
 	private static Field errored;
+	private InetAddress address;
 
 	@BeforeClass
 	public static void setupBeforeClass() throws SecurityException,
@@ -65,17 +66,18 @@ public class SessionImplTest {
 	}
 
 	@Before
-	public void setUp() {
+	public void setUp() throws UnknownHostException {
 		// Disable logging so the build doesn't get spammed.
 		Logger.getRootLogger().setLevel(Level.OFF);
+		address = InetAddress.getByName("localhost");
 	}
 
 	@Test
 	public void testIsOkTrueWorks(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		new Expectations() {
@@ -93,10 +95,10 @@ public class SessionImplTest {
 
 	@Test
 	public void testIsOkFalseWhenErrored(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		new Expectations() {
@@ -115,10 +117,10 @@ public class SessionImplTest {
 
 	@Test
 	public void testIsOkFalseWhenInactive(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		assertFalse(s.isOk());
@@ -129,10 +131,10 @@ public class SessionImplTest {
 
 	@Test
 	public void testSetErroredWorks(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setErrored();
 		assertTrue(errored.getBoolean(s));
@@ -141,25 +143,25 @@ public class SessionImplTest {
 
 	@Test
 	public void testGetDigestTypeWorks(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws SecurityException, NoSuchMethodException,
 			IllegalAccessException, InvocationTargetException {
 
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		final Method digestTypeMethod = SessionImpl.class.getDeclaredMethod(
 				"getDigestType", String.class);
 		digestTypeMethod.setAccessible(true);
 		final String sha256Type = (String) digestTypeMethod.invoke(s,
-				DigestMethod.SHA256);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
 		assertEquals("SHA-256", sha256Type);
-		final String sha512Type = (String) digestTypeMethod.invoke(s,
-				DigestMethod.SHA512);
+		final String sha512Type = (String) digestTypeMethod.invoke(s, 
+				DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI);
 		assertEquals("SHA-512", sha512Type);
 		final String sha384Type = (String) digestTypeMethod.invoke(s,
-				"http://www.w3.org/2001/04/xmldsig-more#sha384");
+				DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI);
 		assertEquals("SHA-384", sha384Type);
 		final String invalid = (String) digestTypeMethod.invoke(s, "invalid");
 		assertEquals("", invalid);
@@ -167,12 +169,12 @@ public class SessionImplTest {
 
 	@Test
 	public void testCreateDigestChannelWorks(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address,
+			@Mocked final org.beepcore.beep.core.Session sess,
 			@Mocked final Channel channel)
 			throws BEEPError, BEEPException {
 
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		assertNull(s.getDigestChannel());
@@ -188,12 +190,12 @@ public class SessionImplTest {
 
 	@Test
 	public void testCreateDigestChannelOnlyCreatesIfNull(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address,
+			@Mocked final org.beepcore.beep.core.Session sess,
 			@Mocked final Channel channel)
 			throws BEEPError, BEEPException {
 
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		s.setDigestChannel(channel);

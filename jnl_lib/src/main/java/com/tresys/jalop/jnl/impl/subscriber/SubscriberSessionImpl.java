@@ -84,7 +84,7 @@ public class SubscriberSessionImpl extends SessionImpl implements
 	 * @param xmlEncoding
 	 *            The XML encoding to be used on this {@link Session}.
 	 * @param pendingDigestTimeoutSeconds
-	 *            The time to wait, in seconds before sending a "digest"
+	 *            The time to wait, in seconds before sending a "digest-challenge"
 	 *            message.
 	 * @param pendingDigestMax
 	 *            The maximum number of digests to queue.

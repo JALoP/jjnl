@@ -36,8 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.crypto.dsig.DigestMethod;
-
 import mockit.*;
 
 import org.beepcore.beep.core.BEEPException;
@@ -67,12 +65,15 @@ import com.tresys.jalop.jnl.impl.ContextImpl.ConnectionState;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 public class ContextImplTest {
 
 	// Needed to mock static functions in the Utils class.
     @Mocked
     private Utils utils;
+
+    private InetAddress address;
 
     private LinkedList<String> encodings;
     private LinkedList<String> digests;
@@ -116,10 +117,10 @@ public class ContextImplTest {
         encodings = new LinkedList<String>();
         encodings.push("enc_foo");
         encodings.push("enc_bar");
-
         digests = new LinkedList<String>();
-        digests.push("dgst_foo");
-        digests.push("dgst_bar");
+        digests.push(DigestAlgorithms.JJNL_SHA512_ALGORITHM_NAME);
+        digests.push(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
+        address = InetAddress.getByName("localhost");
     }
 
     @SuppressWarnings("unchecked")
@@ -143,6 +144,7 @@ public class ContextImplTest {
     public final void testContextImplConstructorWithoutPublisher(@Mocked final Subscriber subscriber,
             @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
         final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 150, "agent", digests, encodings, null);
+
         assertEquals(null, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
         assertEquals(connectionHandler, c.getConnectionHandler());
@@ -235,6 +237,10 @@ public class ContextImplTest {
     @Test
     public final void testContextImplConstructorWorksNullDigests(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber,
             @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+	// Since we are not loading the digests from the config file we'll dummy it 
+	// by explicitly adding one
+	DigestAlgorithms da = DigestAlgorithms.getInstance();
+        da.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, null, encodings, null);
         assertEquals(publisher, c.getPublisher());
         assertEquals(subscriber, c.getSubscriber());
@@ -251,16 +257,18 @@ public class ContextImplTest {
         final List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
         assertNotNull(dgsts);
         assertEquals(1, dgsts.size());
-        assertEquals(DigestMethod.SHA256, dgsts.get(0));
+        assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, dgsts.get(0));
         assertEquals(ContextImpl.ConnectionState.DISCONNECTED, connectionStateField.get(c));
         assertNotNull(getSessions(c));
         assertTrue(getSessions(c).isEmpty());
-
+        da.clear();
     }
 
     @Test
     public final void testContextImplConstructorWorksWithEmptyDigests(@Mocked final Publisher publisher, @Mocked final Subscriber subscriber,
             @Mocked final ConnectionHandler connectionHandler) throws IllegalArgumentException, IllegalAccessException, BEEPException {
+	DigestAlgorithms da = DigestAlgorithms.getInstance();
+        da.addDigestAlgorithmByName(DigestAlgorithms.JJNL_SHA256_ALGORITHM_NAME);
         digests.clear();
         final ContextImpl c = new ContextImpl(publisher, subscriber, connectionHandler, 100, 150, null, digests, encodings, null);
         assertEquals(publisher, c.getPublisher());
@@ -278,12 +286,13 @@ public class ContextImplTest {
         assertNotNull(c.getAllowedMessageDigests());
         final List<String> dgsts = Lists.newArrayList(c.getAllowedMessageDigests());
         assertEquals(1, dgsts.size());
-        assertEquals(DigestMethod.SHA256, dgsts.get(0));
+        assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, dgsts.get(0));
 
         assertEquals(ContextImpl.ConnectionState.DISCONNECTED, connectionStateField.get(c));
         assertNotNull(getSessions(c));
         assertTrue(getSessions(c).isEmpty());
 
+        da.clear();
     }
 
     @Test
@@ -401,14 +410,14 @@ public class ContextImplTest {
     }
 
     @Test
-    public final void testAddSessionsAddsToExistingMap(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+    public final void testAddSessionsAddsToExistingMap(@Mocked final org.beepcore.beep.core.Session sess,
             @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler)
             throws JNLException, IllegalAccessException, BEEPException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, null, digests, encodings, null);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "bar", 1, 1, 1, sess);
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(address, RecordType.Journal, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(address, RecordType.Journal, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
 
         final Map<RecordType, SubscriberSessionImpl> subSessionMap = getSubscriberMap(c).get(sess);
@@ -419,7 +428,7 @@ public class ContextImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void testAddSessionThrowsExceptionWithUnsetRecordType(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess, @Mocked final Subscriber subscriber,
+    public final void testAddSessionThrowsExceptionWithUnsetRecordType(@Mocked final org.beepcore.beep.core.Session sess, @Mocked final Subscriber subscriber,
             @Mocked final ConnectionHandler connectionHandler) throws JNLException, BEEPException {
 
     	final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, null, digests, encodings, null);
@@ -428,25 +437,27 @@ public class ContextImplTest {
     }
 
     @Test(expected = JNLException.class)
-    public final void testAddSessionsFailsWithDuplicateRecordType(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+    public final void testAddSessionsFailsWithDuplicateRecordType(@Mocked final org.beepcore.beep.core.Session sess,
             @Mocked final Subscriber subscriber, @Mocked final ConnectionHandler connectionHandler)
             throws JNLException, IllegalAccessException, BEEPException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, connectionHandler, 100, 10, null, digests, encodings, null);
-        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, 
+			DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "bar", 1, 1, 1, sess);
         c.addSession(sess, subSess);
-        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256, "bar", 1, 1, 1, sess);
+        final SubscriberSessionImpl nextSubSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, 
+			DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "bar", 1, 1, 1, sess);
         c.addSession(sess, nextSubSess);
     }
 
     @Test
-	public final void testFindSubscriberSessionWorks(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	public final void testFindSubscriberSessionWorks(@Mocked final org.beepcore.beep.core.Session sess,
             @Mocked final Subscriber subscriber) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
-	    final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256,
-				"bar", 1, 1, channelNum, sess);
+	    final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, 
+			    DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "bar", 1, 1, channelNum, sess);
 	    c.addSession(sess, subSess);
 
 	    final SubscriberSessionImpl foundSubSess = c.findSubscriberSession(sess, channelNum);
@@ -454,7 +465,7 @@ public class ContextImplTest {
     }
 
 	@Test(expected = JNLException.class)
-	public final void testFindSubscriberSessionThrowsExceptionIfNoSessInMap(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	public final void testFindSubscriberSessionThrowsExceptionIfNoSessInMap(@Mocked final org.beepcore.beep.core.Session sess,
 	        @Mocked final Subscriber subscriber) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
@@ -463,24 +474,24 @@ public class ContextImplTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public final void testFindSubscriberSessionThrowsExceptionIfNoneFound(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	public final void testFindSubscriberSessionThrowsExceptionIfNoneFound(@Mocked final org.beepcore.beep.core.Session sess,
 	        @Mocked final Subscriber subscriber) throws BEEPException, JNLException {
 
 		final ContextImpl c = new ContextImpl(null, subscriber, null, 100, 10, null, digests, encodings, null);
-		final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestMethod.SHA256,
+		final SubscriberSessionImpl subSess = new SubscriberSessionImpl(address, RecordType.Log, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
 				"bar", 1, 1, 5, sess);
 		c.addSession(sess, subSess);
 		c.findSubscriberSession(sess, 1);
     }
 
 	@Test
-	public final void testFindPublisherSessionWorks(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	public final void testFindPublisherSessionWorks(@Mocked final org.beepcore.beep.core.Session sess,
 	        @Mocked final Publisher publisher) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
-		final PublisherSessionImpl pubSess = new PublisherSessionImpl(address, RecordType.Log, publisher, DigestMethod.SHA256, "bar",
-				channelNum, sess, c);
+		final PublisherSessionImpl pubSess = new PublisherSessionImpl(address, RecordType.Log, publisher, 
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "bar", channelNum, sess, c);
 		c.addSession(sess, pubSess);
 
 		final PublisherSessionImpl foundPubSess = c.findPublisherSession(sess, channelNum);
@@ -488,7 +499,7 @@ public class ContextImplTest {
     }
 
 	@Test(expected = JNLException.class)
-	public final void testFindPublisherSessionThrowsExceptionIfNoSessInMap(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+	public final void testFindPublisherSessionThrowsExceptionIfNoSessInMap(@Mocked final org.beepcore.beep.core.Session sess,
 	        @Mocked final Publisher publisher) throws BEEPException, JNLException {
 
 		final int channelNum = 5;
@@ -497,12 +508,12 @@ public class ContextImplTest {
     }
 
     @Test(expected = JNLException.class)
-    public final void testFindPublisherSessionThrowsExceptionIfNoneFound(@Mocked final InetAddress address, @Mocked final org.beepcore.beep.core.Session sess,
+    public final void testFindPublisherSessionThrowsExceptionIfNoneFound(@Mocked final org.beepcore.beep.core.Session sess,
             @Mocked final Publisher publisher) throws BEEPException, JNLException {
 
 		final ContextImpl c = new ContextImpl(publisher, null, null, 100, 10, null, digests, encodings, null);
-		final PublisherSessionImpl pubSess = new PublisherSessionImpl(address, RecordType.Log, publisher, DigestMethod.SHA256, "bar",
-				5, sess, c);
+		final PublisherSessionImpl pubSess = new PublisherSessionImpl(address, RecordType.Log, publisher, 
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "bar", 5, sess, c);
 		c.addSession(sess, pubSess);
 		c.findPublisherSession(sess, 1);
     }

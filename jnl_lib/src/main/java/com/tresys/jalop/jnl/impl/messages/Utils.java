@@ -37,6 +37,8 @@ import java.util.TreeSet;
 
 import jakarta.xml.soap.MimeHeader;
 import jakarta.xml.soap.MimeHeaders;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.InputDataStreamAdapter;
@@ -50,6 +52,8 @@ import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
+
 
 /**
  * Utility class for creating and parsing JALoP/BEEP messages.
@@ -97,7 +101,7 @@ public class Utils {
 	public static final String HDRS_UNSUPPORTED_VERSION = "JAL-Unsupported-Version";
 
 	public static final String MSG_AUDIT = "audit-record";
-	public static final String MSG_DIGEST = "digest";
+	public static final String MSG_DIGEST_CHAL = "digest-challenge";
 	public static final String MSG_DIGEST_RESP = "digest-response";
 	public static final String MSG_INIT = "initialize";
 	public static final String MSG_INIT_ACK = "initialize-ack";
@@ -110,11 +114,16 @@ public class Utils {
 	public static final String MSG_SUBSCRIBE = "subscribe";
 	public static final String MSG_PUBLISH_LIVE = "publish-live";
 	public static final String MSG_SUBSCRIBE_LIVE = "subscribe-live";
-	public static final String MSG_PUBLISH_ARCHIVE = "publish-archival";
-	public static final String MSG_SUBSCRIBE_ARCHIVE = "subscribe-archival";
+	public static final String MSG_PUBLISH_ARCHIVE = "publish-archive";
+	public static final String MSG_SUBSCRIBE_ARCHIVE = "subscribe-archive";
+	public static final String MSG_PUBLISH_ARCHIVAL = "publish-archival";
+	public static final String MSG_SUBSCRIBE_ARCHIVAL = "subscribe-archival";
 
 	public static final String NONCE = "nonce";
 	public static final String STATUS = "status";
+
+	static final Logger log = Logger.getLogger(Utils.class);
+
 
 	/**
 	 * Utility function to perform common tasks related to parsing incoming
@@ -170,16 +179,17 @@ public class Utils {
 	 */
 	public static OutputDataStream createInitAckMessage(String digest,
 			String encoding) {
-
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
+
 		digest = checkForEmptyString(digest, "digest");
 		encoding = checkForEmptyString(encoding, "encoding");
-
 		headers.setHeader(HDRS_MESSAGE, MSG_INIT_ACK);
 		headers.setHeader(HDRS_DIGEST, digest);
 		headers.setHeader(HDRS_ENCODING, encoding);
+
+		outputOutgoingBeepcoreMimeHeaders(headers);
 
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
@@ -215,12 +225,11 @@ public class Utils {
 	public static OutputDataStream createInitMessage(final Role role, final Mode mode,
 			final RecordType dataClass, final List<String> xmlEncodings,
 			final List<String> digestAlgorithms, final String agent) {
-
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 		final String encodingsString = makeStringList(xmlEncodings, "encodings");
-		final String digestsString = makeStringList(digestAlgorithms, "digests");
+		final String digestsString = makeStringList(digestAlgorithms, "digestAlgorithms");
 
 		headers.setHeader(HDRS_MESSAGE, MSG_INIT);
 		if (encodingsString != null) {
@@ -236,7 +245,7 @@ public class Utils {
 		} else if (Role.Subscriber == role && Mode.Live == mode) {
 			headers.setHeader(HDRS_MODE, MSG_SUBSCRIBE_LIVE);
 		} else if (Role.Subscriber == role && Mode.Archive == mode) {
-			headers.setHeader(HDRS_MODE, MSG_SUBSCRIBE_ARCHIVE);
+			headers.setHeader(HDRS_MODE, MSG_SUBSCRIBE_ARCHIVAL);
 		} else {
 			throw new IllegalArgumentException("Illegal value for 'JAL-Mode'");
 		}
@@ -253,13 +262,16 @@ public class Utils {
 		default:
 			throw new IllegalArgumentException("Illegal value for 'dataClass'");
 		}
+
 		if (agent != null) {
 			headers.setHeader(HDRS_AGENT, agent);
 		}
 
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
-
 		ods.setComplete();
+
+		outputOutgoingBeepcoreMimeHeaders(headers);
+
 		return ods;
 	}
 
@@ -307,6 +319,9 @@ public class Utils {
 						"Cannot specify 'accept' as an error");
 			}
 		}
+
+		outputOutgoingBeepcoreMimeHeaders(headers);
+
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
@@ -325,6 +340,9 @@ public class Utils {
 				CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
                 headers.setHeader(HDRS_MESSAGE, MSG_SUBSCRIBE);
+
+		outputOutgoingBeepcoreMimeHeaders(headers);
+
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
@@ -347,8 +365,11 @@ public class Utils {
 	public static InitAckMessage processInitAck(final InputDataStreamAdapter is)
 			throws BEEPException, MissingMimeHeaderException,
 			UnexpectedMimeValueException {
+		// from a reply message from the publisher JAL-Message:initialize-ack
 		final MimeHeaders[] headers = processMessageCommon(is, MSG_INIT_ACK,
 				HDRS_MESSAGE, HDRS_ENCODING, HDRS_DIGEST);
+
+		outputIncomingBeepcoreMimeHeaders(headers);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
@@ -360,6 +381,9 @@ public class Utils {
 			throw new MissingMimeHeaderException(HDRS_ENCODING);
 		}
 
+		// Do the comparison on the header digest and the
+		// digest from the config file.  Pass the 'agreed on' digest
+		// to the InitAckMessage method
 		String digest;
 		if (knownHeaders.getHeader(HDRS_DIGEST) != null) {
 			digest = knownHeaders.getHeader(HDRS_DIGEST)[0];
@@ -386,16 +410,19 @@ public class Utils {
 	public static InitMessage processInitMessage(final InputDataStreamAdapter is)
 			throws BEEPException, UnexpectedMimeValueException,
 			MissingMimeHeaderException {
+
 		final MimeHeaders[] headers = processMessageCommon(is, MSG_INIT,
 				HDRS_ACCEPT_ENCODING, HDRS_MODE, HDRS_DATA_CLASS,
 				HDRS_ACCEPT_DIGEST, HDRS_AGENT);
+
+		outputIncomingBeepcoreMimeHeaders(headers);
+
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
 
 		final String[] encodings = knownHeaders.getHeader(HDRS_ACCEPT_ENCODING);
 
 		final String[] digests = knownHeaders.getHeader(HDRS_ACCEPT_DIGEST);
-
 		final String[] hdrsMode = knownHeaders.getHeader(HDRS_MODE);
 		if (hdrsMode == null) {
 			throw new MissingMimeHeaderException(HDRS_MODE);
@@ -405,13 +432,15 @@ public class Utils {
 		if (hdrsMode[0].equalsIgnoreCase(MSG_PUBLISH_LIVE)) {
 			role = Role.Publisher;
 			mode = Mode.Live;
-		} else if (hdrsMode[0].equalsIgnoreCase(MSG_PUBLISH_ARCHIVE)) {
+		} else if (hdrsMode[0].equalsIgnoreCase(MSG_PUBLISH_ARCHIVE) ||
+			(hdrsMode[0].equalsIgnoreCase(MSG_PUBLISH_ARCHIVAL)) ) {
 			role = Role.Publisher;
 			mode = Mode.Archive;
 		} else if (hdrsMode[0].equalsIgnoreCase(MSG_SUBSCRIBE_LIVE)) {
 			role = Role.Subscriber;
 			mode = Mode.Live;
-		} else if (hdrsMode[0].equalsIgnoreCase(MSG_SUBSCRIBE_ARCHIVE)) {
+		} else if (hdrsMode[0].equalsIgnoreCase(MSG_SUBSCRIBE_ARCHIVE) ||
+			(hdrsMode[0].equalsIgnoreCase(MSG_SUBSCRIBE_ARCHIVAL)) ) {
 			role = Role.Subscriber;
 			mode = Mode.Archive;
 		} else {
@@ -486,8 +515,7 @@ public class Utils {
 	 * @return A {@link String} that is the comma separated list of the values
 	 *         in <code>stringList</code>
 	 */
-	public static String makeStringList(final List<String> stringList,
-			final String listName) {
+	public static String makeStringList(final List<String> stringList, final String listName) {
 		if ((stringList == null) || stringList.isEmpty()) {
 			return null;
 		}
@@ -523,7 +551,8 @@ public class Utils {
 			MissingMimeHeaderException, UnexpectedMimeValueException {
 		final MimeHeaders[] headers = processMessageCommon(is, MSG_SUBSCRIBE,
 					HDRS_MESSAGE);
-	
+		outputIncomingBeepcoreMimeHeaders(headers);
+
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
 
@@ -560,6 +589,9 @@ public class Utils {
 		headers.setHeader(HDRS_MESSAGE, MSG_JOURNAL_RESUME);
 		headers.setHeader(HDRS_NONCE, nonce);
 		headers.setHeader(HDRS_JOURNAL_OFFSET, Long.toString(offset));
+
+		outputOutgoingBeepcoreMimeHeaders(headers);
+
 		final OutputDataStream ods = new OutputDataStream(headers, new BufferSegment(new byte[0]));
 		ods.setComplete();
 		return ods;
@@ -586,6 +618,7 @@ public class Utils {
 				HDRS_UNSUPPORTED_VERSION, HDRS_UNSUPPORTED_ENCODING,
 				HDRS_UNSUPPORTED_MODE, HDRS_UNAUTHORIZED_MODE,
 				HDRS_UNSUPPORTED_DIGEST);
+		outputIncomingBeepcoreMimeHeaders(headers);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
@@ -634,6 +667,7 @@ public class Utils {
 		final MimeHeaders[] headers = processMessageCommon(is,
 				MSG_JOURNAL_RESUME, HDRS_MESSAGE, HDRS_NONCE,
 				HDRS_JOURNAL_OFFSET);
+		outputIncomingBeepcoreMimeHeaders(headers);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
@@ -692,6 +726,7 @@ public class Utils {
 
 		final MimeHeaders[] headers = processMessageCommon(is, MSG_SYNC,
 				HDRS_MESSAGE, HDRS_NONCE);
+		outputIncomingBeepcoreMimeHeaders(headers);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
@@ -724,6 +759,8 @@ public class Utils {
 		mh.setHeader(HDRS_MESSAGE, MSG_SYNC);
 		mh.setHeader(HDRS_NONCE, checkForEmptyString(nonce, NONCE));
 
+		outputOutgoingBeepcoreMimeHeaders(mh);
+
 		final OutputDataStream ret = new OutputDataStream(mh, new BufferSegment(new byte[0]));
 		ret.setComplete();
 
@@ -748,12 +785,28 @@ public class Utils {
 			final InputDataStreamAdapter is) throws MissingMimeHeaderException,
 			UnexpectedMimeValueException, BEEPException {
 
-		final MimeHeaders[] headers = processMessageCommon(is, MSG_DIGEST,
+		final MimeHeaders[] headers = processMessageCommon(is, MSG_DIGEST_CHAL,
 				HDRS_MESSAGE, HDRS_COUNT);
+		outputIncomingBeepcoreMimeHeaders(headers);
+
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
-		final int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0]
-				.trim());
+		final int count = Integer.valueOf(knownHeaders.getHeader(HDRS_COUNT)[0].trim());
+
+		//#859 - wait for any incomplete messages to complete to prevent
+		//errors on processing digest challenge
+		while (is.isComplete() == false)
+		{
+			log.info("Waiting for digest challenge message to complete.");
+			try
+			{
+				Thread.sleep(100);
+			}
+			catch (Exception e)
+			{
+				//ignore
+			}
+		}
 
 		// get the digest map from the input stream
 		final Map<String, String> digestMap = new HashMap<String, String>();
@@ -769,9 +822,20 @@ public class Utils {
 		final String[] pairs = checkForEmptyString(msgStr, "payload").split("\\s+|=");
 
 		for (int x = 0; x < count * 2; x += 2) {
-			pairs[x] = checkForEmptyString(pairs[x], MSG_DIGEST);
+			if (x + 1 >= pairs.length) {
+				//#857 - a corrupted digest message can occur when sending records to c subscriber
+				//This check prevents the index out of range error on the pairs array below
+				//and prevents a core dump in the c subscriber side.
+				//However this does not resolve the overall issue and record processing on this record type
+				//channel stops after this occurs.
+				log.error("ERROR: corrupted digest message detected.");
+				break;
+			}
+
+			pairs[x] = checkForEmptyString(pairs[x], MSG_DIGEST_CHAL);
 			pairs[x + 1] = checkForEmptyString(pairs[x + 1], NONCE);
 			digestMap.put(pairs[x + 1], pairs[x]);
+
 		}
 
 		return new DigestMessage(digestMap, unknownHeaders);
@@ -791,21 +855,24 @@ public class Utils {
 		final StringBuilder message = new StringBuilder();
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(CT_JALOP);
-		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST);
+		mh.setHeader(HDRS_MESSAGE, MSG_DIGEST_CHAL);
 		mh.setHeader(HDRS_COUNT, String.valueOf(digestMap.size()));
 
 		final Iterator<String> nonces = digestMap.keySet().iterator();
 		while (nonces.hasNext()) {
 			final String id = nonces.next();
-			message.append(checkForEmptyString(digestMap.get(id), MSG_DIGEST));
+			message.append(checkForEmptyString(digestMap.get(id), MSG_DIGEST_CHAL));
 			message.append("=");
 			message.append(checkForEmptyString(id, NONCE));
 			message.append("\r\n");
 		}
 
+		outputOutgoingBeepcoreMimeHeaders(mh);
+
 		OutputDataStream ret;
 		try {
 			ret = new OutputDataStream(mh, new BufferSegment(message.toString().getBytes("utf-8")));
+
 		} catch (final UnsupportedEncodingException e) {
 			// We should never get here
 			e.printStackTrace();
@@ -840,6 +907,8 @@ public class Utils {
 
 		final MimeHeaders[] headers = processMessageCommon(is,
 				MSG_DIGEST_RESP, HDRS_MESSAGE, HDRS_COUNT);
+
+		outputIncomingBeepcoreMimeHeaders(headers);
 
 		final MimeHeaders knownHeaders = headers[0];
 		final MimeHeaders unknownHeaders = headers[1];
@@ -901,6 +970,8 @@ public class Utils {
 			message.append("\r\n");
 		}
 
+		outputOutgoingBeepcoreMimeHeaders(mh);
+
 		final OutputDataStream ret = new OutputDataStream(mh, new BufferSegment(
 				message.toString().getBytes()));
 		ret.setComplete();
@@ -942,5 +1013,46 @@ public class Utils {
 			}
 		}
 		return toReturn;
+	}
+
+	public static void outputIncomingBeepcoreMimeHeaders(MimeHeaders headers[])
+	{
+		if(log.isDebugEnabled())
+		{
+			final MimeHeaders knownHeaders = headers[0];
+			Iterator<MimeHeader> iter = knownHeaders.getAllHeaders();
+			log.debug("Incoming known headers: ");
+			while(iter.hasNext())
+			{
+				MimeHeader hdr = iter.next();
+				log.debug(hdr.getName() + ":" + hdr.getValue());
+			}
+
+			final MimeHeaders unknownHeaders = headers[1];
+			iter = unknownHeaders.getAllHeaders();
+			if(iter.hasNext())
+			{
+				log.debug("Incoming Unknown headers: ");
+				while(iter.hasNext())
+				{
+					MimeHeader uhdr = iter.next();
+					log.debug(uhdr.getName() + ":" + uhdr.getValue());
+				}
+			}
+		}
+	}
+
+	public static void outputOutgoingBeepcoreMimeHeaders(org.beepcore.beep.core.MimeHeaders headers)
+	{
+		if(log.isDebugEnabled())
+		{
+			Enumeration hdrKeys = headers.getHeaderNames();
+			log.debug("Outgoing headers:");
+			while(hdrKeys.hasMoreElements())
+			{
+				String key = (String) hdrKeys.nextElement();
+				log.debug(key + ":" + headers.getHeaderValue(key));
+			}
+		}
 	}
 }

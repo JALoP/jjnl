@@ -90,7 +90,7 @@ public class DigestRequestHandler implements RequestHandler {
 		try {
 			final Publisher publisher = this.contextImpl.getPublisher();
 
-			if(Utils.MSG_DIGEST.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
+			if(Utils.MSG_DIGEST_CHAL.equals(data.getHeaderValue(Utils.HDRS_MESSAGE))) {
 
 				if (log.isDebugEnabled()) {
 					log.debug("Received digest message.");
@@ -102,7 +102,13 @@ public class DigestRequestHandler implements RequestHandler {
 
 				for(final String nonce : msg.getMap().keySet()) {
 
-					final byte[] localDigest = this.sess.fetchAndRemoveDigest(nonce);
+					String localNonce = this.sess.getLocalNonce(nonce);
+					if (localNonce == null) {
+						log.error("Could not find local nonce for remote nonce: " + nonce);
+						continue;
+					}
+
+					final byte[] localDigest = this.sess.fetchAndRemoveDigest(localNonce);
 
 					String digest = msg.getMap().get(nonce);
 					// Digest must be an even length to be converted to byte[]

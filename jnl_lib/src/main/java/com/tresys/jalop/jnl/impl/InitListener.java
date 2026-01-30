@@ -53,6 +53,7 @@ import com.tresys.jalop.jnl.impl.messages.InitNackMessage;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.publisher.PublisherSessionImpl;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 /**
  * Listener class to be used for init messages. This will listen for replies
@@ -101,7 +102,7 @@ public class InitListener implements ReplyListener {
 
 			if (!contextImpl.getAllowedMessageDigests().contains(msg.getDigest())) {
 				throw new UnexpectedMimeValueException(Utils.HDRS_DIGEST,
-						Utils.makeStringList(contextImpl.getAllowedMessageDigests(), "digests"),
+						Utils.makeStringList(contextImpl.getAllowedMessageDigests(), "digestAlgorithms"),
 						msg.getDigest());
 			}
 

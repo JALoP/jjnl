@@ -58,6 +58,7 @@ import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.MissingMimeHeaderException;
 import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 /**
  * Tests for common utility class.
@@ -67,8 +68,8 @@ public class TestUtils {
 	protected InputDataStream data;
 	private static Field odsMimeHeaders;
 
-        @Injectable
-        private MockResponseOutputDataStream mockedOutputStream;
+	@Injectable
+	private MockResponseOutputDataStream mockedOutputStream;
 
     @BeforeClass
 	public static void setUpBeforeClass() throws SecurityException, NoSuchFieldException {
@@ -134,12 +135,9 @@ public class TestUtils {
 		final org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers
 				.get(ods);
 
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
-				Utils.MSG_INIT_ACK);
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_DIGEST),
-				Utils.DGST_SHA256);
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ENCODING),
-				Utils.BINARY);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE), Utils.MSG_INIT_ACK);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_DIGEST), Utils.DGST_SHA256);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ENCODING), Utils.BINARY);
 	}
 
 	@Test
@@ -599,19 +597,23 @@ public class TestUtils {
 
 		final OutputDataStream ods = Utils.createInitMessage(Role.Publisher,
 				Mode.Live, RecordType.Log, Arrays.asList(Utils.BINARY),
-				Arrays.asList(Utils.DGST_SHA256), "agent");
+				Arrays.asList(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI), "agent");
 		assertTrue(ods.isComplete());
 
 		final Field headers = ods.getClass().getDeclaredField("mimeHeaders");
 		headers.setAccessible(true);
 
-		final org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers
-				.get(ods);
+		final org.beepcore.beep.core.MimeHeaders mimeHeaders = (org.beepcore.beep.core.MimeHeaders) headers.get(ods);
 
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE),
-				Utils.MSG_INIT);
-		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ACCEPT_DIGEST),
-				Utils.DGST_SHA256);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MESSAGE), Utils.MSG_INIT);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ACCEPT_ENCODING), Utils.BINARY);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MODE), Utils.MSG_PUBLISH_LIVE);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_DATA_CLASS), Utils.LOG);
+
+		List<String> lst = Arrays.asList(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI);
+		String dgsts = String.join(", ", lst);
+		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ACCEPT_DIGEST), dgsts);
+
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_ACCEPT_ENCODING),
 				Utils.BINARY);
 		assertEquals(mimeHeaders.getHeaderValue(Utils.HDRS_MODE), Utils.MSG_PUBLISH_LIVE);
@@ -800,20 +802,26 @@ public class TestUtils {
 	@Test
 	public void testProcessInitAckWorks() throws Exception {
 
+		// simulate loading of digests from the config file
+		// These will be supported digests
+		DigestAlgorithms da = DigestAlgorithms.getInstance();
+		da.addDigestAlgorithmByUri(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+
 		final org.beepcore.beep.core.MimeHeaders headers = new org.beepcore.beep.core.MimeHeaders(
 				Utils.CT_JALOP,
 				org.beepcore.beep.core.MimeHeaders.DEFAULT_CONTENT_TRANSFER_ENCODING);
 
 		headers.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_INIT_ACK);
 		headers.setHeader(Utils.HDRS_ENCODING, Utils.BINARY);
-		headers.setHeader(Utils.HDRS_DIGEST, Utils.DGST_SHA256);
+		headers.setHeader(Utils.HDRS_DIGEST, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
 
 		createDataStream(headers);
 
 		final InputDataStreamAdapter ids = data.getInputStream();
 		final InitAckMessage msg = Utils.processInitAck(ids);
 
-		assertEquals(msg.getDigest(), Utils.DGST_SHA256);
+		assertEquals(msg.getDigest(), DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI);
+
 		assertEquals(msg.getEncoding(), Utils.BINARY);
 	}
 
@@ -1175,7 +1183,7 @@ public class TestUtils {
 		@Mock
 		public void $init(final org.beepcore.beep.core.MimeHeaders mh, final BufferSegment bs) throws Exception {
 			assertEquals(Utils.CT_JALOP, mh.getContentType());
-			assertEquals(Utils.MSG_DIGEST, mh.getHeaderValue(Utils.HDRS_MESSAGE));
+			assertEquals(Utils.MSG_DIGEST_CHAL, mh.getHeaderValue(Utils.HDRS_MESSAGE));
 			assertEquals("2", mh.getHeaderValue(Utils.HDRS_COUNT));
 			final String digests = "abcdef123456789=2\r\n123456789abcdef=1\r\n";
 			assertEquals(digests, new String(bs.getData()));
@@ -1220,7 +1228,7 @@ public class TestUtils {
 		final String digests = "abcdef123456789=1\r\n123456789abcdef=2";
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(Utils.CT_JALOP);
-		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST);
+		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST_CHAL);
 		mh.setHeader(Utils.HDRS_COUNT, "2");
 
 		createDataStream(mh, digests);
@@ -1356,7 +1364,7 @@ public class TestUtils {
 		final String messagePayload = "confirmed=12345\r\ninvalid=12346\r\nunknown=12347";
 		final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 		mh.setContentType(Utils.CT_JALOP);
-		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST);
+		mh.setHeader(Utils.HDRS_MESSAGE, Utils.MSG_DIGEST_CHAL);
 		mh.setHeader(Utils.HDRS_COUNT, "3");
 
 		createDataStream(mh, messagePayload);

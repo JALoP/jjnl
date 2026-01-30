@@ -73,12 +73,12 @@ public class PublisherSessionImpl extends SessionImpl implements
 	private final Publisher publisher;
 	private final ContextImpl contextImpl;
 	private final Map<String, byte[]> digestMap;
+	private final Map<String, String> localNonceMap;
 	private Mode mode = Mode.Unset;
 
 	public MessageMSG msg;
 
 	static final int BUFFER_SIZE = 4096;
-	static final int MAX_BUFFERS = 10;
 
 	/**
 	 * The MessageDigest to use for calculating the JALoP digest.
@@ -99,7 +99,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 	 * @param xmlEncoding
 	 *            The XML encoding to be used on this {@link Session}.
 	 * @param pendingDigestTimeoutSeconds
-	 *            The time to wait, in seconds before sending a "digest"
+	 *            The time to wait, in seconds before sending a "digest-challenge"
 	 *            message.
 	 * @param pendingDigestMax
 	 *            The maximum number of digests to queue.
@@ -120,6 +120,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 		this.publisher = publisher;
 		this.contextImpl = contextImpl;
 		this.digestMap = new HashMap<String, byte[]>();
+		this.localNonceMap = new HashMap<String, String>();
 
 		try {
 			final MessageDigest md = MessageDigest.getInstance(getDigestType(digestMethod.trim()));
@@ -201,6 +202,39 @@ public class PublisherSessionImpl extends SessionImpl implements
 	}
 
 	/**
+	 * Deletes the entry for the remote nonce to local nonce mapping
+	 *
+	 * @param remoteNonce
+	 * 				A String which is the remote nonce for the calculated digest
+	 */
+	@Override
+	public void deleteNonceMapEntry(final String remoteNonce) {
+		synchronized(this.localNonceMap) {
+			this.localNonceMap.remove(remoteNonce);
+		}
+	}
+
+	/**
+	 * Adds the entry for the remote nonce to local nonce mapping
+	 *
+	 * @param remoteNonce
+	 * 				A String which is the remote nonce for the calculated digest
+	 * @param localNonce
+	 * 				A String which is the local nonce for the calculated digest
+	 */
+	@Override
+	public boolean addNonceMapEntry(final String remoteNonce, final String localNonce) {
+		synchronized(this.localNonceMap) {
+			if (!this.localNonceMap.containsKey(remoteNonce)) {
+				this.localNonceMap.put(remoteNonce, localNonce);
+				return true;
+			}
+
+			return false;
+		}
+	}
+
+	/**
 	 * Add a locally calculated digest to the set of tracked digests.
 	 *
 	 * @param nonce
@@ -221,6 +255,7 @@ public class PublisherSessionImpl extends SessionImpl implements
 		}
 	}
 
+	@Override
 	public void sendRecord(final SourceRecord rec) {
 		String messageType = null;
 		String payloadLengthHeader = null;
@@ -247,19 +282,20 @@ public class PublisherSessionImpl extends SessionImpl implements
 		final MessageDigest md = getMd();
 
 		final String nonce = rec.getNonce();
+		final String remoteNonce = rec.getRemoteNonce();
 		long offset = rec.getOffset();
 
 		try {
 
 			final org.beepcore.beep.core.MimeHeaders mh = new org.beepcore.beep.core.MimeHeaders();
 			mh.setContentType(Utils.CT_JALOP);
-			mh.setHeader(Utils.HDRS_NONCE, nonce);
+			mh.setHeader(Utils.HDRS_NONCE, remoteNonce);
 			mh.setHeader(Utils.HDRS_MESSAGE, messageType);
 			mh.setHeader(payloadLengthHeader, String.valueOf(rec.getPayloadLength()));
 			mh.setHeader(Utils.HDRS_SYS_META_LEN, String.valueOf(rec.getSysMetaLength()));
 			mh.setHeader(Utils.HDRS_APP_META_LEN, String.valueOf(rec.getAppMetaLength()));
 
-			final JNLOutputDataStream ods = new JNLOutputDataStream(mh, MAX_BUFFERS);
+			final JNLOutputDataStream ods = new JNLOutputDataStream(mh);
 			msg.sendANS(ods);
 
 			int bytesRead = 0;
@@ -324,6 +360,10 @@ public class PublisherSessionImpl extends SessionImpl implements
 
 			final byte[] digest = md.digest();
 
+			if (!this.addNonceMapEntry(remoteNonce, nonce)) {
+				log.error("Duplicate remote nonce detected: " + remoteNonce);
+			}
+
 			this.addDigest(nonce, digest);
 			publisher.notifyDigest(this, nonce, digest);
 		} catch (final BEEPException e) {
@@ -364,12 +404,25 @@ public class PublisherSessionImpl extends SessionImpl implements
 		}
 	}
 
+	@Override
 	public void complete() {
 		try {
 			msg.sendNUL();
 		} catch (final BEEPException e) {
 			if (log.isEnabledFor(Level.ERROR)) {
 				log.error("Error sending NUL");
+			}
+		}
+	}
+
+	@Override
+	public String getLocalNonce(String remoteNonce)
+	{
+		synchronized(this.localNonceMap) {
+			if (this.localNonceMap.containsKey(remoteNonce)) {
+				return this.localNonceMap.get(remoteNonce);
+			} else {
+				return null;
 			}
 		}
 	}

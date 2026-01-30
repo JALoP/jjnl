@@ -238,6 +238,11 @@ public class SubscriberANSHandler implements ReplyListener {
 					}
 
 					@Override
+					public String getRemoteNonce() {
+						return this.nonce;
+					}
+
+					@Override
 					public long getOffset() {
 						return subsess.getJournalResumeOffset();
 					}

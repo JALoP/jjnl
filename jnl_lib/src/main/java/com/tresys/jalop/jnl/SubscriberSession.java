@@ -31,9 +31,9 @@ import java.net.InetAddress;
  * remote JALoP Network Store. The {@link SubscriberSession} is responsible for
  * parsing the JALoP messages from a remote JALoP Network Store that contains
  * JAL Records. Additionally, the {@link SubscriberSession} will generate the
- * message digest for the JAL records and periodically send "digest" messages to
+ * message digest for the JAL records and periodically send "digest-challenge" messages to
  * the remote JALoP Network Store. The {@link SubscriberSession} does not
- * normally send "digest" messages immediately, but will queue up calculated
+ * normally send "digest-challenge" messages immediately, but will queue up calculated
  * digests, and wait until either a timeout is reached, or a maximum limit on
  * the number of outstanding digest values is met. The length of this timeout
  * and the size of the queue are controlled by calls to
@@ -42,20 +42,20 @@ import java.net.InetAddress;
  */
 public interface SubscriberSession extends Session {
 	/**
-	 * Configure the maximum amount of time to wait between sending a "digest"
+	 * Configure the maximum amount of time to wait between sending a "digest-challenge"
 	 * message. A value <= 0 will cause the {@link SubscriberSession} to send
-	 * "digest" messages immediately.
+	 * "digest-challenge" messages immediately.
 	 *
 	 * @param pendingDigestTimeoutSeconds
-	 *            The time to wait, in seconds before sending a "digest"
+	 *            The time to wait, in seconds before sending a "digest-challenge"
 	 *            message.
 	 */
 	void setDigestTimeout(int pendingDigestTimeoutSeconds);
 
 	/**
 	 * Configure the maximum number of digests to queue before sending a
-	 * "digest" message. Any value <= 0 will cause the {@link SubscriberSession}
-	 * to send "digest" messages immediately.
+	 * "digest-challenge" message. Any value <= 0 will cause the {@link SubscriberSession}
+	 * to send "digest-challenge" messages immediately.
 	 *
 	 * @param pendingDigestMax
 	 *            The maximum number of digests to queue.

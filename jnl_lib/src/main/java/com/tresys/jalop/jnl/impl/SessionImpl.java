@@ -28,8 +28,6 @@ import java.net.InetAddress;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 
-import javax.xml.crypto.dsig.DigestMethod;
-
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.BEEPError;
 import org.beepcore.beep.core.BEEPException;
@@ -38,6 +36,7 @@ import org.beepcore.beep.core.Channel;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Session;
 import com.tresys.jalop.jnl.impl.messages.Utils;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 public abstract class SessionImpl implements Session {
 
@@ -65,7 +64,7 @@ public abstract class SessionImpl implements Session {
 	 * @param xmlEncoding
 	 *            The XML encoding to be used on this {@link Session}.
 	 * @param pendingDigestTimeoutSeconds
-	 *            The time to wait, in seconds before sending a "digest"
+	 *            The time to wait, in seconds before sending a "digest-challenge"
 	 *            message.
 	 * @param pendingDigestMax
 	 *            The maximum number of digests to queue.
@@ -149,12 +148,11 @@ public abstract class SessionImpl implements Session {
 
 	protected String getDigestType(final String algorithm) {
 
-		if (DigestMethod.SHA256.equals(algorithm)) {
+		if (DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI.equals(algorithm)) {
 			return "SHA-256";
-		} else if (DigestMethod.SHA512.equals(algorithm)) {
+		} else if (DigestAlgorithms.JJNL_SHA512_ALGORITHM_URI.equals(algorithm)) {
 			return "SHA-512";
-		} else if ("http://www.w3.org/2001/04/xmldsig-more#sha384"
-				.equals(algorithm)) {
+		} else if (DigestAlgorithms.JJNL_SHA384_ALGORITHM_URI.equals(algorithm)) {
 			return "SHA-384";
 		}
 		return "";

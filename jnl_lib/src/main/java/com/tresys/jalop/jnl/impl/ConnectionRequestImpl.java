@@ -37,7 +37,7 @@ import com.tresys.jalop.jnl.exceptions.JNLException;
  */
 public class ConnectionRequestImpl implements ConnectionRequest {
 
-	final InetAddress address;
+	final String address;
 	final RecordType recordType;
 	final int jalopVersion;
 	final List<String> xmlEncodings;
@@ -67,7 +67,7 @@ public class ConnectionRequestImpl implements ConnectionRequest {
 	 * @throws JNLException
 	 * 				if an invalid (@link RecordType} is sent
 	 */
-	public ConnectionRequestImpl(final InetAddress address, final RecordType recordType,
+	public ConnectionRequestImpl(final String address, final RecordType recordType,
 			final int jalopVersion, final List<String> xmlEncodings,
 			final List<String> messageDigests, final Role role, final String agent) throws JNLException {
 
@@ -85,7 +85,7 @@ public class ConnectionRequestImpl implements ConnectionRequest {
 	}
 
 	@Override
-	public InetAddress getAddress() {
+	public String getAddress() {
 		return this.address;
 	}
 

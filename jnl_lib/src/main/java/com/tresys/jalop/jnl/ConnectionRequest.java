@@ -41,7 +41,7 @@ public interface ConnectionRequest {
 	 *
 	 * @return an {@link InetAddress}.
 	 */
-	InetAddress getAddress();
+	String getAddress();
 
 	/**
 	 * Retrieve the record type that the remote JALoP Network Store wishes to

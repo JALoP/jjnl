@@ -37,6 +37,14 @@ public interface RecordInfo {
 	String getNonce();
 
 	/**
+	 * Get the nonce of the record. Nonces are always determined by the
+	 * publisher.
+	 *
+	 * @return the nonce of the record.
+	 */
+	String getRemoteNonce();
+
+	/**
 	 * Get the offset of the journal record.
 	 *
 	 * @return the offset of the journal record.

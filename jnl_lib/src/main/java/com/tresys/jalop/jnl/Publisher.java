@@ -134,7 +134,7 @@ public interface Publisher {
 			final byte[] digest);
 
 	/**
-	 * The library executes this method after it receives a "digest" message
+	 * The library executes this method after it receives a "digest-challenge" message
 	 * from the remote JALoP Network Store.
 	 *
 	 * @param sess

@@ -36,8 +36,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.xml.crypto.dsig.DigestMethod;
-
 import org.apache.log4j.Logger;
 import org.beepcore.beep.core.BEEPException;
 import org.beepcore.beep.core.Channel;
@@ -81,9 +79,9 @@ public final class ContextImpl implements Context {
 
 	private static final String SSL_ALGORITHMS = "Allowed SSL Protocols";
 
-    public static final String LISTENER_ANONYMOUS = "Listener Anonymous";
+	public static final String LISTENER_ANONYMOUS = "Listener Anonymous";
 
-    public static final String URI = "http://www.dod.mil/logging/jalop-1.0";
+	public static final String URI = "http://www.dod.mil/logging/jalop-1.0";
 
 	private JNLLog log = null;
 
@@ -100,17 +98,17 @@ public final class ContextImpl implements Context {
 	private final Map<org.beepcore.beep.core.Session, Map<RecordType, PublisherSessionImpl>> publisherMap;
 	private final String agent;
 
-    private final ProfileConfiguration sslProperties;
+	private final ProfileConfiguration sslProperties;
 
-    private final TLSProfile sslProfile;
+	private final TLSProfile sslProfile;
 
-    private final StartChannelListener sslListener;
+	private final StartChannelListener sslListener;
 
-    private final AtomicBoolean reconnect;
+	private final AtomicBoolean reconnect;
 
-    private final AtomicBoolean closing;
+	private final AtomicBoolean closing;
 
-    private final AtomicLong retryInterval;
+	private final AtomicLong retryInterval;
 
 	/**
 	 * Create a new {@link ContextImpl}. The returned {@link Context} is in a
@@ -213,7 +211,7 @@ public final class ContextImpl implements Context {
 			final String agent,
 			final List<String> allowedMessageDigests,
 			final List<String> allowedXmlEncodings,
-            final ProfileConfiguration sslProperties, JNLLog logger) throws BEEPException {
+			final ProfileConfiguration sslProperties, JNLLog logger) throws BEEPException {
 
 		if (publisher == null && subscriber == null) {
 			throw new IllegalArgumentException(
@@ -245,10 +243,14 @@ public final class ContextImpl implements Context {
 		this.connectionState = ConnectionState.DISCONNECTED;
 		this.jalSessions = Collections.synchronizedList(new ArrayList<TCPSession>());
 
-		if (allowedMessageDigests != null && !allowedMessageDigests.isEmpty()) {
+		if (allowedMessageDigests != null && !allowedMessageDigests.isEmpty())
+		{
 			this.allowedMessageDigests = allowedMessageDigests;
-		} else {
-			this.allowedMessageDigests = Arrays.asList(DigestMethod.SHA256);
+		}
+		else
+		{
+			DigestAlgorithms da = DigestAlgorithms.getInstance();
+			this.allowedMessageDigests = da.getDigestAlgorithmUris();
 		}
 
 		if (allowedXmlEncodings != null && !allowedXmlEncodings.isEmpty()) {
@@ -386,7 +388,7 @@ public final class ContextImpl implements Context {
 
 				if (log.isInfoEnabled())
 				{
-				  log.info("Sucessfully connected to " + addr.getHostAddress() + ":" + port);
+				  log.info("Successfully connected to " + addr.getHostAddress() + ":" + port);
 				}
 				break;
 			} catch(BEEPException e) {

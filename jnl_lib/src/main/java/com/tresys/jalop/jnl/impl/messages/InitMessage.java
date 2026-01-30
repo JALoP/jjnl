@@ -32,6 +32,7 @@ import jakarta.xml.soap.MimeHeaders;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 /**
  * This represents the 'initialize' message received from a remote.
@@ -52,7 +53,7 @@ public class InitMessage extends Message {
 	 */
 	private final String agentString;
 
-	/**
+	/*
 	 * Stores the proposed {@link RecordType} to transfer over this channel.
 	 */
 	private final RecordType recordType;
@@ -89,6 +90,7 @@ public class InitMessage extends Message {
 			String[] encodingsArray, String[] digestsArray, final String agent,
 			final MimeHeaders otherHeaders) {
 		super(otherHeaders);
+
 		this.recordType = recordType;
 		this.role = role;
 		this.mode = mode;
@@ -108,13 +110,13 @@ public class InitMessage extends Message {
 		if (digestsArray == null) {
 			digestsArray = new String[0];
 		}
+		// 
 		List<String> digestList = Arrays.asList(digestsArray);
 		if (digestList.isEmpty()) {
 			digestList = new ArrayList<String>(1);
-			digestList.add("sha256");
+			digestList.add(DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName());
 		}
 		this.acceptDigests = digestList;
-
 	}
 
 	/**

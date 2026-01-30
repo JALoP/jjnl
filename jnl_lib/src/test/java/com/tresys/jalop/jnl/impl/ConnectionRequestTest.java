@@ -43,6 +43,7 @@ public class ConnectionRequestTest {
 
 	private List<String> encodings;
     private List<String> digests;
+    private InetAddress address;
 
     @Before
     public void setUp() throws Exception {
@@ -53,12 +54,13 @@ public class ConnectionRequestTest {
         digests = new ArrayList<String>();
         digests.add("dgst_foo");
         digests.add("dgst_bar");
+        address = InetAddress.getByName("localhost");
     }
 
     @Test
-	public void testConnectionRequestConstructorWorks(@Mocked final InetAddress address) throws JNLException {
-		final ConnectionRequestImpl cr = new ConnectionRequestImpl(address, RecordType.Log, 1, encodings, digests, Role.Publisher, "agent");
-		assertEquals(address, cr.getAddress());
+	public void testConnectionRequestConstructorWorks() throws JNLException {
+		final ConnectionRequestImpl cr = new ConnectionRequestImpl(address.getHostAddress(), RecordType.Log, 1, encodings, digests, Role.Publisher, "agent");
+		assertEquals(address.getHostAddress(), cr.getAddress());
 		assertEquals(RecordType.Log, cr.getRecordType());
 		assertEquals(1, cr.getJalopVersion());
 		assertEquals(encodings, cr.getXmlEncodings());
@@ -68,13 +70,13 @@ public class ConnectionRequestTest {
 	}
 
 	@Test(expected = JNLException.class)
-	public void testConstructorThrowsExceptionWithUnsetRecordType(@Mocked final InetAddress address) throws JNLException {
-		new ConnectionRequestImpl(address, RecordType.Unset, 1, encodings, digests, Role.Publisher, "agent");
+	public void testConstructorThrowsExceptionWithUnsetRecordType() throws JNLException {
+		new ConnectionRequestImpl(address.getHostAddress(), RecordType.Unset, 1, encodings, digests, Role.Publisher, "agent");
 	}
 
 	@Test
-	public void testSetSelectedWorks(@Mocked final InetAddress address) throws JNLException {
-		final ConnectionRequestImpl cr = new ConnectionRequestImpl(address, RecordType.Log, 1, encodings, digests, Role.Publisher, "agent");
+	public void testSetSelectedWorks() throws JNLException {
+		final ConnectionRequestImpl cr = new ConnectionRequestImpl(address.getHostAddress(), RecordType.Log, 1, encodings, digests, Role.Publisher, "agent");
 		cr.setSelectedMessageDigest(digests.get(0));
 		cr.setSelectedXmlEncoding(encodings.get(0));
 		assertEquals(digests.get(0), cr.getSelectedXmlDigest());

@@ -28,11 +28,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Field;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
 
-import javax.xml.crypto.dsig.DigestMethod;
 import jakarta.xml.soap.MimeHeaders;
 
 import mockit.*;
@@ -58,15 +58,20 @@ import com.tresys.jalop.jnl.exceptions.UnexpectedMimeValueException;
 import com.tresys.jalop.jnl.impl.messages.DigestResponse;
 import com.tresys.jalop.jnl.impl.messages.Utils;
 import com.tresys.jalop.jnl.impl.subscriber.SubscriberSessionImpl;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 public class DigestListenerTest {
 	// Needed to mock static functions in the Utils class.
 	@Mocked
 	private Utils utils;
+
+	private InetAddress address;
+
 	@Before
-	public void setUp() {
+	public void setUp() throws UnknownHostException {
 		// Disable logging so the build doesn't get spammed.
-	Logger.getRootLogger().setLevel(Level.OFF);
+		Logger.getRootLogger().setLevel(Level.OFF);
+		address = InetAddress.getByName("localhost");
 	}
 
 	private static Field digestMapField;
@@ -156,7 +161,7 @@ public class DigestListenerTest {
 
 	@Test
 	public void testDigestListenerAddsDigestsBackInReceiveRpy(@Mocked final Message message, @Mocked final InputDataStream ids, @Mocked final Channel channel,
-			@Mocked final InputDataStreamAdapter isa, @Mocked final Subscriber subscriber, @Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final InputDataStreamAdapter isa, @Mocked final Subscriber subscriber, @Mocked final org.beepcore.beep.core.Session sess)
 			throws IOException, IllegalAccessException, MissingMimeHeaderException, UnexpectedMimeValueException,
 			BEEPException {
 
@@ -173,7 +178,7 @@ public class DigestListenerTest {
 		final int msgno = 3045;
 
 		final SubscriberSessionImpl subSess =
-			new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestMethod.SHA256,
+			new SubscriberSessionImpl(address, RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI,
 				"barfoo", 1, 2, 0, sess);
 
 		new Expectations() {

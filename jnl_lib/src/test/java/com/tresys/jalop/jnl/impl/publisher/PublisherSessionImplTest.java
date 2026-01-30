@@ -30,9 +30,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
-
-import javax.xml.crypto.dsig.DigestMethod;
 
 import mockit.*;
 
@@ -51,11 +50,13 @@ import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.exceptions.JNLException;
 import com.tresys.jalop.jnl.impl.ContextImpl;
 import com.tresys.jalop.jnl.impl.SessionImpl;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 public class PublisherSessionImplTest {
 
 	private static Field errored;
 	private static Field digestMapField;
+	private InetAddress address;
 
 	@BeforeClass
 	public static void setupBeforeClass() throws SecurityException,
@@ -74,20 +75,21 @@ public class PublisherSessionImplTest {
 	}
 
 	@Before
-	public void setUp() {
+	public void setUp() throws UnknownHostException {
 		// Disable logging so the build doesn't get spammed.
 		Logger.getRootLogger().setLevel(Level.OFF);
+		address = InetAddress.getByName("localhost");
 	}
 
 	@Test
-	public void testConstructorWorks(@Mocked final InetAddress address, @Mocked final ContextImpl contextImpl,
+	public void testConstructorWorks(@Mocked final ContextImpl contextImpl,
 			@Mocked final Publisher publisher, @Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "xml", 0, sess, contextImpl);
 
-		assertEquals(DigestMethod.SHA256, p.getDigestMethod());
+		assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, p.getDigestMethod());
 		assertEquals(RecordType.Log, p.getRecordType());
 		assertEquals(Role.Publisher, p.getRole());
 		assertEquals(publisher, p.getPublisher());
@@ -99,18 +101,18 @@ public class PublisherSessionImplTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForNullPublisher(@Mocked final ContextImpl contextImpl,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new PublisherSessionImpl(address, RecordType.Log, null,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "xml", 0, sess, contextImpl);
 	}
 
 	@Test
 	public void testRunWorks(@Mocked final ContextImpl contextImpl, @Mocked final Publisher publisher,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address, @Mocked final Channel channel)
+			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final Channel channel)
 			throws BEEPException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "xml", 0, sess, contextImpl);
 
 
 		new Expectations(p) {
@@ -130,11 +132,11 @@ public class PublisherSessionImplTest {
 
 	@Test
 	public final void testAddDigestWorks(@Mocked final ContextImpl contextImpl, @Mocked final Publisher publisher,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws JNLException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
 		final String nonce = "nonce";
 		p.addDigest(nonce, local);
@@ -145,11 +147,11 @@ public class PublisherSessionImplTest {
 
 	@Test(expected = JNLException.class)
 	public final void testAddDigestThrowsExceptionWithDuplicate(@Mocked final ContextImpl contextImpl,
-			@Mocked final Publisher publisher, @Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final Publisher publisher, @Mocked final org.beepcore.beep.core.Session sess)
 			throws JNLException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
 		final String nonce = "nonce";
 		p.addDigest(nonce, local);
@@ -158,11 +160,11 @@ public class PublisherSessionImplTest {
 
 	@Test
 	public final void testFetchAndRemoveWorks(@Mocked final ContextImpl contextImpl,@Mocked final Publisher publisher,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws JNLException, IllegalAccessException {
 
 		final PublisherSessionImpl p = new PublisherSessionImpl(address, RecordType.Log, publisher,
-				DigestMethod.SHA256, "xml", 0, sess, contextImpl);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "xml", 0, sess, contextImpl);
 		final byte[] local = "local".getBytes();
 		final String nonce = "nonce";
 		p.addDigest(nonce, local);

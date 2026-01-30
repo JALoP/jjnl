@@ -27,6 +27,7 @@ package com.tresys.jalop.jnl.impl;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -154,19 +155,27 @@ public class ListenerProfile implements Profile, StartChannelListener, RequestHa
 		final InputDataStreamAdapter data = message.getDataStream().getInputStream();
 
 		try {
-
 			final InitMessage msg = Utils.processInitMessage(data);
 
 			final TCPSession tcpSession = (TCPSession) message.getChannel().getSession();
 			final InetAddress peerAddress = tcpSession.getSocket().getInetAddress();
-			final ConnectionRequestImpl connRequest = new ConnectionRequestImpl(peerAddress, msg.getRecordType(), 1,
-					msg.getAcceptEncodings(), msg.getAcceptDigests(), msg.getRole(), msg.getAgentString());
+
+			// the message digests come in as a single string in the List
+			// ie, String "http://www.w3.org/2001/04/xmlenc#sha256, http://www.w3.org/2001/04/xmlenc#sha512"
+			// so we need to split them out and recreate the List<String> of the digests
+			List<String> digeststr = msg.getAcceptDigests();
+			String digestString = digeststr.get(0); // sha256 is always present
+			List<String> digests = Arrays.asList(digestString.split(", "));
+
+			final ConnectionRequestImpl connRequest = new ConnectionRequestImpl(peerAddress.getHostAddress(), msg.getRecordType(), 1,
+					msg.getAcceptEncodings(), digests, msg.getRole(), msg.getAgentString());
 
 			final Set<ConnectError> connectErrors = contextImpl.getConnectionHandler().handleConnectionRequest(false, connRequest);
 
 			if(Collections.disjoint(this.contextImpl.getAllowedXmlEncodings(), connRequest.getXmlEncodings())) {
 				connectErrors.add(ConnectError.UnsupportedEncoding);
 			}
+
 			if(Collections.disjoint(this.contextImpl.getAllowedMessageDigests(), connRequest.getMessageDigests())) {
 				connectErrors.add(ConnectError.UnsupportedDigest);
 			}

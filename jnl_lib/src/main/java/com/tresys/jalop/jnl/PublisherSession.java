@@ -42,4 +42,28 @@ public interface PublisherSession extends Session {
 	 * Called by the publishing network store to indicate it is done sending records
 	 */
 	void complete();
+
+	/**
+	 * @param remoteNonce
+	 * @return The local nonce corresponding to the remote nonce uuid.
+	 */
+	public String getLocalNonce(String remoteNonce);
+
+	/**
+	 * Deletes the entry for the remote nonce to local nonce mapping
+	 *
+	 * @param nonce
+	 * 				A String which is the nonce for the calculated digest
+	 */
+	public void deleteNonceMapEntry(String remoteNonce);
+
+	/**
+	 * Adds the entry for the remote nonce to local nonce mapping
+	 *
+	 * @param remoteNonce
+	 * 				A String which is the remote nonce for the calculated digest
+	 * @param localNonce
+	 * 				A String which is the local nonce for the calculated digest
+	 */
+	public boolean addNonceMapEntry(final String remoteNonce, final String localNonce);
 }

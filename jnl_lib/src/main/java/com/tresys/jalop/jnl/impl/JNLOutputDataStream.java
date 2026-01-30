@@ -39,17 +39,14 @@ public class JNLOutputDataStream extends OutputDataStream {
 
 	static Logger log = Logger.getLogger(JNLOutputDataStream.class);
 
-	private final int maxBuffers;
-
 	/**
 	 * Create a JNLOutputDataStream with the given headers.
 	 *
 	 * @param headers
 	 * 				The {@link MimeHeaders} for this stream.
 	 */
-	public JNLOutputDataStream (final MimeHeaders headers, final int maxBuffers) {
+	public JNLOutputDataStream (final MimeHeaders headers) {
 		super(headers);
-		this.maxBuffers = maxBuffers;
 	}
 
 	@Override
@@ -63,17 +60,6 @@ public class JNLOutputDataStream extends OutputDataStream {
 
 	@Override
 	public void add(final BufferSegment segment) {
-		synchronized(this) {
-			while (this.getNumSegments() >= this.maxBuffers) {
-				try {
-					this.wait();
-				} catch (final InterruptedException e) {
-					if (log.isEnabledFor(Level.ERROR)) {
-						log.error("Error: " + e.getMessage());
-					}
-				}
-			}
-		}
         super.add(segment);
     }
 }

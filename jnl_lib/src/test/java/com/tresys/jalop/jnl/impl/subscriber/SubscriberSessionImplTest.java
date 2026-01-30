@@ -31,10 +31,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.xml.crypto.dsig.DigestMethod;
 
 import mockit.*;
 
@@ -53,11 +52,13 @@ import com.tresys.jalop.jnl.Role;
 import com.tresys.jalop.jnl.Subscriber;
 import com.tresys.jalop.jnl.impl.DigestListener;
 import com.tresys.jalop.jnl.impl.SessionImpl;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 public class SubscriberSessionImplTest {
 
 	private static Field errored;
 	private static Field digestMapField;
+	private InetAddress address;
 
 	@BeforeClass
 	public static void setupBeforeClass() throws SecurityException,
@@ -76,20 +77,21 @@ public class SubscriberSessionImplTest {
 	}
 
 	@Before
-	public void setUp() {
+	public void setUp() throws UnknownHostException {
 		// Disable logging so the build doesn't get spammed.
 		Logger.getRootLogger().setLevel(Level.OFF);
+		address = InetAddress.getByName("localhost");
 	}
 
 	@Test
-	public void testSubscriberImplConstructor(@Mocked final InetAddress address,
+	public void testSubscriberImplConstructor(
 			@Mocked final Subscriber subscriber,
 			@Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 		SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
-		assertEquals(DigestMethod.SHA256, s.getDigestMethod());
+		assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, s.getDigestMethod());
 		assertEquals(2, s.getPendingDigestMax());
 		assertEquals(1, s.getPendingDigestTimeoutSeconds());
 		assertEquals(RecordType.Audit, s.getRecordType());
@@ -102,8 +104,8 @@ public class SubscriberSessionImplTest {
 		assertEquals(sess, s.getSession());
 
 		s = new SubscriberSessionImpl(address, RecordType.Journal, subscriber,
-				DigestMethod.SHA256, "barfoo", 1, 2, 0, sess);
-		assertEquals(DigestMethod.SHA256, s.getDigestMethod());
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1, 2, 0, sess);
+		assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, s.getDigestMethod());
 		assertEquals(2, s.getPendingDigestMax());
 		assertEquals(1, s.getPendingDigestTimeoutSeconds());
 		assertEquals(RecordType.Journal, s.getRecordType());
@@ -116,8 +118,8 @@ public class SubscriberSessionImplTest {
 		assertEquals(sess, s.getSession());
 
 		s = new SubscriberSessionImpl(address, RecordType.Log, subscriber,
-				DigestMethod.SHA256, "barfoo", 1, 2, 0, sess);
-		assertEquals(DigestMethod.SHA256, s.getDigestMethod());
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1, 2, 0, sess);
+		assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, s.getDigestMethod());
 		assertEquals(2, s.getPendingDigestMax());
 		assertEquals(1, s.getPendingDigestTimeoutSeconds());
 		assertEquals(RecordType.Log, s.getRecordType());
@@ -130,9 +132,9 @@ public class SubscriberSessionImplTest {
 		assertEquals(sess, s.getSession());
 
 		s = new SubscriberSessionImpl(address, RecordType.Log, subscriber,
-				"   " + DigestMethod.SHA256 + "   ", "   barfoo   ", 1, 2, 0,
+				"   " + DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI + "   ", "   barfoo   ", 1, 2, 0,
 				sess);
-		assertEquals(DigestMethod.SHA256, s.getDigestMethod());
+		assertEquals(DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, s.getDigestMethod());
 		assertEquals(2, s.getPendingDigestMax());
 		assertEquals(1, s.getPendingDigestTimeoutSeconds());
 		assertEquals(RecordType.Log, s.getRecordType());
@@ -149,39 +151,39 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForBadRecordType(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Unset, subscriber,
-				DigestMethod.SHA256, "barfoo", 1, 2, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1, 2, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForEmptyEncoding(
-			@Mocked final InetAddress address, @Mocked final Subscriber subscriber,
+			@Mocked final Subscriber subscriber,
 			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, "   ", 1, 2, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "   ", 1, 2, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForZeroLengthEncoding(
-			@Mocked final InetAddress address, @Mocked final Subscriber subscriber,
+			@Mocked final Subscriber subscriber,
 			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, "", 1, 2, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "", 1, 2, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForNullEncoding(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, null, 1, 2, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, null, 1, 2, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForEmptyDigest(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
 				"    ", "enc", 1, 2, 0, sess);
 	}
@@ -189,7 +191,7 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForZeroLengthDigest(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber, "",
 				"enc", 1, 2, 0, sess);
 	}
@@ -197,7 +199,7 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForNullDigest(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber, null,
 				"enc", 1, 2, 0, sess);
 	}
@@ -205,7 +207,7 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForBadDigest(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
 				"notADigest", "enc", 1, 2, 0, sess);
 	}
@@ -213,62 +215,62 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionZeroDigestMax(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, "enc", 1, 0, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "enc", 1, 0, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionNegativeDigestMax(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, "enc", 1, -1, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "enc", 1, -1, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionZeroDigestTimeout(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, "enc", 0, 1, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "enc", 0, 1, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionNegativeDigestTimeout(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, "enc", -1, 1, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "enc", -1, 1, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForNullSubscriber(
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, RecordType.Audit, null,
-				DigestMethod.SHA256, "enc", 1, 1, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "enc", 1, 1, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForNullRecordType(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		new SubscriberSessionImpl(address, null, subscriber,
-				DigestMethod.SHA256, "enc", 1, 1, 0, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "enc", 1, 1, 0, sess);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionForNullSession(
-			@Mocked final Subscriber subscriber, @Mocked final InetAddress address) {
+			@Mocked final Subscriber subscriber) {
 		new SubscriberSessionImpl(address, RecordType.Audit, subscriber,
-				DigestMethod.SHA256, "enc", 1, 1, 0, null);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "enc", 1, 1, 0, null);
 	}
 
 	@Test
 	public void testSetPendingTimeout(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setDigestTimeout(5);
 		assertEquals(5, s.getPendingDigestTimeoutSeconds());
@@ -276,17 +278,17 @@ public class SubscriberSessionImplTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testConstructorThrowsExceptionWhenMissingAddress(
-			@Mocked final Subscriber subscriber, @Mocked final InetAddress address,
+			@Mocked final Subscriber subscriber,
 			@Mocked final Session sess) {
 		new SubscriberSessionImpl(null, RecordType.Unset, subscriber,
-				DigestMethod.SHA256, "barfoo", 1, 1, 2, sess);
+				DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1, 1, 2, sess);
 	}
 
 	@Test
 	public void testSetJournalResumeOffset(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setJournalResumeOffset(10);
 		assertEquals(10, s.getJournalResumeOffset());
@@ -294,9 +296,9 @@ public class SubscriberSessionImplTest {
 
 	@Test
 	public void testSetJournalResumeIS(@Mocked final Subscriber subscriber, @Mocked final InputStream is,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setJournalResumeIS(is);
 		assertEquals(is, s.getJournalResumeIS());
@@ -305,9 +307,9 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetPendingTimeoutThrowsExceptionForNegative(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setDigestTimeout(-1);
 	}
@@ -315,18 +317,18 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetPendingTimeoutThrowsExceptionForZero(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setDigestTimeout(0);
 	}
 
 	@Test
 	public void testSetPendingDigestMax(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setPendingDigestMax(5);
 		assertEquals(5, s.getPendingDigestMax());
@@ -335,9 +337,9 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetPendingMaxThrowsExceptionForNegative(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setPendingDigestMax(-1);
 	}
@@ -345,19 +347,19 @@ public class SubscriberSessionImplTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetPendingMaxThrowsExceptionForZero(
 			@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address) {
+			@Mocked final org.beepcore.beep.core.Session sess) {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 		s.setPendingDigestMax(0);
 	}
 
 	@Test
 	public void testAddAllDigestsWorks(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				1, 0, sess);
 		final Map<String, String> mapToAdd = new HashMap<String, String>();
 		mapToAdd.put("key1", "value1");
@@ -372,10 +374,10 @@ public class SubscriberSessionImplTest {
 
 	@Test
 	public void testAddDigestsWorks(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws IllegalArgumentException, IllegalAccessException {
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				1, 0, sess);
 		s.addDigest("nonce", "digest");
 		final Map<String, String> map = getDigestMap(s);
@@ -386,12 +388,12 @@ public class SubscriberSessionImplTest {
 	@Test
 	public void testRunWorks(@Mocked final Subscriber subscriber,
 			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final Channel channel,
-			@Mocked final DigestListener listener, @Mocked final InetAddress address,
+			@Mocked final DigestListener listener,
 			@Mocked final OutputDataStream any, @Mocked final DigestListener any2)
 			throws InterruptedException, BEEPException {
 
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		final Map<String, String> digestMap = new HashMap<String, String>();
@@ -417,11 +419,11 @@ public class SubscriberSessionImplTest {
 
 	@Test
 	public void testRunStopsWhenNotOk(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws InterruptedException {
 
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		new Expectations(s) {
@@ -441,12 +443,12 @@ public class SubscriberSessionImplTest {
 
 	@Test
 	public void testRunSetsErrorOnException(@Mocked final Subscriber subscriber,
-			@Mocked final org.beepcore.beep.core.Session sess, @Mocked final InetAddress address)
+			@Mocked final org.beepcore.beep.core.Session sess)
 			throws InterruptedException, BEEPException,
 			IllegalArgumentException, IllegalAccessException {
 
 		final SubscriberSessionImpl s = new SubscriberSessionImpl(address,
-				RecordType.Audit, subscriber, DigestMethod.SHA256, "barfoo", 1,
+				RecordType.Audit, subscriber, DigestAlgorithms.JJNL_SHA256_ALGORITHM_URI, "barfoo", 1,
 				2, 0, sess);
 
 		new Expectations(s) {

@@ -34,6 +34,7 @@ import org.junit.Test;
 import com.tresys.jalop.jnl.Mode;
 import com.tresys.jalop.jnl.RecordType;
 import com.tresys.jalop.jnl.Role;
+import com.tresys.jalop.jnl.impl.DigestAlgorithms;
 
 /**
  * Tests for the InitMessage class.
@@ -74,7 +75,7 @@ public class TestInitMessage {
 		InitMessage init =  new InitMessage(RecordType.Audit, Role.Publisher, Mode.Live,
 					new String[]{Utils.BINARY}, null, "agent", new MimeHeaders());
 
-		assertEquals(init.getAcceptDigests(), Arrays.asList("sha256"));
+		assertEquals(init.getAcceptDigests(), Arrays.asList(DigestAlgorithms.JJNL_DEFAULT_ALGORITHM.toName()));
 
 	}
 }
