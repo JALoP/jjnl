@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2026 Concurrent Technologies Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
@@ -87,7 +103,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validatePublisherId(publisherId, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Publisher-Id", entry);
+            assertEquals("jal-unsupported-publisher-id", entry);
         }
     }
 
@@ -99,7 +115,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validatePublisherId(publisherId, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Publisher-Id", entry);
+            assertEquals("jal-unsupported-publisher-id", entry);
         }
     }
 
@@ -131,7 +147,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateMode(mode, Mode.Live, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Mode", entry);
+            assertEquals("jal-unsupported-mode", entry);
         }
     }
 
@@ -143,7 +159,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateMode(mode, Mode.Archive, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Mode", entry);
+            assertEquals("jal-unsupported-mode", entry);
         }
     }
 
@@ -155,7 +171,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateMode(mode, Mode.Archive, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Mode", entry);
+            assertEquals("jal-unsupported-mode", entry);
         }
     }
 
@@ -167,7 +183,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateMode(mode, Mode.Live, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Mode", entry);
+            assertEquals("jal-unsupported-mode", entry);
         }
     }
 
@@ -179,7 +195,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateMode(mode, null, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Mode", entry);
+            assertEquals("jal-unsupported-mode", entry);
         }
     }
 
@@ -191,7 +207,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateMode(mode, Mode.Unset, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Mode", entry);
+            assertEquals("jal-unsupported-mode", entry);
         }
     }
 
@@ -203,7 +219,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateMode(mode, Mode.Live, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Mode", entry);
+            assertEquals("jal-unsupported-mode", entry);
         }
     }
 
@@ -237,7 +253,7 @@ public class HttpUtilsTest {
         boolean returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Audit-Format", entry);
+            assertEquals("jal-unsupported-audit-format", entry);
         }
     }
 
@@ -249,7 +265,7 @@ public class HttpUtilsTest {
         boolean returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Audit-Format", entry);
+            assertEquals("jal-unsupported-audit-format", entry);
         }
     }
 
@@ -261,7 +277,7 @@ public class HttpUtilsTest {
         boolean returned = HttpUtils.validateAuditFormat(auditFormat, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Audit-Format", entry);
+            assertEquals("jal-unsupported-audit-format", entry);
         }
     }
 
@@ -465,7 +481,7 @@ public class HttpUtilsTest {
     }
 
     /**
-     * Checks to ensure a NAK and report unsupported digest if junk in JAL-Accept-Digest header
+     * Checks to ensure a NAK and report unsupported digest if junk in jal-Accept-Digest header
      */
     @Test
     public void testValidateDigestFailsWithSHA256andJunkDigests() {
@@ -616,7 +632,7 @@ public class HttpUtilsTest {
         final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertEquals("none", selectedCompression);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-XML-Compression", entry.getKey());
+            assertEquals("jal-xml-compression", entry.getKey());
             assertEquals("none", entry.getValue());
         }
         assertTrue(errorResponseHeaders.isEmpty());
@@ -631,7 +647,7 @@ public class HttpUtilsTest {
         final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertEquals("none", selectedCompression);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-XML-Compression", entry.getKey());
+            assertEquals("jal-xml-compression", entry.getKey());
             assertEquals("none", entry.getValue());
         }
         assertTrue(errorResponseHeaders.isEmpty());
@@ -646,7 +662,7 @@ public class HttpUtilsTest {
         final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertEquals("exi-1.0", selectedCompression);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-XML-Compression", entry.getKey());
+            assertEquals("jal-xml-compression", entry.getKey());
             assertEquals("exi-1.0", entry.getValue());
         }
         assertTrue(errorResponseHeaders.isEmpty());
@@ -661,7 +677,7 @@ public class HttpUtilsTest {
         final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertEquals("deflate", selectedCompression);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-XML-Compression", entry.getKey());
+            assertEquals("jal-xml-compression", entry.getKey());
             assertEquals("deflate", entry.getValue());
         }
         assertTrue(errorResponseHeaders.isEmpty());
@@ -676,7 +692,7 @@ public class HttpUtilsTest {
         final String selectedCompression = HttpUtils.validateXmlCompression(xmlCompressions, successResponseHeaders, errorResponseHeaders);
         assertEquals("exi-1.0", selectedCompression);
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-XML-Compression", entry.getKey());
+            assertEquals("jal-xml-compression", entry.getKey());
             assertEquals("exi-1.0", entry.getValue());
         }
         assertTrue(errorResponseHeaders.isEmpty());
@@ -692,7 +708,7 @@ public class HttpUtilsTest {
         assertEquals(null, selectedCompression);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-XML-Compression", entry);
+            assertEquals("jal-unsupported-xml-compression", entry);
         }
     }
 
@@ -706,7 +722,7 @@ public class HttpUtilsTest {
         assertEquals(null, selectedCompression);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-XML-Compression", entry);
+            assertEquals("jal-unsupported-xml-compression", entry);
         }
     }
 
@@ -774,7 +790,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateVersion(version, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Version", entry);
+            assertEquals("jal-unsupported-version", entry);
         }
     }
 
@@ -785,7 +801,7 @@ public class HttpUtilsTest {
         final boolean returned = HttpUtils.validateVersion(version, errorResponseHeaders);
         assertFalse(returned);
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Version", entry);
+            assertEquals("jal-unsupported-version", entry);
         }
     }
 
@@ -799,7 +815,7 @@ public class HttpUtilsTest {
         assertEquals("on", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-Configure-Digest-Challenge", entry.getKey());
+            assertEquals("jal-configure-digest-challenge", entry.getKey());
             assertEquals("on", entry.getValue());
         }
     }
@@ -818,7 +834,7 @@ public class HttpUtilsTest {
         assertEquals("off", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-Configure-Digest-Challenge", entry.getKey());
+            assertEquals("jal-configure-digest-challenge", entry.getKey());
             assertEquals("off", entry.getValue());
         }
     }
@@ -833,7 +849,7 @@ public class HttpUtilsTest {
         assertEquals("on", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-Configure-Digest-Challenge", entry.getKey());
+            assertEquals("jal-configure-digest-challenge", entry.getKey());
             assertEquals("on", entry.getValue());
         }
     }
@@ -850,7 +866,7 @@ public class HttpUtilsTest {
         assertEquals("off", selectedConfDigestChallenge);
         assertTrue(errorResponseHeaders.isEmpty());
         for (Map.Entry<String, String> entry : successResponseHeaders.entrySet()) {
-            assertEquals("JAL-Configure-Digest-Challenge", entry.getKey());
+            assertEquals("jal-configure-digest-challenge", entry.getKey());
             assertEquals("off", entry.getValue());
         }
     }
@@ -865,7 +881,7 @@ public class HttpUtilsTest {
         assertEquals(null, selectedConfDigestChallenge);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Configure-Digest-Challenge", entry);
+            assertEquals("jal-unsupported-configure-digest-challenge", entry);
         }
     }
 
@@ -879,7 +895,7 @@ public class HttpUtilsTest {
         assertEquals(null, selectedConfDigestChallenge);
         assertTrue(successResponseHeaders.isEmpty());
         for (String entry : errorResponseHeaders) {
-            assertEquals("JAL-Unsupported-Configure-Digest-Challenge", entry);
+            assertEquals("jal-unsupported-configure-digest-challenge", entry);
         }
     }
 

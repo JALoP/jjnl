@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2026 Concurrent Technologies Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
@@ -28,8 +44,9 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.ee8.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee8.servlet.ServletHandler;
+import org.eclipse.jetty.ee8.servlet.ServletHolder;
 
 import com.tresys.jalop.jnl.DigestAlgorithms;
 import com.tresys.jalop.jnl.Mode;
@@ -155,7 +172,7 @@ public class TestResources {
     {
         Server server = new Server(HTTP_PORT);
 
-        ServletHandler handler = new ServletHandler();
+        ServletContextHandler handler = new ServletContextHandler();
         HttpConfiguration http_config = new HttpConfiguration();
         http_config.setRequestHeaderSize(HttpUtils.MAX_HEADER_SIZE);
 
@@ -200,19 +217,19 @@ public class TestResources {
         logServlet.setHttpUtils(httpUtils);
         ServletHolder logServletHolder = new ServletHolder(logServlet);
 
-        handler.addServletWithMapping(logServletHolder, HttpUtils.LOG_ENDPOINT);
+        handler.addServlet(logServletHolder, HttpUtils.LOG_ENDPOINT);
 
         JNLAuditServlet auditServlet = new JNLAuditServlet();
         auditServlet.setHttpUtils(httpUtils);
         ServletHolder auditServletHolder = new ServletHolder(auditServlet);
 
-        handler.addServletWithMapping(auditServletHolder, HttpUtils.AUDIT_ENDPOINT);
+        handler.addServlet(auditServletHolder, HttpUtils.AUDIT_ENDPOINT);
 
         JNLJournalServlet journalServlet = new JNLJournalServlet();
         journalServlet.setHttpUtils(httpUtils);
         ServletHolder journalServletHolder = new ServletHolder(journalServlet);
 
-        handler.addServletWithMapping(journalServletHolder, HttpUtils.JOURNAL_ENDPOINT);
+        handler.addServlet(journalServletHolder, HttpUtils.JOURNAL_ENDPOINT);
 
         return server;
     }
@@ -311,7 +328,7 @@ public class TestResources {
 
     public static HashMap<String, String> getJalRecordHeaders(String sessionId, String jalId, String systemMetadataLen, String appMetadataLen, String payloadLength, RecordType recType)
     {
-        String jalLengthHeader = "JAL-" + recType.toString() + "-Length";
+        String jalLengthHeader = "jal-" + recType.toString().toLowerCase() + "-length";
         String jalMessage = recType.toString().toLowerCase() +  "-record";
 
         String auditFormat = null;

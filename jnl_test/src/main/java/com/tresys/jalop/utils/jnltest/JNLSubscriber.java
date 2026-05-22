@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2026 Concurrent Technologies Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package com.tresys.jalop.utils.jnltest;
 
 import java.io.IOException;
@@ -95,54 +111,6 @@ public class JNLSubscriber implements Subscriber, JNLTestInterface
     public HttpSubscriberConfig getConfig()
     {
         return http_config;
-    }
-
-    /**
-     * @return the latestLogNONCE
-     */
-    @Override
-    public long getLatestLogNONCE() {
-        return latestLogNONCE;
-    }
-
-    /**
-     * @param latestLogNONCE the latestLogNONCE to set
-     */
-    @Override
-    public void setLatestLogNONCE(final long latestLogNONCE) {
-        this.latestLogNONCE = latestLogNONCE;
-    }
-
-    /**
-     * @return the latestAuditNONCE
-     */
-    @Override
-    public long getLatestAuditNONCE() {
-        return latestAuditNONCE;
-    }
-
-    /**
-     * @param latestAuditNONCE the latestAuditNONCE to set
-     */
-    @Override
-    public void setLatestAuditNONCE(final long latestAuditNONCE) {
-        this.latestAuditNONCE = latestAuditNONCE;
-    }
-
-    /**
-     * @return the latestJournalNONCE
-     */
-    @Override
-    public long getLatestJournalNONCE() {
-        return latestJournalNONCE;
-    }
-
-    /**
-     * @param latestJournalNONCE the latestJournalNONCE to set
-     */
-    @Override
-    public void setLatestJournalNONCE(final long latestJournalNONCE) {
-        this.latestJournalNONCE = latestJournalNONCE;
     }
 
     @Override

@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2026 Concurrent Technologies Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package com.tresys.jalop.utils.http;
 
 import static org.junit.Assert.assertEquals;
@@ -101,7 +117,7 @@ public class JalRecordTest {
         resourcesDirectory = new File("src/test/resources/unit_test");
         jjnlDirPath = resourcesDirectory.getAbsolutePath() + "/../../../../..";
         inputDirStr = jjnlDirPath + "/input";
-        jalopTestDataDir = resourcesDirectory.getAbsolutePath(); 
+        jalopTestDataDir = resourcesDirectory.getAbsolutePath();
         outputDirStr = jjnlDirPath + "/jnl_test/output";
         jalopTestDataRepoDir = jjnlDirPath + "/../jalop-test-data";
 
@@ -306,7 +322,7 @@ public class JalRecordTest {
         try
         {
             String[] cmd = {
-                    "python",
+                    "python3",
                     jjnlDirPath + "/generate_records.py",
                     recType.toString().toLowerCase(), inputDirStr, Long.toString(numRecords), jalopTestDataDir + "/" + sysFilename, jalopTestDataDir + "/" + appFilename,
                     testDataPath + "/" + payloadFilename
@@ -1097,7 +1113,7 @@ public class JalRecordTest {
                 assertNotNull(messageHeader);
                 assertEquals(HttpUtils.MSG_RECORD_FAILURE, messageHeader.getValue());
                 assertNotNull(errorHeader);
-                assertEquals("JAL-Invalid-" + recType.toString() + "-Length", errorHeader.getValue());
+                assertEquals("jal-invalid-" + recType.toString().toLowerCase() + "-length", errorHeader.getValue());
                 assertNotNull(jalIdHeader);
                 assertEquals("jalId", jalIdHeader.getValue());
                 assertNull(digestHeader);
@@ -1667,7 +1683,7 @@ public class JalRecordTest {
                 HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
                 String jalId = UUID.randomUUID().toString();
-                String jalLengthHeader = "JAL-" + recType.toString() + "-Length";
+                String jalLengthHeader = "jal-" + recType.toString().toLowerCase() + "-length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
                 HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "1125", "19", jalLengthHeader, jalMessage, auditFormat);
 
@@ -1694,7 +1710,7 @@ public class JalRecordTest {
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
 
-                //Only audit-record message should fail if JAL-Audit-Format is unsupported
+                //Only audit-record message should fail if jal-audit-format is unsupported
                 if (!recType.equals(RecordType.Audit))
                 {
                     //Check for success
@@ -1706,7 +1722,7 @@ public class JalRecordTest {
                     assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
                     assertEquals(jalId, jalIdHeader.getValue());
                 }
-                else //audit-record message, should fail with JAL-Unsupported-Audit-Format
+                else //audit-record message, should fail with jal-unsupported-audit-format
                 {
                     //Check for failure
                     assertNotNull(responseMessage);
@@ -2528,7 +2544,7 @@ public class JalRecordTest {
                 HttpPost httpPost = new HttpPost("http://localhost:" + TestResources.HTTP_PORT + "/" + recType.toString().toLowerCase());
 
                 String jalId = UUID.randomUUID().toString();
-                String jalLengthHeader = "JAL-" + recType.toString() + "-Length";
+                String jalLengthHeader = "jal-" + recType.toString().toLowerCase() + "-length";
                 String jalMessage = recType.toString().toLowerCase() +  "-record";
                 HashMap<String, String> headers = TestResources.getJalRecordHeaders(sessionId, jalId, "3083", "0", "0", jalLengthHeader, jalMessage, auditFormat);
 
@@ -2555,7 +2571,7 @@ public class JalRecordTest {
                 final int responseStatus = response.getStatusLine().getStatusCode();
                 assertEquals(200, responseStatus);
 
-                //Only Log record should fail with JAL-Invalid-Log-Record error
+                //Only Log record should fail with jal-invalid-log-record error
                 if (recType.equals(RecordType.Log))
                 {
                     //Check for failure
@@ -2578,7 +2594,7 @@ public class JalRecordTest {
                     assertEquals(HttpUtils.MSG_DIGEST_CHALLENGE, responseMessage);
                     assertEquals(jalId, jalIdHeader.getValue());
                 }
-                else //audit-record message, should fail with JAL-Invalid-Audit-Length
+                else //audit-record message, should fail with jal-invalid-audit-length
                 {
                     //Check for failure
                     assertNotNull(responseMessage);
