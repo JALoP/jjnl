@@ -7,7 +7,7 @@ JJNL v1.x is a JALoP v1.x (JALoP over BEEP) Publisher and Subscriber.
 Building and Installing:
 
 This project uses the maven (maven.apache.org) build tool version 3.8.6, and
-is tested using OpenJDK 8, 11, 17, and 21. Any other versions of maven should
+is tested using OpenJDK 8, 11, 17, 21, and 25. Any other versions of maven should
 work, but have not been tested.
 
 The JJNL uses a multi-module layout, and the entire project can be built by
@@ -63,17 +63,17 @@ Logging:
 --------
 To change the logging level, you can either set the `log4j2.level` system property at the command line (e.g.):
 
-     java -Dlog4j2.level=DEBUG -jar target/jnl_test-1.2.0.0.jar ./sampleSubscriber.json
+     java -Dlog4j2.level=DEBUG -jar target/jnl_test-1.3.0.0.jar ./sampleSubscriber.json
 
 or set the `log4j2.configurationFile` system property and pass in a custom `log4j2.xml` file (e.g.):
 
-    java -Dlog4j2.configurationFile=log4j2.debug.xml -jar target/jnl_test-1.2.0.0.jar ./sampleSubscriber.json
+    java -Dlog4j2.configurationFile=log4j2.debug.xml -jar target/jnl_test-1.3.0.0.jar ./sampleSubscriber.json
 
 The default logging level is INFO.
 
 To append to a file, you can redirect output using Bash as follows:
 
-    java -Dlog4j2.configurationFile=log4j2.debug.xml -jar target/jnl_test-1.2.0.0.jar ./sampleSubscriber.json 1>output.log 2>error.log
+    java -Dlog4j2.configurationFile=log4j2.debug.xml -jar target/jnl_test-1.3.0.0.jar ./sampleSubscriber.json 1>output.log 2>error.log
 
 Or you can update the custom `log4j2.xml` by adding a File Appender as follows:
 
