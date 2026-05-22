@@ -1,3 +1,19 @@
+/**
+ * Copyright (C) 2026 Concurrent Technologies Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 package com.tresys.jalop.jnl.impl.http;
 
 import java.util.ArrayList;
@@ -54,58 +70,58 @@ public class HttpUtils {
     public static final String UNKNOWN = "unknown";
     public static final String UNKNOWN_EQUALS = UNKNOWN + "=";
 
-    public static final String HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE = "JAL-Accept-Configure-Digest-Challenge";
-    public static final String HDRS_ACCEPT_DIGEST = "JAL-Accept-Digest";
-    public static final String HDRS_AGENT = "JAL-Agent";
-    public static final String HDRS_APP_META_LEN = "JAL-Application-Metadata-Length";
-    public static final String HDRS_AUDIT_FORMAT = "JAL-Audit-Format";
-    public static final String HDRS_AUDIT_LEN = "JAL-Audit-Length";
-    public static final String HDRS_CONFIGURE_DIGEST_CHALLENGE = "JAL-Configure-Digest-Challenge";
-    public static final String HDRS_CONTENT_TXFR_ENCODING = "Content-Transfer-Encoding";
-    public static final String HDRS_CONTENT_TYPE = "Content-Type";
-    public static final String HDRS_CONTENT_LENGTH = "Content-Length";
-    public static final String HDRS_COUNT = "JAL-Count";
-    public static final String HDRS_DIGEST = "JAL-Digest";
-    public static final String HDRS_DIGEST_STATUS = "JAL-Digest-Status";
-    public static final String HDRS_DIGEST_VALUE = "JAL-Digest-Value";
-    public static final String HDRS_INVALID_DIGEST = "JAL-Invalid-Digest";
-    public static final String HDRS_INVALID_DIGEST_STATUS = "JAL-Invalid-Digest-Status";
-    public static final String HDRS_INVALID_JAL_ID = "JAL-Invalid-JAL-Id";
-    public static final String HDRS_INVALID_SYS_META_LEN= "JAL-Invalid-System-Metadata-Length";
-    public static final String HDRS_INVALID_APP_META_LEN= "JAL-Invalid-Application-Metadata-Length";
-    public static final String HDRS_INVALID_AUDIT_LEN= "JAL-Invalid-Audit-Length";
-    public static final String HDRS_INVALID_JOURNAL_LEN= "JAL-Invalid-Journal-Length";
-    public static final String HDRS_INVALID_LOG_LEN= "JAL-Invalid-Log-Length";
-    public static final String HDRS_INVALID_JAL_COUNT= "JAL-Invalid-JAL-Count";
-    public static final String HDRS_INVALID_JOURNAL_OFFSET= "JAL-Invalid-Journal-Offset";
-    public static final String HDRS_JOURNAL_LEN = "JAL-Journal-Length";
-    public static final String HDRS_JOURNAL_OFFSET = "JAL-Journal-Offset";
-    public static final String HDRS_LOG_LEN = "JAL-Log-Length";
-    public static final String HDRS_MESSAGE = "JAL-Message";
-    public static final String HDRS_MODE = "JAL-Mode";
-    public static final String HDRS_NONCE = "JAL-Id";
-    public static final String HDRS_PUBLISHER_ID = "JAL-Publisher-Id";
-    public static final String HDRS_RECORD_FAILURE = "JAL-Record-Failure";
-    public static final String HDRS_RECORD_TYPE = "JAL-Record-Type";
-    public static final String HDRS_SESSION_ID = "JAL-Session-Id";
-    public static final String HDRS_SESSION_ALREADY_EXISTS = "JAL-Session-Already-Exists";
-    public static final String HDRS_SYS_META_LEN = "JAL-System-Metadata-Length";
-    public static final String HDRS_UNSUPPORTED_AUDIT_FORMAT= "JAL-Unsupported-Audit-Format";
-    public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "JAL-Unsupported-Configure-Digest-Challenge";
-    public static final String HDRS_UNSUPPORTED_DIGEST = "JAL-Unsupported-Digest";
-    public static final String HDRS_UNSUPPORTED_MODE = "JAL-Unsupported-Mode";
-    public static final String HDRS_UNSUPPORTED_PUBLISHER_ID = "JAL-Unsupported-Publisher-Id";
-    public static final String HDRS_UNSUPPORTED_SESSION_ID = "JAL-Unsupported-Session-Id";
-    public static final String HDRS_UNSUPPORTED_VERSION = "JAL-Unsupported-Version";
-    public static final String HDRS_VERSION = "JAL-Version";
-    public static final String HDRS_ACCEPT_XML_COMPRESSION="JAL-Accept-XML-Compression";
-    public static final String HDRS_UNSUPPORTED_XML_COMPRESSION = "JAL-Unsupported-XML-Compression";
-    public static final String HDRS_XML_COMPRESSION = "JAL-XML-Compression";
-    public static final String HDRS_UNSUPPORTED_RECORD_TYPE = "JAL-Unsupported-Record-Type";
-    public static final String HDRS_ERROR_MESSAGE = "JAL-Error-Message";
-    public static final String HDRS_SYNC_FAILURE = "JAL-Sync-Failure";
-    public static final String HDRS_JOURNAL_MISSING_FAILURE = "JAL-Journal-Missing-Failure";
-    public static final String HDRS_INVALID_LOG_RECORD = "JAL-Invalid-Log-Record";
+    public static final String HDRS_ACCEPT_CONFIGURE_DIGEST_CHALLENGE = "jal-accept-configure-digest-challenge";
+    public static final String HDRS_ACCEPT_DIGEST = "jal-accept-digest";
+    public static final String HDRS_AGENT = "jal-agent";
+    public static final String HDRS_APP_META_LEN = "jal-application-metadata-length";
+    public static final String HDRS_AUDIT_FORMAT = "jal-audit-format";
+    public static final String HDRS_AUDIT_LEN = "jal-audit-length";
+    public static final String HDRS_CONFIGURE_DIGEST_CHALLENGE = "jal-configure-digest-challenge";
+    public static final String HDRS_CONTENT_TXFR_ENCODING = "content-transfer-encoding";
+    public static final String HDRS_CONTENT_TYPE = "content-type";
+    public static final String HDRS_CONTENT_LENGTH = "content-length";
+    public static final String HDRS_COUNT = "jal-count";
+    public static final String HDRS_DIGEST = "jal-digest";
+    public static final String HDRS_DIGEST_STATUS = "jal-digest-status";
+    public static final String HDRS_DIGEST_VALUE = "jal-digest-value";
+    public static final String HDRS_INVALID_DIGEST = "jal-invalid-digest";
+    public static final String HDRS_INVALID_DIGEST_STATUS = "jal-invalid-digest-status";
+    public static final String HDRS_INVALID_JAL_ID = "jal-invalid-jal-id";
+    public static final String HDRS_INVALID_SYS_META_LEN= "jal-invalid-system-metadata-length";
+    public static final String HDRS_INVALID_APP_META_LEN= "jal-Invalid-application-metadata-length";
+    public static final String HDRS_INVALID_AUDIT_LEN= "jal-invalid-audit-length";
+    public static final String HDRS_INVALID_JOURNAL_LEN= "jal-invalid-journal-length";
+    public static final String HDRS_INVALID_LOG_LEN= "jal-invalid-log-length";
+    public static final String HDRS_INVALID_JAL_COUNT= "jal-invalid-jal-count";
+    public static final String HDRS_INVALID_JOURNAL_OFFSET= "jal-invalid-journal-offset";
+    public static final String HDRS_JOURNAL_LEN = "jal-journal-length";
+    public static final String HDRS_JOURNAL_OFFSET = "jal-journal-offset";
+    public static final String HDRS_LOG_LEN = "jal-log-length";
+    public static final String HDRS_MESSAGE = "jal-message";
+    public static final String HDRS_MODE = "jal-mode";
+    public static final String HDRS_NONCE = "jal-id";
+    public static final String HDRS_PUBLISHER_ID = "jal-publisher-id";
+    public static final String HDRS_RECORD_FAILURE = "jal-record-failure";
+    public static final String HDRS_RECORD_TYPE = "jal-record-type";
+    public static final String HDRS_SESSION_ID = "jal-session-id";
+    public static final String HDRS_SESSION_ALREADY_EXISTS = "jal-session-already-exists";
+    public static final String HDRS_SYS_META_LEN = "jal-system-metadata-length";
+    public static final String HDRS_UNSUPPORTED_AUDIT_FORMAT= "jal-unsupported-audit-format";
+    public static final String HDRS_UNSUPPORTED_CONFIGURE_DIGEST_CHALLENGE = "jal-unsupported-configure-digest-challenge";
+    public static final String HDRS_UNSUPPORTED_DIGEST = "jal-unsupported-digest";
+    public static final String HDRS_UNSUPPORTED_MODE = "jal-unsupported-mode";
+    public static final String HDRS_UNSUPPORTED_PUBLISHER_ID = "jal-unsupported-publisher-id";
+    public static final String HDRS_UNSUPPORTED_SESSION_ID = "jal-unsupported-session-id";
+    public static final String HDRS_UNSUPPORTED_VERSION = "jal-unsupported-version";
+    public static final String HDRS_VERSION = "jal-version";
+    public static final String HDRS_ACCEPT_XML_COMPRESSION="jal-accept-xml-compression";
+    public static final String HDRS_UNSUPPORTED_XML_COMPRESSION = "jal-unsupported-xml-compression";
+    public static final String HDRS_XML_COMPRESSION = "jal-xml-compression";
+    public static final String HDRS_UNSUPPORTED_RECORD_TYPE = "jal-unsupported-record-type";
+    public static final String HDRS_ERROR_MESSAGE = "jal-error-message";
+    public static final String HDRS_SYNC_FAILURE = "jal-sync-failure";
+    public static final String HDRS_JOURNAL_MISSING_FAILURE = "jal-journal-missing-failure";
+    public static final String HDRS_INVALID_LOG_RECORD = "jal-invalid-log-record";
 
     //Additional constants
     public static final String[] SUPPORTED_XML_COMPRESSIONS = new String[] {"none", "exi-1.0", "deflate"};
@@ -195,7 +211,7 @@ public class HttpUtils {
         this.allowedConfigureDigests = allowedConfigureDigests;
     }
 
-    public List<String> getSupportedDigestAlgorithms() 
+    public List<String> getSupportedDigestAlgorithms()
     {
         if (this.supportedDigestAlgorithms == null)
         {
@@ -242,6 +258,10 @@ public class HttpUtils {
             String headerValue = request.getHeader(headerName);
             logger.debug("Header Name: " + headerName + " Header Value: " + headerValue);
 
+            if (headerName != null)
+            {
+            	headerName = headerName.toLowerCase();
+            }
             currHeaders.put(headerName, headerValue);
         }
 
@@ -254,6 +274,11 @@ public class HttpUtils {
 
         for (String headerName : headerNames) {
             String headerValue = response.getHeader(headerName);
+
+            if (headerName != null)
+            {
+            	headerName = headerName.toLowerCase();
+            }
             logger.debug("Response Header: " + headerName + " Value: " + headerValue);
         }
     }
@@ -417,7 +442,7 @@ public class HttpUtils {
         // trim entries in the digests String
         List<String> acceptDigests = parseHeaderList(currDigests);
 
-        //Check to ensure the digest is valid, the first entry in the list is the preferred value 
+        //Check to ensure the digest is valid, the first entry in the list is the preferred value
         for (String currDigest : acceptDigests)  // these are URI strings
         {
             DigestAlgorithmEnum digestAlg = DigestAlgorithmEnum.fromUri(currDigest);
