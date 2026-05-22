@@ -1,13 +1,5 @@
-/*
- * Source code in 3rd-party is licensed and owned by their respective
- * copyright holders.
- *
- * All other source code is copyright Tresys Technology and licensed as below.
- *
- * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
- *
- * This software was developed by Tresys Technology LLC
- * with U.S. Government sponsorship.
+/**
+ * Copyright (C) 2026 Concurrent Technologies Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
+
 package com.tresys.jalop.utils.jnltest;
 
 import java.io.BufferedOutputStream;
@@ -43,13 +36,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.google.common.io.PatternFilenameFilter;
 import com.tresys.jalop.jnl.DigestStatus;
@@ -73,19 +68,9 @@ import com.tresys.jalop.jnl.SubscriberSession;
 public class SubscriberImpl implements Subscriber {
 
 	/**
-	 * Key in the status file for the digest status (confirmed, invalid, unknown).
-	 */
-	private static final String DGST_CONF = "digest_conf";
-
-	/**
 	 * Filename where status information is written to.
 	 */
 	private static final String STATUS_FILENAME = "status.js";
-
-	/**
-	 * Filename where last nonce with a confirmed digest is written to.
-	 */
-	private static final String LAST_CONFIRMED_FILENAME = "lastConfirmedNonce.js";
 
 	/**
 	 * Key in the status file for the expected size of the application meta-data.
@@ -121,14 +106,9 @@ public class SubscriberImpl implements Subscriber {
 	private static final String LOCAL_NONCE = "local_nonce";
 
 	/**
-	 * Key in the lastConfirmed file for the last nonce with a confirmed digest
-	 */
-	private static final String LAST_CONFIRMED_NONCE = "last_confirmed_nonce";
-
-	/**
 	 * Key in the status file for the calculated digest.
 	 */
-	private static final Object DGST = "digest";
+	private static final String DGST = "digest";
 
 	/**
 	 * The filename for the system meta-data document.
@@ -144,26 +124,6 @@ public class SubscriberImpl implements Subscriber {
 	 * The filename for the payload.
 	 */
 	private static final String PAYLOAD_FILENAME = "payload";
-
-	/**
-	 * Indicates that both sides agree on the digest value.
-	 */
-	private static final Object CONFIRMED = "confirmed";
-
-	/**
-	 * Indicates the remote can't find a digest value for the specified nonce ID.
-	 */
-	private static final Object UNKNOWN = "unknown";
-
-	/**
-	 * Indicates that both sides disagree on the digest value.
-	 */
-	private static final Object INVALID = "invalid";
-
-	/**
-	 * Key in the status file to indicate if a 'sync' message was sent.
-	 */
-	private static final String SYNCED = "synced";
 
 	/**
 	 * Root of the output directories. Each record gets it's own sub-directory.
@@ -242,16 +202,6 @@ public class SubscriberImpl implements Subscriber {
 	private final String remoteIp;
 
 	/**
-	 * The file to write the last confirmed nonce to.
-	 */
-	private final File lastConfirmedFile;
-
-	/**
-	 * The maximum length of a lastConfirmedNonce.js file
-	 */
-	public final int maxLastConfirmedSize = 110;
-
-	/**
 	 * The nonce to send in a subscribe message.
 	 */
 	String lastNonceFromRemote = null;
@@ -299,9 +249,9 @@ public class SubscriberImpl implements Subscriber {
 		 */
 		public final File statusFile;
 		/**
-		 * Cached copy of the JSON stats.
+		 * Cached copy of the properties file status.
 		 */
-		public final JSONObject status;
+		public final Properties status;
 
 		/**
 		 * Create a new {@link LocalRecordInfo} object.
@@ -333,12 +283,12 @@ public class SubscriberImpl implements Subscriber {
 			= new File(SubscriberImpl.this.outputIpRoot,
 					SubscriberImpl.NONCE_FORMATER.format(localNonce));
 			this.statusFile = new File(this.recordDir, STATUS_FILENAME);
-			this.status = new JSONObject();
-			this.status.put(APP_META_SZ, appMetaLen);
-			this.status.put(SYS_META_SZ, sysMetaLen);
-			this.status.put(PAYLOAD_SZ, payloadLen);
-			this.status.put(REMOTE_NONCE, remoteNonce);
-			this.status.put(REMOTE_IP, SubscriberImpl.this.remoteIp);
+			this.status = new Properties();
+			this.status.setProperty(APP_META_SZ, Long.toString(appMetaLen));
+			this.status.setProperty(SYS_META_SZ, Long.toString(sysMetaLen));
+			this.status.setProperty(PAYLOAD_SZ, Long.toString(payloadLen));
+			this.status.setProperty(REMOTE_NONCE, remoteNonce);
+			this.status.setProperty(REMOTE_IP, SubscriberImpl.this.remoteIp);
 		}
 	}
 
@@ -393,15 +343,6 @@ public class SubscriberImpl implements Subscriber {
 					+ remoteAddr.getHostAddress() + "/"
 					+ type);
 		}
-		this.lastConfirmedFile = new File(this.outputIpRoot, LAST_CONFIRMED_FILENAME);
-		if (!lastConfirmedFile.exists()) {
-			try {
-				this.lastConfirmedFile.createNewFile();
-			} catch (final IOException e) {
-				LOGGER.fatal("Failed to create file: " + LAST_CONFIRMED_FILENAME);
-				throw new RuntimeException(e);
-			}
-		}
 
 		try {
 			prepareForSubscribe();
@@ -424,47 +365,15 @@ public class SubscriberImpl implements Subscriber {
 	 *
 	 * @throws IOException If there is an error reading existing files, or an
 	 * error removing stale directories.
-	 * @throws org.json.simple.parser.ParseException
-	 * @throws ParseException If there is an error parsing status files.
 	 * @throws java.text.ParseException If there is an error parsing a directory
 	 * name.
 	 */
-	final void prepareForSubscribe() throws IOException, ParseException,
-	java.text.ParseException {
-
-		final File[] outputRecordDirs = this.outputRoot.listFiles(SubscriberImpl.FILE_FILTER);
-		long lastNonce = 0;
-		if (outputRecordDirs.length >= 1) {
-			Arrays.sort(outputRecordDirs);
-			final List<File> sortedOutputRecords = java.util.Arrays.asList(outputRecordDirs);
-			final File lastRecord = sortedOutputRecords.get(sortedOutputRecords.size() - 1);
-			lastNonce = Long.valueOf(lastRecord.getName());
-		}
-
-		switch (this.recordType) {
-		case Audit:
-			this.jnlTest.setLatestAuditNONCE(lastNonce++);
-			break;
-		case Journal:
-			this.jnlTest.setLatestJournalNONCE(lastNonce++);
-			break;
-		case Log:
-			this.jnlTest.setLatestLogNONCE(lastNonce++);
-			break;
-		}
+	final void prepareForSubscribe() throws IOException, java.text.ParseException {
 
 		this.lastNonceFromRemote = SubscribeRequest.EPOC;
 		this.journalOffset = 0;
-		final JSONParser p = new JSONParser();
+		final Properties p = new Properties();
 		final File[] recordDirs = this.outputIpRoot.listFiles(SubscriberImpl.FILE_FILTER);
-
-		if (this.lastConfirmedFile.length() > 0) {
-			final JSONObject lastConfirmedJson = (JSONObject) p.parse(new FileReader(
-					this.lastConfirmedFile));
-
-			this.lastNonceFromRemote = (String) lastConfirmedJson.get(LAST_CONFIRMED_NONCE);
-
-		}
 
 		final Set<File> deleteDirs = new HashSet<File>();
 
@@ -476,14 +385,29 @@ public class SubscriberImpl implements Subscriber {
 			final File firstRecord = sortedRecords.remove(0);
 			deleteDirs.addAll(sortedRecords);
 
-			JSONObject status;
+			Properties status = new Properties();
 			try {
-				status = (JSONObject) p.parse(new FileReader(
-						new File(firstRecord,
-								  STATUS_FILENAME)));
+				status.load(new FileReader(
+						new File(firstRecord, STATUS_FILENAME)));
 
-				final Number payloadSize = (Number) status.get(PAYLOAD_SZ);
-				if (!CONFIRMED.equals(status.get(DGST_CONF)) && payloadSize != null) {
+				Number payloadSize = null;
+
+				//#1226 - Handle case where incomplete record exists due to reconnects and a 0 byte status.js file exists
+				//which results in a null value for original payload size
+				//If this occurs payloadSize above will stay null and journal resume will be skipped.
+				try
+				{
+					payloadSize = (Number) Long.parseLong(status.getProperty(PAYLOAD_SZ));
+				}
+				catch (NumberFormatException nfe)
+				{
+					//Log and ignore error
+					if (LOGGER.isDebugEnabled()) {
+						LOGGER.debug("Deleting " + firstRecord + ", because the '" + STATUS_FILENAME + "' file is empty");
+					}
+				}
+
+				if (payloadSize != null) {
 
 					//#880 - Do not perform journal resume if current payload size is equal to the expected payload size
 					//and the record is not confirmed. 0 byte journal resume is not supported.
@@ -492,12 +416,13 @@ public class SubscriberImpl implements Subscriber {
 					//If this setting is -1 or less then journal resume is disabled.
 					File currentPayload = new File(firstRecord, PAYLOAD_FILENAME);
 					if (currentPayload.length() >= payloadSize.longValue()
-							|| currentPayload.length() < this.journalResumeThresholdSize || this.journalResumeThresholdSize <= -1) {
+							|| currentPayload.length() < this.journalResumeThresholdSize
+							|| this.journalResumeThresholdSize <= -1) {
 						deleteDirs.add(firstRecord);
 					} else {
 						// journal record can be resumed
 						this.lastNonceFromRemote
-						= (String) status.get(REMOTE_NONCE);
+						= (String) status.getProperty(REMOTE_NONCE);
 						this.journalOffset = currentPayload.length();
 						FileUtils.forceDelete(new File(firstRecord, APP_META_FILENAME));
 						FileUtils.forceDelete(new File(firstRecord, SYS_META_FILENAME));
@@ -515,13 +440,7 @@ public class SubscriberImpl implements Subscriber {
 					LOGGER.debug("Deleting " + firstRecord + ", because it is missing the '" + STATUS_FILENAME + "' file");
 				}
 				deleteDirs.add(firstRecord);
-			} catch (final ParseException e) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Deleting " + firstRecord + ", because failed to parse '" + STATUS_FILENAME + "' file");
-				}
-				deleteDirs.add(firstRecord);
 			}
-
 		} else {
 			// Any confirmed record should have been moved so deleting all that are left
 			deleteDirs.addAll(java.util.Arrays.asList(recordDirs));
@@ -599,15 +518,15 @@ public class SubscriberImpl implements Subscriber {
 	/**
 	 * Write status information about a record out to disk.
 	 * @param file The {@link File} object to write to
-	 * @param toWrite The {@link JSONObject} that will be written to the file
+	 * @param toWrite The {@link Properties} that will be written to the file
 	 * @return <code>true</code> If the data was successfully written out.
 	 *         <code>false</code> otherwise.
 	 */
-	final boolean dumpStatus(final File file, final JSONObject toWrite) {
+	final boolean dumpStatus(final File file, final Properties toWrite) {
 		BufferedOutputStream w;
 		try {
 			w = new BufferedOutputStream(new FileOutputStream(file));
-			w.write(toWrite.toJSONString().getBytes("utf-8"));
+			toWrite.store(w, "last confirmed status");
 			w.close();
 		} catch (final FileNotFoundException e) {
 			LOGGER.error("Failed to open file (" + file.getPath() + ") for writing:"
@@ -781,7 +700,7 @@ public class SubscriberImpl implements Subscriber {
 			return false;
 		}
 
-		lri.status.put(DGST, hexString);
+		lri.status.setProperty(DGST, hexString);
 		return true;
 	}
 
@@ -801,30 +720,21 @@ public class SubscriberImpl implements Subscriber {
 			LOGGER.warn("notifyDigestResponse: Can't find local status for: " + nonce);
 			ret = true;
 		} else {
-			switch (status) {
-			case Confirmed:
-				lri.status.put(DGST_CONF, CONFIRMED);
-				break;
-			case Unknown:
-				lri.status.put(DGST_CONF, UNKNOWN);
-				break;
-			case Invalid:
-				lri.status.put(DGST_CONF, INVALID);
-				break;
-			default:
-				LOGGER.error("Undefined confirmation status for nonce: " + nonce);
-				return false;
-			}
 
-			// Store off the status for the record - still in temp
-			if (!dumpStatus(lri.statusFile, lri.status)) {
-				ret = false;
-			}
+			// Don't bother storing off the status
+			// We're either about to move the record or delete it, and after that
+			// the state file is no longer useful
 
 			// If the digest is confirmed, go ahead and move the record from temp directory
 			// Otherwise record stays in temp
 			if (DigestStatus.Confirmed.equals(status)) {
 				if (!moveConfirmedRecord(lri)) {
+					ret = false;
+				}
+			} else {
+				if (!deleteRecord(lri))
+				{
+					LOGGER.error("Failed to delete record:  " + lri.recordDir.getAbsolutePath());
 					ret = false;
 				}
 			}
@@ -849,7 +759,7 @@ public class SubscriberImpl implements Subscriber {
 
 	@SuppressWarnings("unchecked")
 	private boolean moveConfirmedRecord(final LocalRecordInfo lri) {
-		String nonce = (String) lri.status.get(REMOTE_NONCE);
+		String nonce = (String) lri.status.getProperty(REMOTE_NONCE);
 		if(nonce == null){
 			LOGGER.error("REMOTE_NONCE is NULL");
 			return false;
@@ -861,49 +771,66 @@ public class SubscriberImpl implements Subscriber {
 		}
 		final File dest = new File(this.outputRoot, directoryName);
 
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Renaming directory from: " + lri.recordDir.getAbsolutePath() + " to: "
-					+ dest.getAbsolutePath());
-		}
+		//Handles moving the confirmed files
+		try
+		{
+			//JAL-1225 - deletes any dest dir if it exists due to jald reconnects and incomplete sync
+			if (dest.exists())
+			{
+				try
+				{
+					LOGGER.info("Deleting existing destination record directory due to previous incomplete sync: " + dest.getAbsolutePath());
+					FileUtils.deleteDirectory(dest);
+				}
+				catch (IOException ioe)
+				{
+					LOGGER.error("Error deleting destination record directory: " + dest.getAbsolutePath(), ioe);
+					return false;
+				}
+			}
+			Path sourcePath = Paths.get(lri.recordDir.getAbsolutePath());
+			Path destPath = Paths.get(dest.getAbsolutePath());
 
-		if (lri.recordDir.renameTo(dest)) {
-			final JSONObject lastConfirmedStatus = new JSONObject();
-			final String remoteNonce = (String) lri.status.get(REMOTE_NONCE);
-			lastConfirmedStatus.put(LAST_CONFIRMED_NONCE, remoteNonce);
-			dumpStatus(this.lastConfirmedFile, lastConfirmedStatus);
-		} else {
-			LOGGER.error("Error trying to move confirmed file.");
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Renaming directory from: " + lri.recordDir.getAbsolutePath() + " to: "
+						+ dest.getAbsolutePath());
+			}
+
+			Files.move(sourcePath, destPath, StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (IOException ioe)
+		{
+			LOGGER.error("Error trying to move confirmed file.", ioe);
 			return false;
 		}
 
 		return true;
 	}
 
-	/**
-	 * Retrieve the next available nonce for the record type.
-	 *
-	 * @return the next unused nonce for the record type
-	 */
-	private long retrieveLatestNonce() {
-		long latestNonce = 1;
+	@SuppressWarnings("unchecked")
+	private boolean deleteRecord(final LocalRecordInfo lri) {
 
-		synchronized (this.jnlTest) {
-			switch (this.recordType) {
-			case Audit:
-				latestNonce = this.jnlTest.getLatestAuditNONCE();
-				this.jnlTest.setLatestAuditNONCE(++latestNonce);
-				break;
-			case Journal:
-				latestNonce = this.jnlTest.getLatestJournalNONCE();
-				this.jnlTest.setLatestJournalNONCE(++latestNonce);
-				break;
-			case Log:
-				latestNonce = this.jnlTest.getLatestLogNONCE();
-				this.jnlTest.setLatestLogNONCE(++latestNonce);
-				break;
-			}
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Deleting record directory: " + lri.recordDir.getAbsolutePath());
 		}
-		return latestNonce;
+
+		if (!lri.recordDir.exists())
+		{
+			LOGGER.error("Record directory does not exist: " + lri.recordDir.getAbsolutePath());
+			return false;
+		}
+
+		try
+		{
+			FileUtils.deleteDirectory(lri.recordDir);
+		}
+		catch (IOException ioe)
+		{
+			LOGGER.error("Error deleting record directory: " + lri.recordDir.getAbsolutePath(), ioe);
+			return false;
+		}
+
+		return true;
 	}
 
 }

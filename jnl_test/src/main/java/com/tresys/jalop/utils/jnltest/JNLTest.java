@@ -1,13 +1,5 @@
-/*
- * Source code in 3rd-party is licensed and owned by their respective
- * copyright holders.
- *
- * All other source code is copyright Tresys Technology and licensed as below.
- *
- * Copyright (c) 2012,2014 Tresys Technology LLC, Columbia, Maryland, USA
- *
- * This software was developed by Tresys Technology LLC
- * with U.S. Government sponsorship.
+/**
+ * Copyright (C) 2026 Concurrent Technologies Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
+
 package com.tresys.jalop.utils.jnltest;
 
 import java.io.IOException;
@@ -84,18 +77,6 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	 */
 	private ConnectionHandler connectionHandler;
 	/**
-	 * Counter to keep track of the last used nonce for log records
-	 */
-	private long latestLogNONCE;
-	/**
-	 * Counter to keep track of the last used nonce for audit records
-	 */
-	private long latestAuditNONCE;
-	/**
-	 * Counter to keep track of the last used nonce for journal records
-	 */
-	private long latestJournalNONCE;
-	/**
 	 * Create a JNLTest object based on the specified configuration.
 	 *
 	 * @param config
@@ -103,48 +84,6 @@ public class JNLTest implements Subscriber, Publisher, ConnectionHandler {
 	 */
 	public JNLTest(final Config config) {
 		this.config = config;
-	}
-
-	/**
-	 * @return the latestLogNONCE
-	 */
-	public long getLatestLogNONCE() {
-		return latestLogNONCE;
-	}
-
-	/**
-	 * @param latestLogNONCE the latestLogNONCE to set
-	 */
-	public void setLatestLogNONCE(final long latestLogNONCE) {
-		this.latestLogNONCE = latestLogNONCE;
-	}
-
-	/**
-	 * @return the latestAuditNONCE
-	 */
-	public long getLatestAuditNONCE() {
-		return latestAuditNONCE;
-	}
-
-	/**
-	 * @param latestAuditNONCE the latestAuditNONCE to set
-	 */
-	public void setLatestAuditNONCE(final long latestAuditNONCE) {
-		this.latestAuditNONCE = latestAuditNONCE;
-	}
-
-	/**
-	 * @return the latestJournalNONCE
-	 */
-	public long getLatestJournalNONCE() {
-		return latestJournalNONCE;
-	}
-
-	/**
-	 * @param latestJournalNONCE the latestJournalNONCE to set
-	 */
-	public void setLatestJournalNONCE(final long latestJournalNONCE) {
-		this.latestJournalNONCE = latestJournalNONCE;
 	}
 
 	/**
