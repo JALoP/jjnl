@@ -1,3 +1,9 @@
+Summary of release 2.3.0.0 changes (Thu May 21 2026) -
+    - Added RHEL 10 support, beside existing RHEL 8/9 support. RHEL 7 support has been dropped.
+    - Added Java 25 support, beside existing Java 17/21 support. Java 8/11 have been dropped because Jetty does not support those anymore.
+    - Upgraded to Jetty 12.1.6
+    - Bug fixes, performance enhancements, clean ups.
+
 Summary of release 2.2.0.0 changes (Fri Jan 30 2026) -
     - Added RHEL 9 support.
     - Added Java 17 and 21 support.
